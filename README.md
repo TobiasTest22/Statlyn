@@ -26,11 +26,11 @@ Statlyn is a desktop football recruitment intelligence platform for Football Man
 - External provider support: CSV/JSON/provider skeletons only.
 - Field policy registry: deny-by-default masking for display, scoring and storage.
 - Field instance keys: grouped values such as `TechnicalAttribute:Finishing` and `PlayerStat:xG` are preserved without overwriting.
-- Player Profile: data-driven fixture-mode slice backed by safe profile/visual model contracts.
+- Player Profile: fixture preview flows through `ScoutingKnowledgeFirewall`, `RoleScoringEngine` and `MaskedPlayerProfileViewModel` before Unity renders it.
 
 When FM26 is detected but no validated memory map exists, Statlyn must show an unsupported or partial state and return no fake player data.
 
-CSV and JSON import support is local-file skeleton work only. It does not scrape, call FotMob, use unofficial endpoints or assume unlicensed images are available. Fixture data is synthetic development/test data only. The Player Profile slice is data-driven from masked fixture-style data, not live FM26.
+CSV and JSON import support is local-file skeleton work only. It does not scrape, call FotMob, use unofficial endpoints or assume unlicensed images are available. Fixture data is synthetic development/test data only. The Player Profile slice is generated from a synthetic raw fixture that passes through the scouting firewall, role scoring and masked profile view model. It is not live FM26 data.
 
 ## Repository Layout
 
@@ -81,6 +81,16 @@ cmake --build build\native --config Release
 ```
 
 Open `Statlyn.UnityApp` with Unity 6 or newer to run the desktop shell.
+
+Before opening Unity for the Player Profile slice, copy the shared managed assemblies into the Unity managed plugin folder:
+
+```powershell
+.\tools\copy-managed-to-unity.ps1
+```
+
+Unity editor validation is still manual unless a release note says it was opened and checked locally.
+
+GitHub Actions validates the managed build/tests and the native CMake build.
 
 ## Core Safety Rule
 

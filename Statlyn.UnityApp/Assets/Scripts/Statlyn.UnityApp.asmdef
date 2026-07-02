@@ -5,8 +5,14 @@
   "includePlatforms": [],
   "excludePlatforms": [],
   "allowUnsafeCode": false,
-  "overrideReferences": false,
-  "precompiledReferences": [],
+  "overrideReferences": true,
+  "precompiledReferences": [
+    "Statlyn.Core.dll",
+    "Statlyn.DataProviders.dll",
+    "Statlyn.Scouting.dll",
+    "Statlyn.Analytics.dll",
+    "Statlyn.UI.dll"
+  ],
   "autoReferenced": true,
   "defineConstraints": [],
   "versionDefines": [],

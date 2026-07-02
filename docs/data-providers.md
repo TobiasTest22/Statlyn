@@ -8,7 +8,7 @@ provider -> source metadata -> raw snapshot -> field policy registry -> masked d
 
 ## Provider Contract
 
-`IDataProvider` now exposes:
+`IDataProvider` exposes:
 
 - `ValidateAccess()`
 - `ReadSourceMetadata()`
@@ -33,10 +33,20 @@ There is no FotMob scraper. Any FotMob-style provider would require licensed, ex
 
 ## Source Metadata
 
-Every source records licence status, allowed usage, image permission, flag permission, confidence and completeness. Field policies use this metadata before anything reaches scoring or UI.
+Every source records licence status, allowed usage, confidence and explicit permissions:
+
+- `PermitsPlayerImages`
+- `PermitsProviderFlags`
+- `UsesBundledSafeFlagAssets`
+- `PermitsClubBadges`
+- `AllowsExport`
+
+Field policies use this metadata before anything reaches scoring or UI. Player images and club badges default to blocked. Provider flags require source permission, while bundled safe flag assets can be used only when that mode is explicitly enabled.
 
 ## CSV Mapping
 
 CSV imports use `FootballFieldCatalog` plus optional explicit mappings. The catalog maps common columns such as `Finishing`, `Pace`, `xG`, `xA`, `TopSpeed` and `SprintDistance` into safe field instances.
 
 Diagnostics report file readability, licence state, row count, players imported, mapped field count, unknown/forbidden field counts, image permission, flag permission and completeness. Diagnostics may include field names and counts, but not raw hidden values.
+
+CSV and JSON remain local import skeletons. They do not create live FM26 data and do not assume image URLs, badge URLs or provider flags are licensed.

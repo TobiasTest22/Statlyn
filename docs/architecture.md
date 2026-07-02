@@ -10,9 +10,9 @@ Data provider
 -> field policy registry
 -> scouting knowledge firewall
 -> masked Statlyn entities
--> visual intelligence models
--> local database
 -> analytics and scoring
+-> masked profile view models and visual intelligence models
+-> local database
 -> Unity UI
 ```
 
@@ -33,10 +33,26 @@ For FM26, the data provider is the native connector reading the active process w
 
 Raw provider entities are allowed only in provider and firewall code. UI and scoring receive `MaskedPlayer` instances only.
 
+The Unity Player Profile fixture uses the same managed boundary as tests:
+
+```text
+synthetic raw fixture
+-> ScoutingKnowledgeFirewall
+-> MaskedPlayer
+-> RoleScoringEngine
+-> SourceMetadata
+-> DataCompletenessReport
+-> MaskedPlayerProfileViewModel
+-> UnityProfileRenderModel
+-> Unity UI Toolkit
+```
+
+The Unity adapter is a rendering shape only. It is built from `MaskedPlayerProfileViewModel`, not from `PlayerRawSnapshot`.
+
 Unknown fields are denied by default. Provider facts are not trusted simply because they are named `VisibleFacts`.
 
 Grouped fields use `FieldInstanceKey` so values like `TechnicalAttribute:Finishing`, `TechnicalAttribute:Pace`, `PlayerStat:xG`, `PhysicalData:TopSpeed` and `ScoutObservation:PressingEffort` cannot overwrite one another.
 
 ## Current Build Support
 
-No FM26 build is validated yet. The app and provider therefore return unsupported diagnostics and empty player snapshots rather than fixture data.
+No FM26 build is validated yet. The app and provider therefore return unsupported diagnostics and empty player snapshots rather than fixture data. The Unity fixture preview is synthetic development data and must remain clearly labelled as no live FM26 data.

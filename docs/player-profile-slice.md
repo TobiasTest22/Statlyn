@@ -1,6 +1,6 @@
 # Player Profile Slice
 
-Milestone 1.5 adds the first Unity Player Profile UI foundation.
+Milestone 1.6.1 binds the first Unity Player Profile UI foundation to the shared safe profile pipeline.
 
 ## Current State
 
@@ -36,17 +36,29 @@ synthetic raw fixture
 -> ScoutingKnowledgeFirewall
 -> MaskedPlayer
 -> RoleScoringEngine
+-> SourceMetadata
+-> DataCompletenessReport
 -> MaskedPlayerProfileViewModel
 -> visual profile models
+-> UnityProfileRenderModel
 -> Unity UI
 ```
 
-The Unity shell currently renders from a view-model-shaped fixture preview object while the managed profile contracts are tested in `Statlyn.UI`. Raw player data must not bind to Unity UI.
+The synthetic raw fixture is created privately by `FixtureProfileFactory`. It includes visible development values such as display name, age, nationality, primary position, Finishing, Pace, Acceleration, xG, xA, TopSpeed and SprintDistance. It also includes blocked hidden categories such as CurrentAbility and Professionalism so tests can prove raw hidden values are excluded.
+
+Unity consumes `UnityProfileRenderModel`, a thin render adapter built only from `MaskedPlayerProfileViewModel`. Raw player data must not bind to Unity UI.
 
 ## Visual Intelligence
 
 Milestone 1.6 adds UI-ready visual model contracts for radar metrics, percentile bars, role fit, confidence, risk, evidence cards, trend placeholders, comparison cards, missing data warnings and blocked data notices. These are placeholders for future chart rendering, not decorative chart output.
 
-## Next Steps
+## Safety Rules
 
-Future milestones should bind this surface to masked player profile view models only. Raw provider entities must never bind to the profile UI.
+- Fixture mode must remain visible.
+- No live FM26 data must remain visible.
+- FM26 memory maps remain unsupported until validated.
+- Blocked-data notices may show counts and categories, not raw hidden values.
+- Missing-data warnings must stay visible.
+- Player images use initials or a silhouette unless a source explicitly permits player images.
+- Provider flags require permission; otherwise only bundled safe placeholder flags may be shown.
+- Club badges remain hidden unless permission exists.

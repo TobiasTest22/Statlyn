@@ -25,6 +25,12 @@ The release DLL should later be copied into the Unity plugin folder and final de
 
 ## Unity
 
-Open `Statlyn.UnityApp` in Unity 6 or newer. The shell is intentionally minimal and data-free until a validated provider is connected.
+Copy the shared managed assemblies before opening the project:
+
+```powershell
+.\tools\copy-managed-to-unity.ps1
+```
+
+Open `Statlyn.UnityApp` in Unity 6 or newer. The shell is intentionally limited to unsupported states and synthetic fixture preview data until a validated provider is connected.
 
 Use `docs/unity-validation.md` for the current manual Unity checklist.

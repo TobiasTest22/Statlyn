@@ -19,8 +19,11 @@ namespace Statlyn.Data
                         Confidence INTEGER NOT NULL,
                         AllowedUsage TEXT NOT NULL,
                         IsLive INTEGER NOT NULL DEFAULT 0,
-                        PermitsImages INTEGER NOT NULL DEFAULT 0,
-                        PermitsFlags INTEGER NOT NULL DEFAULT 0,
+                        PermitsPlayerImages INTEGER NOT NULL DEFAULT 0,
+                        PermitsProviderFlags INTEGER NOT NULL DEFAULT 0,
+                        UsesBundledSafeFlagAssets INTEGER NOT NULL DEFAULT 0,
+                        PermitsClubBadges INTEGER NOT NULL DEFAULT 0,
+                        AllowsExport INTEGER NOT NULL DEFAULT 0,
                         DataCompleteness INTEGER NOT NULL DEFAULT 0
                     );",
                     @"CREATE TABLE IF NOT EXISTS FieldPolicyAudit (
@@ -198,7 +201,7 @@ namespace Statlyn.Data
                         TechnicalFit INTEGER NOT NULL,
                         StatisticalFit INTEGER NOT NULL,
                         PhysicalFit INTEGER NOT NULL,
-                        TacticalFit INTEGER NOT NULL,
+                        TacticalFit INTEGER NULL,
                         RiskScore INTEGER NOT NULL,
                         Confidence INTEGER NOT NULL,
                         PositiveEvidence TEXT NOT NULL,

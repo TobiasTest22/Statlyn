@@ -24,12 +24,14 @@ The current Unity shell creates:
 - Empty and unsupported states for FM26 data.
 - First Player Profile slice in clearly marked fixture mode.
 
-The first shell intentionally does not show demo players. Fixture data belongs in automated tests only.
+The first shell intentionally does not show fake live players. The Player Profile slice may show one synthetic development fixture, clearly labelled as fixture mode.
 
-The Player Profile slice uses synthetic fixture-mode copy to preview layout only. It does not claim live FM26 connectivity.
+The Player Profile slice uses synthetic fixture-mode copy to preview layout only. It does not claim live FM26 connectivity, real player images, club badges or unlicensed flags.
 
-The slice is now generated from profile preview data rather than fixed inline labels. The long-term binding target is `MaskedPlayerProfileViewModel`, which is built only from masked data, role scores, source metadata and completeness reports.
+The slice is generated from `MaskedPlayerProfileViewModel` through `UnityProfileRenderModel`, not from raw provider snapshots or hardcoded Unity-only profile data.
 
 ## Player Profile Direction
 
 The player profile should become the design template for later pages. It should include player identity, source confidence, scout knowledge, verdict, role evidence, comparison visuals and missing-data warnings.
+
+Visual copy should stay honest when data is incomplete. Unknown tactical fit should say unknown, low-confidence risk should read as directional rather than precise, and percentile comparisons should say fixture comparison group only in fixture mode.

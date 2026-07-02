@@ -18,7 +18,25 @@ namespace Statlyn.DataProviders
 
         SnapshotResult<bool> Connect();
 
+        DiagnosticReport ValidateAccess();
+
+        ProviderReadResult<SourceMetadata> ReadSourceMetadata();
+
         SnapshotResult<IReadOnlyList<PlayerRawSnapshot>> ReadPlayers();
+
+        ProviderReadResult<IReadOnlyList<TeamSnapshot>> ReadTeams();
+
+        ProviderReadResult<IReadOnlyList<MatchSnapshot>> ReadMatches();
+
+        ProviderReadResult<IReadOnlyList<PlayerStatSnapshot>> ReadPlayerStats();
+
+        ProviderReadResult<IReadOnlyList<ScoutingReportSnapshot>> ReadScoutReports();
+
+        ProviderReadResult<IReadOnlyList<PlayerImageReference>> ReadPlayerImages();
+
+        ProviderReadResult<IReadOnlyList<NationalityFlagReference>> ReadNationalityFlags();
+
+        DataCompletenessReport GetDataCompleteness();
 
         DiagnosticReport GetDiagnostics();
 

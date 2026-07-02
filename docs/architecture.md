@@ -1,12 +1,13 @@
 # Architecture
 
-Statlyn is organized around provider-agnostic football data ingestion and a mandatory visibility layer.
+Statlyn is organized around provider-agnostic football data ingestion and a mandatory field-policy visibility layer.
 
 ```text
 Data provider
 -> raw football data
 -> source validation
 -> licence/permission check
+-> field policy registry
 -> scouting knowledge firewall
 -> masked Statlyn entities
 -> local database
@@ -30,6 +31,8 @@ For FM26, the data provider is the native connector reading the active process w
 ## Non-Negotiable Boundary
 
 Raw provider entities are allowed only in provider and firewall code. UI and scoring receive `MaskedPlayer` instances only.
+
+Unknown fields are denied by default. Provider facts are not trusted simply because they are named `VisibleFacts`.
 
 ## Current Build Support
 

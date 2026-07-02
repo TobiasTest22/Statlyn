@@ -22,8 +22,11 @@ The current Unity shell creates:
 - Scouting firewall status.
 - Advanced diagnostics panel.
 - Empty and unsupported states for FM26 data.
+- First Player Profile slice in clearly marked fixture mode.
 
 The first shell intentionally does not show demo players. Fixture data belongs in automated tests only.
+
+The Player Profile slice uses synthetic fixture-mode copy to preview layout only. It does not claim live FM26 connectivity.
 
 ## Player Profile Direction
 

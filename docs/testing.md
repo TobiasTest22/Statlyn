@@ -21,4 +21,15 @@ The initial tests focus on data-protection behavior:
 - Scoring rejects raw entities.
 - Unsupported FM26 builds return no fake player data.
 
+Milestone 1.5 adds tests for:
+
+- Mislabeled hidden fields in visible facts.
+- Unknown fields denied by default.
+- Licensed external fields blocked without source permission.
+- Player image permission checks.
+- Safe nationality flag permission checks.
+- Scoring exclusion of non-scorable fields.
+- Database schema hidden-field storage checks.
+- CSV fixture import blocking a mislabeled ability column.
+
 Future tests should cover SQLite persistence, real provider imports, Unity UI state transitions and native connector status parsing.

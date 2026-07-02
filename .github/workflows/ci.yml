@@ -1,0 +1,50 @@
+name: Statlyn CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  managed:
+    name: Managed build and tests
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Build
+        run: dotnet build Statlyn.sln
+
+      - name: Test
+        run: dotnet test Statlyn.sln --no-build
+
+      - name: Native read-only scan
+        shell: pwsh
+        run: ./tools/check-native-readonly.ps1
+
+      - name: Validate memory-map JSON
+        shell: pwsh
+        run: |
+          Get-ChildItem -Recurse -Filter *.json | ForEach-Object {
+            Get-Content -Raw -LiteralPath $_.FullName | ConvertFrom-Json | Out-Null
+          }
+
+  native:
+    name: Native connector CMake build
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake -S Statlyn.NativeConnector -B build/native
+
+      - name: Build
+        run: cmake --build build/native --config Release

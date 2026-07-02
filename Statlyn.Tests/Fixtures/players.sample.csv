@@ -1,0 +1,3 @@
+# Synthetic development/test fixture only. Not FM26 live data and not real-life provider data.
+SourcePlayerId,DisplayName,Age,Nationality,PrimaryPosition,Finishing,Pace,CurrentAbility
+fixture-001,Synthetic Forward,22,Romania,ST,14,13,200

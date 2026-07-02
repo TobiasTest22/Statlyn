@@ -23,9 +23,13 @@ Statlyn is a desktop football recruitment intelligence platform for Football Man
 - Core C# libraries: provider model, masked player model, diagnostics, scoring guardrails and scouting knowledge firewall created.
 - Native connector: C++ read-only process-detection skeleton created.
 - FM26 build support: no validated memory maps yet.
-- External provider support: interface foundation only.
+- External provider support: CSV/JSON/provider skeletons only.
+- Field policy registry: deny-by-default masking for display, scoring and storage.
+- Player Profile: first Unity fixture-mode slice only.
 
 When FM26 is detected but no validated memory map exists, Statlyn must show an unsupported or partial state and return no fake player data.
+
+CSV and JSON import support is local-file skeleton work only. It does not scrape, call FotMob, use unofficial endpoints or assume unlicensed images are available. Fixture data is synthetic development/test data only.
 
 ## Repository Layout
 
@@ -41,6 +45,10 @@ When FM26 is detected but no validated memory map exists, Statlyn must show an u
 - `memory-maps` - FM26 memory-map registry templates.
 - `docs` - architecture, connector, UI and testing notes.
 - `tools` - local validation scripts.
+
+## Field Policy Registry
+
+Every raw field must pass through the field policy registry before storage, scoring or UI. Unknown fields are denied by default. Hidden FM26 fields, mislabeled ability values and hidden personality-style values are blocked even if they arrive inside a provider's visible facts.
 
 ## Build
 

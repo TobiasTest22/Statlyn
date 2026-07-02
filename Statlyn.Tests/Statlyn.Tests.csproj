@@ -27,4 +27,8 @@
     <ProjectReference Include="..\Statlyn.Data\Statlyn.Data.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="Fixtures\players.sample.csv" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

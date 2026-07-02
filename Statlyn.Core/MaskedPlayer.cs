@@ -12,6 +12,8 @@ namespace Statlyn.Core
             ProviderType providerType,
             int scoutKnowledgePercentage,
             int confidence,
+            IDictionary<PlayerFieldKey, VisiblePlayerField> fields,
+            IReadOnlyList<BlockedFieldNotice> blockedFields,
             IDictionary<string, VisibleField<int>> attributes,
             IDictionary<string, VisibleField<string>> facts)
         {
@@ -21,8 +23,33 @@ namespace Statlyn.Core
             ProviderType = providerType;
             ScoutKnowledgePercentage = Clamp(scoutKnowledgePercentage);
             Confidence = Clamp(confidence);
+            Fields = new Dictionary<PlayerFieldKey, VisiblePlayerField>(fields ?? new Dictionary<PlayerFieldKey, VisiblePlayerField>());
+            BlockedFields = blockedFields ?? new List<BlockedFieldNotice>();
             Attributes = new Dictionary<string, VisibleField<int>>(attributes ?? new Dictionary<string, VisibleField<int>>(), StringComparer.OrdinalIgnoreCase);
             Facts = new Dictionary<string, VisibleField<string>>(facts ?? new Dictionary<string, VisibleField<string>>(), StringComparer.OrdinalIgnoreCase);
+        }
+
+        public MaskedPlayer(
+            string statlynPlayerId,
+            string displayName,
+            string sourceProvider,
+            ProviderType providerType,
+            int scoutKnowledgePercentage,
+            int confidence,
+            IDictionary<string, VisibleField<int>> attributes,
+            IDictionary<string, VisibleField<string>> facts)
+            : this(
+                statlynPlayerId,
+                displayName,
+                sourceProvider,
+                providerType,
+                scoutKnowledgePercentage,
+                confidence,
+                new Dictionary<PlayerFieldKey, VisiblePlayerField>(),
+                new List<BlockedFieldNotice>(),
+                attributes,
+                facts)
+        {
         }
 
         public string StatlynPlayerId { get; }
@@ -36,6 +63,10 @@ namespace Statlyn.Core
         public int ScoutKnowledgePercentage { get; }
 
         public int Confidence { get; }
+
+        public IReadOnlyDictionary<PlayerFieldKey, VisiblePlayerField> Fields { get; }
+
+        public IReadOnlyList<BlockedFieldNotice> BlockedFields { get; }
 
         public IReadOnlyDictionary<string, VisibleField<int>> Attributes { get; }
 

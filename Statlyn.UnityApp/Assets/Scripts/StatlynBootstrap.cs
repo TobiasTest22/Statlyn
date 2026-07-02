@@ -94,7 +94,7 @@ namespace Statlyn.UnityApp
             title.AddToClassList("screen-title");
             titleStack.Add(title);
 
-            var subtitle = new Label("No live data source connected");
+            var subtitle = new Label("Fixture mode preview - no live FM26 data");
             subtitle.AddToClassList("screen-subtitle");
             titleStack.Add(subtitle);
 
@@ -111,8 +111,144 @@ namespace Statlyn.UnityApp
             dashboard.Add(MakeCard("Recruitment", new[] { "Squad needs: Awaiting data", "Targets: Awaiting data", "Alerts: 0" }));
             dashboard.Add(MakeCard("Protection", new[] { "Hidden values blocked", "Raw entities blocked from UI", "Low confidence requires scouting" }));
 
+            main.Add(MakePlayerProfileSlice());
+
             var diagnostics = MakeDiagnosticsPanel();
             main.Add(diagnostics);
+        }
+
+        private static VisualElement MakePlayerProfileSlice()
+        {
+            var profile = new VisualElement();
+            profile.AddToClassList("profile-slice");
+
+            var header = new VisualElement();
+            header.AddToClassList("profile-header");
+            profile.Add(header);
+
+            var avatar = new VisualElement();
+            avatar.AddToClassList("profile-avatar");
+            var initials = new Label("SF");
+            initials.AddToClassList("profile-avatar-text");
+            avatar.Add(initials);
+            header.Add(avatar);
+
+            var identity = new VisualElement();
+            identity.AddToClassList("profile-identity");
+            header.Add(identity);
+
+            var titleRow = new VisualElement();
+            titleRow.AddToClassList("profile-title-row");
+            identity.Add(titleRow);
+
+            var name = new Label("Synthetic Forward");
+            name.AddToClassList("profile-name");
+            titleRow.Add(name);
+
+            var mode = new Label("Fixture Mode");
+            mode.AddToClassList("fixture-pill");
+            titleRow.Add(mode);
+
+            var detail = new Label("22 · Romania · ST · No live FM26 data");
+            detail.AddToClassList("profile-detail");
+            identity.Add(detail);
+
+            var flag = new Label("Flag placeholder: bundled-safe asset required");
+            flag.AddToClassList("profile-flag");
+            identity.Add(flag);
+
+            var summaryGrid = new VisualElement();
+            summaryGrid.AddToClassList("profile-summary-grid");
+            profile.Add(summaryGrid);
+
+            summaryGrid.Add(MakeMetricCard("Source Confidence", "80", "Synthetic CSV fixture"));
+            summaryGrid.Add(MakeMetricCard("Data Completeness", "62", "Missing scout report and live tactic"));
+            summaryGrid.Add(MakeMetricCard("Role Fit", "Preview", "Circle placeholder"));
+            summaryGrid.Add(MakeMetricCard("Confidence", "Low", "Requires real provider data"));
+            summaryGrid.Add(MakeMetricCard("Risk", "Medium", "Fixture data is not a recommendation"));
+
+            var visualGrid = new VisualElement();
+            visualGrid.AddToClassList("profile-visual-grid");
+            profile.Add(visualGrid);
+
+            var radar = new VisualElement();
+            radar.AddToClassList("radar-card");
+            radar.Add(MakeSectionTitle("Radar Chart"));
+            radar.Add(new Label("Visual placeholder until masked stats exist."));
+            radar.AddToClassList("placeholder-text");
+            visualGrid.Add(radar);
+
+            var bars = new VisualElement();
+            bars.AddToClassList("percentile-card");
+            bars.Add(MakeSectionTitle("Percentile Bars"));
+            bars.Add(MakePercentileBar("Finishing", 68));
+            bars.Add(MakePercentileBar("Pace", 58));
+            bars.Add(MakePercentileBar("Scout confidence", 34));
+            visualGrid.Add(bars);
+
+            var evidence = new VisualElement();
+            evidence.AddToClassList("evidence-grid");
+            profile.Add(evidence);
+            evidence.Add(MakeEvidenceCard("Positive Evidence", "Visible finishing fixture value passes policy."));
+            evidence.Add(MakeEvidenceCard("Missing Data", "No scout report, no live tactic, no validated FM26 map."));
+            evidence.Add(MakeEvidenceCard("Blocked Data", "Hidden and unlicensed fields are excluded before scoring."));
+
+            var warning = new VisualElement();
+            warning.AddToClassList("missing-warning");
+            warning.Add(new Label("Missing Data"));
+            warning.Add(new Label("This profile slice uses synthetic development fixture mode only. It is not FM26 live data and not a recruitment verdict."));
+            profile.Add(warning);
+
+            return profile;
+        }
+
+        private static VisualElement MakeMetricCard(string title, string value, string caption)
+        {
+            var card = new VisualElement();
+            card.AddToClassList("metric-card");
+            var titleLabel = new Label(title);
+            titleLabel.AddToClassList("metric-title");
+            card.Add(titleLabel);
+            var valueLabel = new Label(value);
+            valueLabel.AddToClassList("metric-value");
+            card.Add(valueLabel);
+            var captionLabel = new Label(caption);
+            captionLabel.AddToClassList("metric-caption");
+            card.Add(captionLabel);
+            return card;
+        }
+
+        private static Label MakeSectionTitle(string title)
+        {
+            var label = new Label(title);
+            label.AddToClassList("card-title");
+            return label;
+        }
+
+        private static VisualElement MakePercentileBar(string label, int value)
+        {
+            var row = new VisualElement();
+            row.AddToClassList("percentile-row");
+            row.Add(new Label(label));
+            var track = new VisualElement();
+            track.AddToClassList("percentile-track");
+            var fill = new VisualElement();
+            fill.AddToClassList("percentile-fill");
+            fill.style.width = Length.Percent(value);
+            track.Add(fill);
+            row.Add(track);
+            return row;
+        }
+
+        private static VisualElement MakeEvidenceCard(string title, string copy)
+        {
+            var card = new VisualElement();
+            card.AddToClassList("evidence-card");
+            card.Add(MakeSectionTitle(title));
+            var body = new Label(copy);
+            body.AddToClassList("evidence-copy");
+            card.Add(body);
+            return card;
         }
 
         private static VisualElement MakeCard(string heading, IEnumerable<string> rows)

@@ -71,6 +71,40 @@ namespace Statlyn.DataProviders.Fm26
                 : SnapshotResult<bool>.FromFailure("FM26 build is unsupported.", detection.Diagnostics);
         }
 
+        public DiagnosticReport ValidateAccess()
+        {
+            var report = new DiagnosticReport();
+            if (_processInfo == null)
+            {
+                report.Add("fm26.access", DiagnosticStatus.NotChecked, "FM26 access has not been checked.", "Connect before reading FM26 snapshots.");
+                return report;
+            }
+
+            report.Add(
+                "fm26.access",
+                _processInfo.HasReadOnlyAccess ? DiagnosticStatus.Verified : DiagnosticStatus.Failed,
+                _processInfo.HasReadOnlyAccess ? "Read-only access is available." : "Read-only access is unavailable.",
+                "Connector uses query/read permissions only.");
+            return report;
+        }
+
+        public ProviderReadResult<SourceMetadata> ReadSourceMetadata()
+        {
+            var report = GetDiagnostics();
+            var metadata = new SourceMetadata(
+                ProviderName,
+                ProviderType,
+                isLive: true,
+                isLicensed: true,
+                licenceStatus: "local user process, no external data licence",
+                allowedUsage: "read-only local FM26 observation",
+                permitsImages: false,
+                permitsFlags: false,
+                importedAtUtc: System.DateTimeOffset.UtcNow,
+                sourceConfidence: 100);
+            return ProviderReadResult<SourceMetadata>.FromSuccess(metadata, report);
+        }
+
         public SnapshotResult<IReadOnlyList<PlayerRawSnapshot>> ReadPlayers()
         {
             if (_processInfo == null)
@@ -91,6 +125,41 @@ namespace Statlyn.DataProviders.Fm26
             return _connector.ReadPlayerSnapshot();
         }
 
+        public ProviderReadResult<IReadOnlyList<TeamSnapshot>> ReadTeams()
+        {
+            return EmptyProviderResult<TeamSnapshot>("fm26.teams", "FM26 team snapshots are not mapped yet.");
+        }
+
+        public ProviderReadResult<IReadOnlyList<MatchSnapshot>> ReadMatches()
+        {
+            return EmptyProviderResult<MatchSnapshot>("fm26.matches", "FM26 match snapshots are not mapped yet.");
+        }
+
+        public ProviderReadResult<IReadOnlyList<PlayerStatSnapshot>> ReadPlayerStats()
+        {
+            return EmptyProviderResult<PlayerStatSnapshot>("fm26.playerStats", "FM26 player stat snapshots are not mapped yet.");
+        }
+
+        public ProviderReadResult<IReadOnlyList<ScoutingReportSnapshot>> ReadScoutReports()
+        {
+            return EmptyProviderResult<ScoutingReportSnapshot>("fm26.scoutReports", "FM26 scout report snapshots are not mapped yet.");
+        }
+
+        public ProviderReadResult<IReadOnlyList<PlayerImageReference>> ReadPlayerImages()
+        {
+            return EmptyProviderResult<PlayerImageReference>("fm26.playerImages", "FM26 player images are not exposed by the first connector skeleton.");
+        }
+
+        public ProviderReadResult<IReadOnlyList<NationalityFlagReference>> ReadNationalityFlags()
+        {
+            return EmptyProviderResult<NationalityFlagReference>("fm26.flags", "FM26 flag assets are not exposed by the first connector skeleton.");
+        }
+
+        public DataCompletenessReport GetDataCompleteness()
+        {
+            return new DataCompletenessReport(0, 1, new[] { "validated FM26 memory map" });
+        }
+
         public DiagnosticReport GetDiagnostics()
         {
             var report = new DiagnosticReport();
@@ -103,6 +172,13 @@ namespace Statlyn.DataProviders.Fm26
         public void Disconnect()
         {
             _processInfo = null;
+        }
+
+        private static ProviderReadResult<IReadOnlyList<T>> EmptyProviderResult<T>(string key, string message)
+        {
+            var diagnostics = new DiagnosticReport();
+            diagnostics.Add(key, DiagnosticStatus.Unsupported, message, "No fake provider data is returned.");
+            return ProviderReadResult<IReadOnlyList<T>>.FromSuccess(new List<T>(), diagnostics);
         }
     }
 }

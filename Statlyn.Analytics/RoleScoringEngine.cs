@@ -26,17 +26,55 @@ namespace Statlyn.Analytics
             var positive = new List<EvidenceItem>();
             var negative = new List<EvidenceItem>();
             var missing = new List<string>();
+            var technical = ScoreWeightedGroup(player, roleModel.AttributeWeights, positive, negative, missing, useAttributeScale: true);
+            var statistical = ScoreWeightedGroup(player, roleModel.StatWeights, positive, negative, missing, useAttributeScale: false);
+            var physical = ScoreWeightedGroup(player, roleModel.PhysicalWeights, positive, negative, missing, useAttributeScale: false);
+            var scout = ScoreWeightedGroup(player, roleModel.ScoutObservationWeights, positive, negative, missing, useAttributeScale: false);
+            var roleFit = CombineFits(technical.Score, statistical.Score, physical.Score, scout.Score);
+            var completeness = CombineCompleteness(technical.Completeness, statistical.Completeness, physical.Completeness, scout.Completeness);
+            var averageFieldConfidence = CombineCompleteness(technical.FieldConfidence, statistical.FieldConfidence, physical.FieldConfidence, scout.FieldConfidence);
+            var confidence = Clamp((player.Confidence + completeness + averageFieldConfidence) / 3);
+            var riskScore = Clamp(100 - confidence + roleModel.RedFlags.Count * 5);
+            var recommendation = Recommend(player, roleFit, confidence, missing.Count);
+            var blockedNotice = player.BlockedFields.Count == 0
+                ? string.Empty
+                : player.BlockedFields.Count + " blocked field(s) were excluded from scoring.";
+
+            return new RoleScore(
+                roleModel.RoleName,
+                roleFit,
+                technical.Score,
+                statistical.Score,
+                physical.Score,
+                tacticalFit: 0,
+                riskScore,
+                confidence,
+                recommendation,
+                positive,
+                negative,
+                missing,
+                blockedNotice);
+        }
+
+        private static WeightedScoreResult ScoreWeightedGroup(
+            MaskedPlayer player,
+            IReadOnlyDictionary<string, double> weights,
+            ICollection<EvidenceItem> positive,
+            ICollection<EvidenceItem> negative,
+            ICollection<string> missing,
+            bool useAttributeScale)
+        {
             var weightedScore = 0.0;
             var totalWeight = 0.0;
             var knownWeight = 0.0;
             var fieldConfidence = 0;
             var knownFields = 0;
 
-            foreach (var weight in roleModel.AttributeWeights)
+            foreach (var weight in weights)
             {
                 totalWeight += weight.Value;
-
-                if (!player.Attributes.TryGetValue(weight.Key, out var field) || !field.IsKnown || !field.CanScore)
+                var field = FindScorableField(player, weight.Key);
+                if (field == null)
                 {
                     missing.Add(weight.Key);
                     continue;
@@ -45,26 +83,88 @@ namespace Statlyn.Analytics
                 knownWeight += weight.Value;
                 knownFields++;
                 fieldConfidence += field.Confidence;
-                var normalized = NormalizeFmAttribute(field.Value);
+                var normalized = useAttributeScale
+                    ? NormalizeFmAttribute((int)Math.Round(field.NumericValue.GetValueOrDefault()))
+                    : Clamp((int)Math.Round(field.NumericValue.GetValueOrDefault()));
                 weightedScore += normalized * weight.Value;
 
-                if (field.Value >= 15)
+                if (normalized >= 75)
                 {
-                    positive.Add(new EvidenceItem(weight.Key, weight.Key + " is a visible strength.", true));
+                    positive.Add(new EvidenceItem(weight.Key, weight.Key + " is visible positive evidence.", true));
                 }
-                else if (field.Value <= 8)
+                else if (normalized <= 40)
                 {
-                    negative.Add(new EvidenceItem(weight.Key, weight.Key + " is a visible weakness.", false));
+                    negative.Add(new EvidenceItem(weight.Key, weight.Key + " is visible negative evidence.", false));
                 }
             }
 
-            var roleFit = totalWeight <= 0 || knownWeight <= 0 ? 0 : Clamp((int)Math.Round(weightedScore / totalWeight));
-            var completeness = totalWeight <= 0 ? 0 : Clamp((int)Math.Round(knownWeight / totalWeight * 100.0));
-            var averageFieldConfidence = knownFields == 0 ? 0 : fieldConfidence / knownFields;
-            var confidence = Clamp((player.Confidence + completeness + averageFieldConfidence) / 3);
-            var recommendation = Recommend(player, roleFit, confidence, missing.Count);
+            var score = totalWeight <= 0 || knownWeight <= 0 ? 0 : Clamp((int)Math.Round(weightedScore / totalWeight));
+            var completeness = totalWeight <= 0 ? 100 : Clamp((int)Math.Round(knownWeight / totalWeight * 100.0));
+            var averageConfidence = knownFields == 0 ? 0 : fieldConfidence / knownFields;
+            return new WeightedScoreResult(score, completeness, averageConfidence);
+        }
 
-            return new RoleScore(roleModel.RoleName, roleFit, confidence, recommendation, positive, negative, missing);
+        private static VisiblePlayerField? FindScorableField(MaskedPlayer player, string fieldName)
+        {
+            if (player.Attributes.TryGetValue(fieldName, out var attribute) && attribute.IsKnown && attribute.CanScore)
+            {
+                return new VisiblePlayerField(
+                    PlayerFieldKey.TechnicalAttribute,
+                    fieldName,
+                    attribute.Value.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    attribute.Value,
+                    FieldValueKind.Number,
+                    true,
+                    false,
+                    true,
+                    true,
+                    true,
+                    attribute.Confidence,
+                    attribute.SourceProvider,
+                    string.Empty);
+            }
+
+            foreach (var field in player.Fields.Values)
+            {
+                if (field.CanScore && field.IsKnown && field.NumericValue.HasValue && string.Equals(field.FieldName, fieldName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return field;
+                }
+            }
+
+            return null;
+        }
+
+        private static int CombineFits(params int[] scores)
+        {
+            var known = 0;
+            var sum = 0;
+            foreach (var score in scores)
+            {
+                if (score > 0)
+                {
+                    known++;
+                    sum += score;
+                }
+            }
+
+            return known == 0 ? 0 : Clamp(sum / known);
+        }
+
+        private static int CombineCompleteness(params int[] scores)
+        {
+            if (scores.Length == 0)
+            {
+                return 0;
+            }
+
+            var sum = 0;
+            foreach (var score in scores)
+            {
+                sum += score;
+            }
+
+            return Clamp(sum / scores.Length);
         }
 
         private static RecruitmentRecommendation Recommend(MaskedPlayer player, int roleFit, int confidence, int missingCount)
@@ -125,6 +225,22 @@ namespace Statlyn.Analytics
             }
 
             return value;
+        }
+
+        private sealed class WeightedScoreResult
+        {
+            public WeightedScoreResult(int score, int completeness, int fieldConfidence)
+            {
+                Score = score;
+                Completeness = completeness;
+                FieldConfidence = fieldConfidence;
+            }
+
+            public int Score { get; }
+
+            public int Completeness { get; }
+
+            public int FieldConfidence { get; }
         }
     }
 }

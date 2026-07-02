@@ -24,5 +24,32 @@ namespace Statlyn.Tests
 
             return player;
         }
+
+        public static PlayerRawSnapshot CreateExternalPlayer(
+            bool isLicensed = true,
+            bool permitsImages = false,
+            bool permitsFlags = true,
+            bool usesBundledFlags = false)
+        {
+            var player = new PlayerRawSnapshot("external-1001", "Synthetic external fixture", ProviderType.Csv)
+            {
+                DisplayName = "Synthetic Player",
+                SourceContext = new SourceContext(
+                    "Synthetic external fixture",
+                    "CSV fixture",
+                    ProviderType.Csv,
+                    isLicensed,
+                    permitsImages,
+                    permitsFlags,
+                    usesBundledFlags,
+                    85,
+                    "development fixture"),
+                ScoutContext = new ScoutContext(false, 0, false)
+            };
+
+            player.Fields[PlayerFieldKey.DisplayName] = new RawFieldValue(PlayerFieldKey.DisplayName, "DisplayName", "Synthetic Player", FieldValueKind.Text, 90);
+            player.Fields[PlayerFieldKey.Age] = new RawFieldValue(PlayerFieldKey.Age, "Age", 21, FieldValueKind.Number, 90);
+            return player;
+        }
     }
 }

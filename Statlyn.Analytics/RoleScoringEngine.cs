@@ -30,11 +30,14 @@ namespace Statlyn.Analytics
             var statistical = ScoreWeightedGroup(player, roleModel.StatWeights, positive, negative, missing, useAttributeScale: false);
             var physical = ScoreWeightedGroup(player, roleModel.PhysicalWeights, positive, negative, missing, useAttributeScale: false);
             var scout = ScoreWeightedGroup(player, roleModel.ScoutObservationWeights, positive, negative, missing, useAttributeScale: false);
-            var roleFit = CombineFits(technical.Score, statistical.Score, physical.Score, scout.Score);
-            var completeness = CombineCompleteness(technical.Completeness, statistical.Completeness, physical.Completeness, scout.Completeness);
-            var averageFieldConfidence = CombineCompleteness(technical.FieldConfidence, statistical.FieldConfidence, physical.FieldConfidence, scout.FieldConfidence);
-            var confidence = Clamp((player.Confidence + completeness + averageFieldConfidence) / 3);
-            var riskScore = Clamp(100 - confidence + roleModel.RedFlags.Count * 5);
+            var roleFit = CombineFits(technical, statistical, physical, scout);
+            var completeness = CombineCompleteness(technical, statistical, physical, scout);
+            var averageFieldConfidence = CombineFieldConfidence(technical, statistical, physical, scout);
+            var sourceLimitedConfidence = Math.Min(player.Confidence, averageFieldConfidence == 0 ? player.Confidence : averageFieldConfidence);
+            var calculatedConfidence = Clamp((sourceLimitedConfidence + completeness + averageFieldConfidence) / 3);
+            var confidence = Clamp(Math.Min(sourceLimitedConfidence, calculatedConfidence));
+            var triggeredRedFlags = EvaluateRedFlags(player, roleModel.RedFlags, negative);
+            var riskScore = Clamp(100 - confidence + triggeredRedFlags * 12);
             var recommendation = Recommend(player, roleFit, confidence, missing.Count);
             var blockedNotice = player.BlockedFields.Count == 0
                 ? string.Empty
@@ -46,7 +49,7 @@ namespace Statlyn.Analytics
                 technical.Score,
                 statistical.Score,
                 physical.Score,
-                tacticalFit: 0,
+                tacticalFit: null,
                 riskScore,
                 confidence,
                 recommendation,
@@ -85,7 +88,7 @@ namespace Statlyn.Analytics
                 fieldConfidence += field.Confidence;
                 var normalized = useAttributeScale
                     ? NormalizeFmAttribute((int)Math.Round(field.NumericValue.GetValueOrDefault()))
-                    : Clamp((int)Math.Round(field.NumericValue.GetValueOrDefault()));
+                    : NormalizeGenericMetric(field.NumericValue.GetValueOrDefault());
                 weightedScore += normalized * weight.Value;
 
                 if (normalized >= 75)
@@ -99,9 +102,9 @@ namespace Statlyn.Analytics
             }
 
             var score = totalWeight <= 0 || knownWeight <= 0 ? 0 : Clamp((int)Math.Round(weightedScore / totalWeight));
-            var completeness = totalWeight <= 0 ? 100 : Clamp((int)Math.Round(knownWeight / totalWeight * 100.0));
+            var completeness = totalWeight <= 0 ? 0 : Clamp((int)Math.Round(knownWeight / totalWeight * 100.0));
             var averageConfidence = knownFields == 0 ? 0 : fieldConfidence / knownFields;
-            return new WeightedScoreResult(score, completeness, averageConfidence);
+            return new WeightedScoreResult(score, completeness, averageConfidence, knownFields > 0, totalWeight > 0);
         }
 
         private static VisiblePlayerField? FindScorableField(MaskedPlayer player, string fieldName)
@@ -110,6 +113,7 @@ namespace Statlyn.Analytics
             {
                 return new VisiblePlayerField(
                     PlayerFieldKey.TechnicalAttribute,
+                    fieldName,
                     fieldName,
                     attribute.Value.ToString(System.Globalization.CultureInfo.InvariantCulture),
                     attribute.Value,
@@ -135,36 +139,92 @@ namespace Statlyn.Analytics
             return null;
         }
 
-        private static int CombineFits(params int[] scores)
+        private static int EvaluateRedFlags(MaskedPlayer player, IReadOnlyList<RedFlag> redFlags, ICollection<EvidenceItem> negative)
+        {
+            var triggered = 0;
+            foreach (var redFlag in redFlags)
+            {
+                var field = FindScorableField(player, redFlag.FieldName);
+                if (field == null || !field.NumericValue.HasValue)
+                {
+                    continue;
+                }
+
+                if (IsTriggered(field.NumericValue.Value, redFlag.OperatorKind, redFlag.Threshold))
+                {
+                    triggered++;
+                    negative.Add(new EvidenceItem(redFlag.FieldName, string.IsNullOrWhiteSpace(redFlag.Message) ? redFlag.FieldName + " triggered a risk flag." : redFlag.Message, false));
+                }
+            }
+
+            return triggered;
+        }
+
+        private static bool IsTriggered(double value, RedFlagOperator operatorKind, double threshold)
+        {
+            switch (operatorKind)
+            {
+                case RedFlagOperator.LessThan:
+                    return value < threshold;
+                case RedFlagOperator.LessThanOrEqual:
+                    return value <= threshold;
+                case RedFlagOperator.GreaterThan:
+                    return value > threshold;
+                case RedFlagOperator.GreaterThanOrEqual:
+                    return value >= threshold;
+                case RedFlagOperator.Equal:
+                    return Math.Abs(value - threshold) < 0.0001;
+                default:
+                    return false;
+            }
+        }
+
+        private static int CombineFits(params WeightedScoreResult[] groups)
         {
             var known = 0;
             var sum = 0;
-            foreach (var score in scores)
+            foreach (var group in groups)
             {
-                if (score > 0)
+                if (group.HasData)
                 {
                     known++;
-                    sum += score;
+                    sum += group.Score;
                 }
             }
 
             return known == 0 ? 0 : Clamp(sum / known);
         }
 
-        private static int CombineCompleteness(params int[] scores)
+        private static int CombineCompleteness(params WeightedScoreResult[] groups)
         {
-            if (scores.Length == 0)
-            {
-                return 0;
-            }
-
+            var known = 0;
             var sum = 0;
-            foreach (var score in scores)
+            foreach (var group in groups)
             {
-                sum += score;
+                if (group.HasWeights)
+                {
+                    known++;
+                    sum += group.Completeness;
+                }
             }
 
-            return Clamp(sum / scores.Length);
+            return known == 0 ? 0 : Clamp(sum / known);
+        }
+
+        private static int CombineFieldConfidence(params WeightedScoreResult[] groups)
+        {
+            var known = 0;
+            var sum = 0;
+            foreach (var group in groups)
+            {
+                if (group.HasData)
+                {
+                    known++;
+                    sum += group.FieldConfidence;
+                }
+            }
+
+            return known == 0 ? 0 : Clamp(sum / known);
         }
 
         private static RecruitmentRecommendation Recommend(MaskedPlayer player, int roleFit, int confidence, int missingCount)
@@ -212,6 +272,16 @@ namespace Statlyn.Analytics
             return Clamp((int)Math.Round((attributeValue - 1) / 19.0 * 100.0));
         }
 
+        private static int NormalizeGenericMetric(double value)
+        {
+            if (value >= 0 && value <= 1)
+            {
+                return Clamp((int)Math.Round(value * 100.0));
+            }
+
+            return Clamp((int)Math.Round(value));
+        }
+
         private static int Clamp(int value)
         {
             if (value < 0)
@@ -229,11 +299,13 @@ namespace Statlyn.Analytics
 
         private sealed class WeightedScoreResult
         {
-            public WeightedScoreResult(int score, int completeness, int fieldConfidence)
+            public WeightedScoreResult(int score, int completeness, int fieldConfidence, bool hasData, bool hasWeights)
             {
                 Score = score;
                 Completeness = completeness;
                 FieldConfidence = fieldConfidence;
+                HasData = hasData;
+                HasWeights = hasWeights;
             }
 
             public int Score { get; }
@@ -241,6 +313,10 @@ namespace Statlyn.Analytics
             public int Completeness { get; }
 
             public int FieldConfidence { get; }
+
+            public bool HasData { get; }
+
+            public bool HasWeights { get; }
         }
     }
 }

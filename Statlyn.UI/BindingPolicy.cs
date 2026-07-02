@@ -12,5 +12,14 @@ namespace Statlyn.UI
                 throw new InvalidOperationException("UI binding to raw football entities is forbidden. Bind masked view models only.");
             }
         }
+
+        public static void AssertProfileBindable(object viewModel)
+        {
+            AssertBindable(viewModel);
+            if (!(viewModel is MaskedPlayerProfileViewModel))
+            {
+                throw new InvalidOperationException("Player profile UI must bind MaskedPlayerProfileViewModel instances.");
+            }
+        }
     }
 }

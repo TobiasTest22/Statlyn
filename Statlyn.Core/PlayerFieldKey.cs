@@ -35,6 +35,8 @@ namespace Statlyn.Core
         ScoutVisiblePersonalityNote = 30,
         UserNote = 31,
         LicensedExternalData = 32,
+        ScoutObservation = 33,
+        ClubBadge = 34,
         CurrentAbility = 1000,
         PotentialAbility = 1001,
         HiddenPersonality = 1002,

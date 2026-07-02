@@ -22,7 +22,7 @@ namespace Statlyn.Analytics
         private readonly Dictionary<string, double> _statWeights = new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, double> _physicalWeights = new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, double> _scoutObservationWeights = new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase);
-        private readonly List<string> _redFlags = new List<string>();
+        private readonly List<RedFlag> _redFlags = new List<RedFlag>();
         private readonly List<string> _minimumRequirements = new List<string>();
         private readonly List<string> _confidenceRules = new List<string>();
         private readonly Dictionary<string, string> _evidenceTemplates = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -42,7 +42,7 @@ namespace Statlyn.Analytics
             get { return _scoutObservationWeights; }
         }
 
-        public IReadOnlyList<string> RedFlags
+        public IReadOnlyList<RedFlag> RedFlags
         {
             get { return _redFlags; }
         }
@@ -95,7 +95,17 @@ namespace Statlyn.Analytics
         {
             if (!string.IsNullOrWhiteSpace(redFlag))
             {
-                _redFlags.Add(redFlag);
+                _redFlags.Add(new RedFlag(redFlag, RedFlagOperator.LessThan, 0, redFlag, string.Empty));
+            }
+
+            return this;
+        }
+
+        public RoleModel AddRedFlag(string fieldName, RedFlagOperator operatorKind, double threshold, string message, string appliesToGroup)
+        {
+            if (!string.IsNullOrWhiteSpace(fieldName))
+            {
+                _redFlags.Add(new RedFlag(fieldName, operatorKind, threshold, message, appliesToGroup));
             }
 
             return this;

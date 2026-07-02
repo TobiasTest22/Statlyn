@@ -97,6 +97,9 @@ namespace Statlyn.DataProviders.Import
 
             var headers = SplitCsvLine(lines[0]);
             var players = new List<PlayerRawSnapshot>();
+            var fieldsMapped = 0;
+            var unknownFields = 0;
+            var forbiddenFields = 0;
 
             for (var index = 1; index < lines.Length; index++)
             {
@@ -123,13 +126,37 @@ namespace Statlyn.DataProviders.Import
                 {
                     var mapping = _mappingSet.Resolve(headers[column], _registry);
                     var value = Coerce(values[column], mapping.ValueKind);
-                    player.Fields[mapping.FieldKey] = new RawFieldValue(mapping.FieldKey, headers[column], value, mapping.ValueKind, _metadata.SourceConfidence, isKnown: !string.IsNullOrWhiteSpace(values[column]));
+                    if (mapping.FieldKey == PlayerFieldKey.Unknown)
+                    {
+                        unknownFields++;
+                    }
+
+                    if (_registry.IsForbiddenRawName(headers[column]))
+                    {
+                        forbiddenFields++;
+                    }
+
+                    fieldsMapped++;
+                    player.AddField(new RawFieldValue(
+                        mapping.FieldKey,
+                        mapping.FieldName,
+                        headers[column],
+                        value,
+                        mapping.ValueKind,
+                        _metadata.SourceConfidence,
+                        isKnown: !string.IsNullOrWhiteSpace(values[column])));
                 }
 
                 players.Add(player);
             }
 
+            diagnostics.Add("csv.rows", DiagnosticStatus.Verified, "CSV rows were read.", (lines.Length - 1) + " data row(s).");
             diagnostics.Add("csv.players", DiagnosticStatus.Verified, "CSV players were read.", players.Count + " player rows.");
+            diagnostics.Add("csv.fields.mapped", DiagnosticStatus.Verified, "CSV fields were mapped.", fieldsMapped + " field instance(s).");
+            diagnostics.Add("csv.fields.blocked", forbiddenFields > 0 || unknownFields > 0 ? DiagnosticStatus.Partial : DiagnosticStatus.Verified, "CSV blocked-field candidates were counted.", "Forbidden fields: " + forbiddenFields + "; unknown fields: " + unknownFields + ".");
+            diagnostics.Add("csv.images", _metadata.PermitsPlayerImages ? DiagnosticStatus.Verified : DiagnosticStatus.Partial, _metadata.PermitsPlayerImages ? "Player image display is permitted by source metadata." : "Player image display is not permitted by source metadata.", "No image bytes or URLs are imported by this skeleton.");
+            diagnostics.Add("csv.flags", _metadata.PermitsProviderFlags || _metadata.UsesBundledSafeFlagAssets ? DiagnosticStatus.Verified : DiagnosticStatus.Partial, _metadata.PermitsProviderFlags ? "Provider flags are permitted." : _metadata.UsesBundledSafeFlagAssets ? "Bundled safe flags are enabled." : "Flags are not permitted.", "No unlicensed provider flags are assumed.");
+            diagnostics.Add("csv.completeness", DiagnosticStatus.Verified, "CSV data completeness calculated.", GetDataCompleteness().CompletenessPercentage + "%.");
             return SnapshotResult<IReadOnlyList<PlayerRawSnapshot>>.FromSuccess(players, diagnostics);
         }
 
@@ -153,7 +180,28 @@ namespace Statlyn.DataProviders.Import
             }
 
             var lines = ReadDataLines(_filePath);
-            return new DataCompletenessReport(lines.Length > 1 ? 1 : 0, 1, lines.Length > 1 ? Array.Empty<string>() : new[] { "player rows" });
+            if (lines.Length <= 1)
+            {
+                return new DataCompletenessReport(0, 1, new[] { "player rows" });
+            }
+
+            var headers = SplitCsvLine(lines[0]);
+            var knownHeaders = 0;
+            var missing = new List<string>();
+            foreach (var header in headers)
+            {
+                var mapping = _mappingSet.Resolve(header, _registry);
+                if (mapping.FieldKey == PlayerFieldKey.Unknown)
+                {
+                    missing.Add(header);
+                }
+                else
+                {
+                    knownHeaders++;
+                }
+            }
+
+            return new DataCompletenessReport(knownHeaders, headers.Count, missing);
         }
 
         public DiagnosticReport GetDiagnostics()

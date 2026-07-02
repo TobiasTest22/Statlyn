@@ -111,13 +111,13 @@ namespace Statlyn.UnityApp
             dashboard.Add(MakeCard("Recruitment", new[] { "Squad needs: Awaiting data", "Targets: Awaiting data", "Alerts: 0" }));
             dashboard.Add(MakeCard("Protection", new[] { "Hidden values blocked", "Raw entities blocked from UI", "Low confidence requires scouting" }));
 
-            main.Add(MakePlayerProfileSlice());
+            main.Add(MakePlayerProfileSlice(CreateFixtureProfilePreview()));
 
             var diagnostics = MakeDiagnosticsPanel();
             main.Add(diagnostics);
         }
 
-        private static VisualElement MakePlayerProfileSlice()
+        private static VisualElement MakePlayerProfileSlice(ProfilePreviewModel model)
         {
             var profile = new VisualElement();
             profile.AddToClassList("profile-slice");
@@ -128,7 +128,7 @@ namespace Statlyn.UnityApp
 
             var avatar = new VisualElement();
             avatar.AddToClassList("profile-avatar");
-            var initials = new Label("SF");
+            var initials = new Label(model.Initials);
             initials.AddToClassList("profile-avatar-text");
             avatar.Add(initials);
             header.Add(avatar);
@@ -141,19 +141,19 @@ namespace Statlyn.UnityApp
             titleRow.AddToClassList("profile-title-row");
             identity.Add(titleRow);
 
-            var name = new Label("Synthetic Forward");
+            var name = new Label(model.PlayerName);
             name.AddToClassList("profile-name");
             titleRow.Add(name);
 
-            var mode = new Label("Fixture Mode");
+            var mode = new Label(model.IsFixtureMode ? "Fixture Mode" : model.SourceName);
             mode.AddToClassList("fixture-pill");
             titleRow.Add(mode);
 
-            var detail = new Label("22 · Romania · ST · No live FM26 data");
+            var detail = new Label(model.DetailLine);
             detail.AddToClassList("profile-detail");
             identity.Add(detail);
 
-            var flag = new Label("Flag placeholder: bundled-safe asset required");
+            var flag = new Label(model.FlagLine);
             flag.AddToClassList("profile-flag");
             identity.Add(flag);
 
@@ -161,11 +161,11 @@ namespace Statlyn.UnityApp
             summaryGrid.AddToClassList("profile-summary-grid");
             profile.Add(summaryGrid);
 
-            summaryGrid.Add(MakeMetricCard("Source Confidence", "80", "Synthetic CSV fixture"));
-            summaryGrid.Add(MakeMetricCard("Data Completeness", "62", "Missing scout report and live tactic"));
-            summaryGrid.Add(MakeMetricCard("Role Fit", "Preview", "Circle placeholder"));
-            summaryGrid.Add(MakeMetricCard("Confidence", "Low", "Requires real provider data"));
-            summaryGrid.Add(MakeMetricCard("Risk", "Medium", "Fixture data is not a recommendation"));
+            summaryGrid.Add(MakeMetricCard("Source Confidence", model.SourceConfidence.ToString(), model.SourceName));
+            summaryGrid.Add(MakeMetricCard("Data Completeness", model.DataCompleteness.ToString(), model.DataCompletenessCaption));
+            summaryGrid.Add(MakeMetricCard("Role Fit", model.RoleFit, "Role fit visual placeholder"));
+            summaryGrid.Add(MakeMetricCard("Confidence", model.Confidence, model.ConfidenceCaption));
+            summaryGrid.Add(MakeMetricCard("Risk", model.Risk, model.RiskCaption));
 
             var visualGrid = new VisualElement();
             visualGrid.AddToClassList("profile-visual-grid");
@@ -174,29 +174,37 @@ namespace Statlyn.UnityApp
             var radar = new VisualElement();
             radar.AddToClassList("radar-card");
             radar.Add(MakeSectionTitle("Radar Chart"));
-            radar.Add(new Label("Visual placeholder until masked stats exist."));
+            foreach (var metric in model.RadarMetrics)
+            {
+                radar.Add(new Label(metric.Label + ": " + metric.Value + " / " + metric.MaximumValue + " (" + metric.Confidence + "% confidence)"));
+            }
+
             radar.AddToClassList("placeholder-text");
             visualGrid.Add(radar);
 
             var bars = new VisualElement();
             bars.AddToClassList("percentile-card");
             bars.Add(MakeSectionTitle("Percentile Bars"));
-            bars.Add(MakePercentileBar("Finishing", 68));
-            bars.Add(MakePercentileBar("Pace", 58));
-            bars.Add(MakePercentileBar("Scout confidence", 34));
+            foreach (var bar in model.PercentileBars)
+            {
+                bars.Add(MakePercentileBar(bar.Label + " vs " + bar.ComparisonGroup, bar.Percentile));
+            }
+
             visualGrid.Add(bars);
 
             var evidence = new VisualElement();
             evidence.AddToClassList("evidence-grid");
             profile.Add(evidence);
-            evidence.Add(MakeEvidenceCard("Positive Evidence", "Visible finishing fixture value passes policy."));
-            evidence.Add(MakeEvidenceCard("Missing Data", "No scout report, no live tactic, no validated FM26 map."));
-            evidence.Add(MakeEvidenceCard("Blocked Data", "Hidden and unlicensed fields are excluded before scoring."));
+            foreach (var card in model.EvidenceCards)
+            {
+                evidence.Add(MakeEvidenceCard(card.Title, card.Body));
+            }
 
             var warning = new VisualElement();
             warning.AddToClassList("missing-warning");
             warning.Add(new Label("Missing Data"));
-            warning.Add(new Label("This profile slice uses synthetic development fixture mode only. It is not FM26 live data and not a recruitment verdict."));
+            warning.Add(new Label(model.MissingDataMessage));
+            warning.Add(new Label(model.BlockedDataMessage));
             profile.Add(warning);
 
             return profile;
@@ -251,6 +259,49 @@ namespace Statlyn.UnityApp
             return card;
         }
 
+        private static ProfilePreviewModel CreateFixtureProfilePreview()
+        {
+            return new ProfilePreviewModel
+            {
+                PlayerName = "Synthetic Forward",
+                Initials = "SF",
+                DetailLine = "22 - Romania - ST - No live FM26 data",
+                FlagLine = "Flag mode: bundled-safe placeholder",
+                SourceName = "Synthetic CSV fixture",
+                SourceConfidence = 80,
+                DataCompleteness = 82,
+                DataCompletenessCaption = "xG, xA and physical metrics mapped",
+                RoleFit = "61",
+                Confidence = "Low",
+                ConfidenceCaption = "Missing live tactic and scout confirmation",
+                Risk = "Medium",
+                RiskCaption = "Fixture preview is not a verdict",
+                IsFixtureMode = true,
+                RadarMetrics = new[]
+                {
+                    new ProfileRadarMetric("Finishing", 14, 20, 80),
+                    new ProfileRadarMetric("Pace", 13, 20, 80),
+                    new ProfileRadarMetric("Acceleration", 15, 20, 80),
+                    new ProfileRadarMetric("xG", 44, 100, 80)
+                },
+                PercentileBars = new[]
+                {
+                    new ProfilePercentileBar("Finishing", 68, "role benchmark"),
+                    new ProfilePercentileBar("Pace", 58, "role benchmark"),
+                    new ProfilePercentileBar("xG", 44, "fixture comparison group"),
+                    new ProfilePercentileBar("Source confidence", 80, "source quality")
+                },
+                EvidenceCards = new[]
+                {
+                    new ProfileEvidenceCard("Positive Evidence", "Mapped Finishing, Pace, Acceleration and xG survived the field policy firewall."),
+                    new ProfileEvidenceCard("Missing Data", "No live tactic, squad benchmark or verified FM26 memory map is available."),
+                    new ProfileEvidenceCard("Blocked Data", "2 blocked field categories were excluded without exposing raw values.")
+                },
+                MissingDataMessage = "Synthetic fixture mode only. The profile is data-driven from safe preview values and is not a live FM26 recruitment verdict.",
+                BlockedDataMessage = "Blocked fields: CurrentAbility, Professionalism. Raw values are not shown."
+            };
+        }
+
         private static VisualElement MakeCard(string heading, IEnumerable<string> rows)
         {
             var card = new VisualElement();
@@ -302,6 +353,71 @@ namespace Statlyn.UnityApp
             row.Add(stateLabel);
 
             return row;
+        }
+
+        private sealed class ProfilePreviewModel
+        {
+            public string PlayerName;
+            public string Initials;
+            public string DetailLine;
+            public string FlagLine;
+            public string SourceName;
+            public int SourceConfidence;
+            public int DataCompleteness;
+            public string DataCompletenessCaption;
+            public string RoleFit;
+            public string Confidence;
+            public string ConfidenceCaption;
+            public string Risk;
+            public string RiskCaption;
+            public bool IsFixtureMode;
+            public ProfileRadarMetric[] RadarMetrics;
+            public ProfilePercentileBar[] PercentileBars;
+            public ProfileEvidenceCard[] EvidenceCards;
+            public string MissingDataMessage;
+            public string BlockedDataMessage;
+        }
+
+        private sealed class ProfileRadarMetric
+        {
+            public ProfileRadarMetric(string label, int value, int maximumValue, int confidence)
+            {
+                Label = label;
+                Value = value;
+                MaximumValue = maximumValue;
+                Confidence = confidence;
+            }
+
+            public string Label;
+            public int Value;
+            public int MaximumValue;
+            public int Confidence;
+        }
+
+        private sealed class ProfilePercentileBar
+        {
+            public ProfilePercentileBar(string label, int percentile, string comparisonGroup)
+            {
+                Label = label;
+                Percentile = percentile;
+                ComparisonGroup = comparisonGroup;
+            }
+
+            public string Label;
+            public int Percentile;
+            public string ComparisonGroup;
+        }
+
+        private sealed class ProfileEvidenceCard
+        {
+            public ProfileEvidenceCard(string title, string body)
+            {
+                Title = title;
+                Body = body;
+            }
+
+            public string Title;
+            public string Body;
         }
     }
 }

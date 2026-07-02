@@ -20,8 +20,11 @@ Every provider must tag:
 - Data completeness.
 - Source confidence.
 - Whether images may be displayed.
-- Whether flags may be displayed.
+- Whether provider flags may be displayed.
+- Whether bundled safe flag assets may be used.
+- Whether club badges may be displayed.
+- Whether export is allowed.
 
-If a source does not permit player faces, the player profile must use initials or a generic silhouette. If flags are not permitted and no bundled safe flag exists, the flag field is blocked.
+If a source does not permit player faces, the player profile must use initials or a generic silhouette. If provider flags are not permitted and no bundled safe flag exists, the flag field is blocked. Club badges remain blocked unless the source permits badge display or a future bundled safe badge system is explicitly added.
 
 No provider may claim live or licensed access without validation.

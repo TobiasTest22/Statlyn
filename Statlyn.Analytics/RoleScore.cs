@@ -10,7 +10,7 @@ namespace Statlyn.Analytics
             int technicalFit,
             int statisticalFit,
             int physicalFit,
-            int tacticalFit,
+            int? tacticalFit,
             int riskScore,
             int confidence,
             RecruitmentRecommendation recommendation,
@@ -44,7 +44,7 @@ namespace Statlyn.Analytics
 
         public int PhysicalFit { get; }
 
-        public int TacticalFit { get; }
+        public int? TacticalFit { get; }
 
         public int RiskScore { get; }
 

@@ -10,6 +10,7 @@ Data provider
 -> field policy registry
 -> scouting knowledge firewall
 -> masked Statlyn entities
+-> visual intelligence models
 -> local database
 -> analytics and scoring
 -> Unity UI
@@ -33,6 +34,8 @@ For FM26, the data provider is the native connector reading the active process w
 Raw provider entities are allowed only in provider and firewall code. UI and scoring receive `MaskedPlayer` instances only.
 
 Unknown fields are denied by default. Provider facts are not trusted simply because they are named `VisibleFacts`.
+
+Grouped fields use `FieldInstanceKey` so values like `TechnicalAttribute:Finishing`, `TechnicalAttribute:Pace`, `PlayerStat:xG`, `PhysicalData:TopSpeed` and `ScoutObservation:PressingEffort` cannot overwrite one another.
 
 ## Current Build Support
 

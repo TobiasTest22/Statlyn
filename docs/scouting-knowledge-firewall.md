@@ -26,6 +26,8 @@ The firewall now delegates field decisions to `FieldPolicyRegistry` and `FieldVi
 
 Blocked fields become audit notices, not usable values.
 
+Milestone 1.6 also preserves field cardinality. Multiple attributes, stats and physical metrics now survive masking as separate field instances.
+
 ## Covered Tests
 
 - Hidden CA in raw fixture never appears in masked player.

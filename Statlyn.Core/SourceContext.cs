@@ -9,9 +9,11 @@ namespace Statlyn.Core
             string sourceProvider,
             ProviderType providerType,
             bool isLicensed,
-            bool allowsPlayerImages,
-            bool allowsNationalityFlags,
+            bool permitsPlayerImages,
+            bool permitsProviderFlags,
             bool usesBundledSafeFlagAssets,
+            bool permitsClubBadges,
+            bool allowsExport,
             int sourceConfidence,
             string allowedUsage)
         {
@@ -19,11 +21,38 @@ namespace Statlyn.Core
             SourceProvider = sourceProvider ?? string.Empty;
             ProviderType = providerType;
             IsLicensed = isLicensed;
-            AllowsPlayerImages = allowsPlayerImages;
-            AllowsNationalityFlags = allowsNationalityFlags;
+            PermitsPlayerImages = permitsPlayerImages;
+            PermitsProviderFlags = permitsProviderFlags;
             UsesBundledSafeFlagAssets = usesBundledSafeFlagAssets;
+            PermitsClubBadges = permitsClubBadges;
+            AllowsExport = allowsExport;
             SourceConfidence = Clamp(sourceConfidence);
             AllowedUsage = allowedUsage ?? string.Empty;
+        }
+
+        public SourceContext(
+            string sourceName,
+            string sourceProvider,
+            ProviderType providerType,
+            bool isLicensed,
+            bool allowsPlayerImages,
+            bool allowsNationalityFlags,
+            bool usesBundledSafeFlagAssets,
+            int sourceConfidence,
+            string allowedUsage)
+            : this(
+                sourceName,
+                sourceProvider,
+                providerType,
+                isLicensed,
+                allowsPlayerImages,
+                allowsNationalityFlags,
+                usesBundledSafeFlagAssets,
+                permitsClubBadges: false,
+                allowsExport: false,
+                sourceConfidence,
+                allowedUsage)
+        {
         }
 
         public string SourceName { get; }
@@ -34,11 +63,25 @@ namespace Statlyn.Core
 
         public bool IsLicensed { get; }
 
-        public bool AllowsPlayerImages { get; }
+        public bool PermitsPlayerImages { get; }
 
-        public bool AllowsNationalityFlags { get; }
+        public bool AllowsPlayerImages
+        {
+            get { return PermitsPlayerImages; }
+        }
+
+        public bool PermitsProviderFlags { get; }
+
+        public bool AllowsNationalityFlags
+        {
+            get { return PermitsProviderFlags; }
+        }
 
         public bool UsesBundledSafeFlagAssets { get; }
+
+        public bool PermitsClubBadges { get; }
+
+        public bool AllowsExport { get; }
 
         public int SourceConfidence { get; }
 
@@ -51,9 +94,11 @@ namespace Statlyn.Core
                 sourceProvider,
                 providerType,
                 isLicensed: providerType == ProviderType.FM26LiveMemory,
-                allowsPlayerImages: false,
-                allowsNationalityFlags: false,
+                permitsPlayerImages: false,
+                permitsProviderFlags: false,
                 usesBundledSafeFlagAssets: false,
+                permitsClubBadges: false,
+                allowsExport: false,
                 sourceConfidence: sourceConfidence,
                 allowedUsage: providerType == ProviderType.FM26LiveMemory ? "local read-only process observation" : "unspecified");
         }

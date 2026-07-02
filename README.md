@@ -25,11 +25,12 @@ Statlyn is a desktop football recruitment intelligence platform for Football Man
 - FM26 build support: no validated memory maps yet.
 - External provider support: CSV/JSON/provider skeletons only.
 - Field policy registry: deny-by-default masking for display, scoring and storage.
-- Player Profile: first Unity fixture-mode slice only.
+- Field instance keys: grouped values such as `TechnicalAttribute:Finishing` and `PlayerStat:xG` are preserved without overwriting.
+- Player Profile: data-driven fixture-mode slice backed by safe profile/visual model contracts.
 
 When FM26 is detected but no validated memory map exists, Statlyn must show an unsupported or partial state and return no fake player data.
 
-CSV and JSON import support is local-file skeleton work only. It does not scrape, call FotMob, use unofficial endpoints or assume unlicensed images are available. Fixture data is synthetic development/test data only.
+CSV and JSON import support is local-file skeleton work only. It does not scrape, call FotMob, use unofficial endpoints or assume unlicensed images are available. Fixture data is synthetic development/test data only. The Player Profile slice is data-driven from masked fixture-style data, not live FM26.
 
 ## Repository Layout
 
@@ -49,6 +50,8 @@ CSV and JSON import support is local-file skeleton work only. It does not scrape
 ## Field Policy Registry
 
 Every raw field must pass through the field policy registry before storage, scoring or UI. Unknown fields are denied by default. Hidden FM26 fields, mislabeled ability values and hidden personality-style values are blocked even if they arrive inside a provider's visible facts.
+
+Grouped football fields are keyed by field instance, not only by broad field category. This allows Statlyn to preserve multiple attributes, stats, physical metrics and scout observations for the same player.
 
 ## Build
 

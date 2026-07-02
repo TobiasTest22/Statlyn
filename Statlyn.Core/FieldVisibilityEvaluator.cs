@@ -35,14 +35,19 @@ namespace Statlyn.Core
                 return Block(normalizedField, policy, "This field requires a licensed, permitted or user-provided source.");
             }
 
-            if (resolvedKey == PlayerFieldKey.PlayerFaceImage && !sourceContext.AllowsPlayerImages)
+            if (resolvedKey == PlayerFieldKey.PlayerFaceImage && !sourceContext.PermitsPlayerImages)
             {
                 return Block(normalizedField, policy, "The source does not permit player image display.");
             }
 
-            if (resolvedKey == PlayerFieldKey.NationalityFlag && !sourceContext.AllowsNationalityFlags && !sourceContext.UsesBundledSafeFlagAssets)
+            if (resolvedKey == PlayerFieldKey.NationalityFlag && !sourceContext.PermitsProviderFlags && !sourceContext.UsesBundledSafeFlagAssets)
             {
                 return Block(normalizedField, policy, "The source does not permit flags and no bundled safe flag asset is available.");
+            }
+
+            if (resolvedKey == PlayerFieldKey.ClubBadge && !sourceContext.PermitsClubBadges)
+            {
+                return Block(normalizedField, policy, "The source does not permit club badge display.");
             }
 
             if (sourceContext.ProviderType == ProviderType.FM26LiveMemory && policy.RequiresScoutReport && !scoutContext.HasScoutReport && !scoutContext.IsManagedClubPlayer)

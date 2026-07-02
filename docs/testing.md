@@ -32,4 +32,16 @@ Milestone 1.5 adds tests for:
 - Database schema hidden-field storage checks.
 - CSV fixture import blocking a mislabeled ability column.
 
+Milestone 1.6 adds tests for:
+
+- Field instance cardinality across attributes, stats and physical metrics.
+- Football field catalog mappings.
+- CSV fixture imports with two synthetic players.
+- CSV diagnostics and blocked-field counts.
+- Split image, flag, badge and export permissions.
+- Role scoring with zero values, missing groups and red flags.
+- Visual intelligence model safety.
+- `MaskedPlayerProfileViewModel` safety and fallback behavior.
+- Schema support for `FieldInstanceKey`, `VisibleField`, `PhysicalMetric` and safe blocked-field audit.
+
 Future tests should cover SQLite persistence, real provider imports, Unity UI state transitions and native connector status parsing.

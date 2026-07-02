@@ -12,9 +12,25 @@ namespace Statlyn.Core
             int confidence,
             bool isKnown = true,
             bool isEstimate = false)
+            : this(key, rawName, rawName, value, valueKind, confidence, isKnown, isEstimate)
+        {
+        }
+
+        public RawFieldValue(
+            PlayerFieldKey key,
+            string fieldName,
+            string sourceFieldName,
+            object? value,
+            FieldValueKind valueKind,
+            int confidence,
+            bool isKnown = true,
+            bool isEstimate = false)
         {
             Key = key;
-            RawName = rawName ?? string.Empty;
+            FieldName = string.IsNullOrWhiteSpace(fieldName) ? sourceFieldName ?? string.Empty : fieldName;
+            RawName = sourceFieldName ?? string.Empty;
+            SourceFieldName = RawName;
+            InstanceKey = new FieldInstanceKey(key, FieldName, SourceFieldName);
             Value = value;
             ValueKind = valueKind;
             Confidence = Clamp(confidence);
@@ -24,7 +40,13 @@ namespace Statlyn.Core
 
         public PlayerFieldKey Key { get; }
 
+        public FieldInstanceKey InstanceKey { get; }
+
+        public string FieldName { get; }
+
         public string RawName { get; }
+
+        public string SourceFieldName { get; }
 
         public object? Value { get; }
 
@@ -76,7 +98,12 @@ namespace Statlyn.Core
 
         public RawFieldValue WithKey(PlayerFieldKey key)
         {
-            return new RawFieldValue(key, RawName, Value, ValueKind, Confidence, IsKnown, IsEstimate);
+            return new RawFieldValue(key, FieldName, SourceFieldName, Value, ValueKind, Confidence, IsKnown, IsEstimate);
+        }
+
+        public RawFieldValue WithIdentity(PlayerFieldKey key, string fieldName)
+        {
+            return new RawFieldValue(key, fieldName, SourceFieldName, Value, ValueKind, Confidence, IsKnown, IsEstimate);
         }
 
         private static int Clamp(int value)

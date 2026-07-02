@@ -15,6 +15,37 @@ namespace Statlyn.Core
             bool permitsFlags,
             DateTimeOffset importedAtUtc,
             int sourceConfidence)
+            : this(
+                sourceName,
+                providerType,
+                isLive,
+                isLicensed,
+                licenceStatus,
+                allowedUsage,
+                permitsPlayerImages: permitsImages,
+                permitsProviderFlags: permitsFlags,
+                usesBundledSafeFlagAssets: permitsFlags,
+                permitsClubBadges: false,
+                allowsExport: false,
+                importedAtUtc,
+                sourceConfidence)
+        {
+        }
+
+        public SourceMetadata(
+            string sourceName,
+            ProviderType providerType,
+            bool isLive,
+            bool isLicensed,
+            string licenceStatus,
+            string allowedUsage,
+            bool permitsPlayerImages,
+            bool permitsProviderFlags,
+            bool usesBundledSafeFlagAssets,
+            bool permitsClubBadges,
+            bool allowsExport,
+            DateTimeOffset importedAtUtc,
+            int sourceConfidence)
         {
             SourceName = sourceName ?? string.Empty;
             ProviderType = providerType;
@@ -22,8 +53,11 @@ namespace Statlyn.Core
             IsLicensed = isLicensed;
             LicenceStatus = licenceStatus ?? string.Empty;
             AllowedUsage = allowedUsage ?? string.Empty;
-            PermitsImages = permitsImages;
-            PermitsFlags = permitsFlags;
+            PermitsPlayerImages = permitsPlayerImages;
+            PermitsProviderFlags = permitsProviderFlags;
+            UsesBundledSafeFlagAssets = usesBundledSafeFlagAssets;
+            PermitsClubBadges = permitsClubBadges;
+            AllowsExport = allowsExport;
             ImportedAtUtc = importedAtUtc;
             SourceConfidence = Clamp(sourceConfidence);
         }
@@ -40,9 +74,25 @@ namespace Statlyn.Core
 
         public string AllowedUsage { get; }
 
-        public bool PermitsImages { get; }
+        public bool PermitsPlayerImages { get; }
 
-        public bool PermitsFlags { get; }
+        public bool PermitsImages
+        {
+            get { return PermitsPlayerImages; }
+        }
+
+        public bool PermitsProviderFlags { get; }
+
+        public bool PermitsFlags
+        {
+            get { return PermitsProviderFlags; }
+        }
+
+        public bool UsesBundledSafeFlagAssets { get; }
+
+        public bool PermitsClubBadges { get; }
+
+        public bool AllowsExport { get; }
 
         public DateTimeOffset ImportedAtUtc { get; }
 
@@ -55,9 +105,11 @@ namespace Statlyn.Core
                 sourceProvider,
                 ProviderType,
                 IsLicensed,
-                PermitsImages,
-                PermitsFlags,
-                usesBundledSafeFlagAssets: PermitsFlags,
+                PermitsPlayerImages,
+                PermitsProviderFlags,
+                UsesBundledSafeFlagAssets,
+                PermitsClubBadges,
+                AllowsExport,
                 SourceConfidence,
                 AllowedUsage);
         }

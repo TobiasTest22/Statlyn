@@ -11,6 +11,7 @@ The field policy registry is the deny-by-default gate between raw provider data 
 - `SourceContext`: provider, licence, image, flag and confidence metadata.
 - `ScoutContext`: managed-club, scout report and scout knowledge metadata.
 - `RawFieldValue`: one provider field before masking.
+- `FieldInstanceKey`: immutable identity for grouped fields.
 
 ## Rules
 
@@ -24,3 +25,26 @@ The field policy registry is the deny-by-default gate between raw provider data 
 Forbidden raw names include ability values, hidden personality, injury proneness, consistency, important matches, professionalism, pressure, ambition, loyalty, adaptability and temperament.
 
 Blocked fields become audit notices. Their raw values are not passed to UI, scoring or storage.
+
+## Field Instance Keys
+
+Statlyn does not key grouped data only by `PlayerFieldKey`. A player can have many technical attributes, player stats, physical metrics and scout observations. Each field therefore carries:
+
+- `PlayerFieldKey`
+- `FieldName`
+- `SourceFieldName`
+
+Examples:
+
+- `TechnicalAttribute:Finishing`
+- `TechnicalAttribute:Pace`
+- `PlayerStat:xG`
+- `PlayerStat:xA`
+- `PhysicalData:TopSpeed`
+- `ScoutObservation:PressingEffort`
+
+This prevents safe fields from overwriting one another while keeping broad policy categories intact.
+
+## Mapping Catalog
+
+`FootballFieldCatalog` maps common football CSV columns into safe field instances. Explicit mappings can override catalog mappings for safe fields, but forbidden raw names such as `CurrentAbility`, `CA`, `PotentialAbility` and `Professionalism` always resolve to forbidden fields.

@@ -85,15 +85,63 @@ namespace Statlyn.Data
                         SourceName TEXT NOT NULL,
                         FOREIGN KEY(PlayerId) REFERENCES Player(Id)
                     );",
+                    @"CREATE TABLE IF NOT EXISTS VisibleField (
+                        Id INTEGER PRIMARY KEY,
+                        PlayerId INTEGER NOT NULL,
+                        FieldInstanceKey TEXT NOT NULL,
+                        FieldKey TEXT NOT NULL,
+                        FieldName TEXT NOT NULL,
+                        SourceFieldName TEXT NOT NULL,
+                        DisplayValue TEXT NULL,
+                        NumericValue REAL NULL,
+                        CanDisplay INTEGER NOT NULL,
+                        CanScore INTEGER NOT NULL,
+                        CanStore INTEGER NOT NULL,
+                        Confidence INTEGER NOT NULL,
+                        SourceName TEXT NOT NULL,
+                        LastUpdatedUtc TEXT NOT NULL,
+                        FOREIGN KEY(PlayerId) REFERENCES Player(Id)
+                    );",
                     @"CREATE TABLE IF NOT EXISTS PlayerStat (
                         Id INTEGER PRIMARY KEY,
                         PlayerId INTEGER NOT NULL,
+                        FieldInstanceKey TEXT NOT NULL,
                         StatName TEXT NOT NULL,
                         StatValue REAL NOT NULL,
                         Minutes INTEGER NOT NULL,
                         SourceName TEXT NOT NULL,
                         Confidence INTEGER NOT NULL,
                         FOREIGN KEY(PlayerId) REFERENCES Player(Id)
+                    );",
+                    @"CREATE TABLE IF NOT EXISTS PhysicalMetric (
+                        Id INTEGER PRIMARY KEY,
+                        PlayerId INTEGER NOT NULL,
+                        FieldInstanceKey TEXT NOT NULL,
+                        MetricName TEXT NOT NULL,
+                        MetricValue REAL NOT NULL,
+                        Unit TEXT NULL,
+                        SourceName TEXT NOT NULL,
+                        Confidence INTEGER NOT NULL,
+                        FOREIGN KEY(PlayerId) REFERENCES Player(Id)
+                    );",
+                    @"CREATE TABLE IF NOT EXISTS PlayerProfileSnapshot (
+                        Id INTEGER PRIMARY KEY,
+                        PlayerId INTEGER NOT NULL,
+                        SourceName TEXT NOT NULL,
+                        IsFixtureMode INTEGER NOT NULL,
+                        IsLiveFm26Data INTEGER NOT NULL,
+                        Confidence INTEGER NOT NULL,
+                        DataCompleteness INTEGER NOT NULL,
+                        CreatedAtUtc TEXT NOT NULL,
+                        FOREIGN KEY(PlayerId) REFERENCES Player(Id)
+                    );",
+                    @"CREATE TABLE IF NOT EXISTS VisualProfileSnapshot (
+                        Id INTEGER PRIMARY KEY,
+                        PlayerProfileSnapshotId INTEGER NOT NULL,
+                        VisualType TEXT NOT NULL,
+                        VisualJson TEXT NOT NULL,
+                        CreatedAtUtc TEXT NOT NULL,
+                        FOREIGN KEY(PlayerProfileSnapshotId) REFERENCES PlayerProfileSnapshot(Id)
                     );",
                     @"CREATE TABLE IF NOT EXISTS PlayerImageReference (
                         Id INTEGER PRIMARY KEY,

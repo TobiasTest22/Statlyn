@@ -34,3 +34,9 @@ There is no FotMob scraper. Any FotMob-style provider would require licensed, ex
 ## Source Metadata
 
 Every source records licence status, allowed usage, image permission, flag permission, confidence and completeness. Field policies use this metadata before anything reaches scoring or UI.
+
+## CSV Mapping
+
+CSV imports use `FootballFieldCatalog` plus optional explicit mappings. The catalog maps common columns such as `Finishing`, `Pace`, `xG`, `xA`, `TopSpeed` and `SprintDistance` into safe field instances.
+
+Diagnostics report file readability, licence state, row count, players imported, mapped field count, unknown/forbidden field counts, image permission, flag permission and completeness. Diagnostics may include field names and counts, but not raw hidden values.

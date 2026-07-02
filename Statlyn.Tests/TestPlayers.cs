@@ -1,4 +1,5 @@
 using Statlyn.Core;
+using Statlyn.Scouting;
 
 namespace Statlyn.Tests
 {
@@ -47,9 +48,14 @@ namespace Statlyn.Tests
                 ScoutContext = new ScoutContext(false, 0, false)
             };
 
-            player.Fields[PlayerFieldKey.DisplayName] = new RawFieldValue(PlayerFieldKey.DisplayName, "DisplayName", "Synthetic Player", FieldValueKind.Text, 90);
-            player.Fields[PlayerFieldKey.Age] = new RawFieldValue(PlayerFieldKey.Age, "Age", 21, FieldValueKind.Number, 90);
+            player.AddField(new RawFieldValue(PlayerFieldKey.DisplayName, "DisplayName", "Synthetic Player", FieldValueKind.Text, 90));
+            player.AddField(new RawFieldValue(PlayerFieldKey.Age, "Age", 21, FieldValueKind.Number, 90));
             return player;
+        }
+
+        public static MaskedPlayer CreateMaskedExternalPlayer()
+        {
+            return new ScoutingKnowledgeFirewall().Mask(CreateExternalPlayer(isLicensed: true));
         }
     }
 }

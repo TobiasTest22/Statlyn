@@ -5,6 +5,7 @@ namespace Statlyn.Core
         public VisiblePlayerField(
             PlayerFieldKey key,
             string fieldName,
+            string sourceFieldName,
             string displayValue,
             double? numericValue,
             FieldValueKind valueKind,
@@ -19,6 +20,8 @@ namespace Statlyn.Core
         {
             Key = key;
             FieldName = fieldName ?? string.Empty;
+            SourceFieldName = sourceFieldName ?? string.Empty;
+            InstanceKey = new FieldInstanceKey(key, FieldName, SourceFieldName);
             DisplayValue = displayValue ?? string.Empty;
             NumericValue = numericValue;
             ValueKind = valueKind;
@@ -34,7 +37,11 @@ namespace Statlyn.Core
 
         public PlayerFieldKey Key { get; }
 
+        public FieldInstanceKey InstanceKey { get; }
+
         public string FieldName { get; }
+
+        public string SourceFieldName { get; }
 
         public string DisplayValue { get; }
 

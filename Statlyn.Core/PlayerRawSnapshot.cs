@@ -13,7 +13,7 @@ namespace Statlyn.Core
             ProviderType = providerType;
             SourceContext = Statlyn.Core.SourceContext.ForProvider(sourceProvider, providerType, 100);
             ScoutContext = Statlyn.Core.ScoutContext.Unknown;
-            Fields = new Dictionary<PlayerFieldKey, RawFieldValue>();
+            Fields = new Dictionary<FieldInstanceKey, RawFieldValue>();
             VisibleFacts = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             VisibleAttributes = new Dictionary<string, int?>(StringComparer.OrdinalIgnoreCase);
             HiddenAttributes = new Dictionary<string, int?>(StringComparer.OrdinalIgnoreCase);
@@ -56,9 +56,11 @@ namespace Statlyn.Core
                     SourceProvider,
                     ProviderType,
                     SourceContext.IsLicensed,
-                    SourceContext.AllowsPlayerImages,
-                    SourceContext.AllowsNationalityFlags,
+                    SourceContext.PermitsPlayerImages,
+                    SourceContext.PermitsProviderFlags,
                     SourceContext.UsesBundledSafeFlagAssets,
+                    SourceContext.PermitsClubBadges,
+                    SourceContext.AllowsExport,
                     value,
                     SourceContext.AllowedUsage);
             }
@@ -68,7 +70,12 @@ namespace Statlyn.Core
 
         public ScoutContext ScoutContext { get; set; }
 
-        public IDictionary<PlayerFieldKey, RawFieldValue> Fields { get; }
+        public IDictionary<FieldInstanceKey, RawFieldValue> Fields { get; }
+
+        public void AddField(RawFieldValue field)
+        {
+            Fields[field.InstanceKey] = field;
+        }
 
         public int? HiddenCurrentAbility { get; set; }
 

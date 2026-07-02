@@ -30,7 +30,7 @@ namespace Statlyn.Scouting
 
             var attributes = new Dictionary<string, VisibleField<int>>(StringComparer.OrdinalIgnoreCase);
             var facts = new Dictionary<string, VisibleField<string>>(StringComparer.OrdinalIgnoreCase);
-            var fields = new Dictionary<PlayerFieldKey, VisiblePlayerField>();
+            var fields = new Dictionary<FieldInstanceKey, VisiblePlayerField>();
             var blockedFields = new List<BlockedFieldNotice>();
             var normalizedFields = NormalizeFields(raw);
 
@@ -44,7 +44,7 @@ namespace Statlyn.Scouting
                 }
 
                 var visibleField = ToVisibleField(decision, raw);
-                fields[MakeUniqueFieldKey(fields, visibleField.Key)] = visibleField;
+                fields[visibleField.InstanceKey] = visibleField;
 
                 if (decision.DecisionKind == FieldDecisionKind.Known && visibleField.CanDisplay)
                 {
@@ -125,7 +125,7 @@ namespace Statlyn.Scouting
             foreach (var fact in raw.VisibleFacts)
             {
                 var key = _policyRegistry.ResolveKey(fact.Key, PlayerFieldKey.Unknown);
-                fields.Add(new RawFieldValue(key, fact.Key, fact.Value, FieldValueKind.Text, raw.SourceConfidence));
+                fields.Add(new RawFieldValue(key, fact.Key, fact.Key, fact.Value, FieldValueKind.Text, raw.SourceConfidence));
             }
 
             foreach (var attribute in raw.VisibleAttributes)
@@ -136,6 +136,7 @@ namespace Statlyn.Scouting
 
                 fields.Add(new RawFieldValue(
                     PlayerFieldKey.TechnicalAttribute,
+                    attribute.Key,
                     attribute.Key,
                     known ? attribute.Value : null,
                     FieldValueKind.Number,
@@ -151,7 +152,8 @@ namespace Statlyn.Scouting
             var isKnown = decision.DecisionKind == FieldDecisionKind.Known;
             return new VisiblePlayerField(
                 decision.RawField.Key,
-                decision.RawField.RawName,
+                decision.RawField.FieldName,
+                decision.RawField.SourceFieldName,
                 isKnown ? decision.RawField.DisplayValue : string.Empty,
                 isKnown ? decision.RawField.NumericValue : null,
                 decision.RawField.ValueKind,
@@ -163,17 +165,6 @@ namespace Statlyn.Scouting
                 isKnown ? CalculateFieldConfidence(raw, decision.RawField) : 0,
                 raw.SourceProvider,
                 isKnown ? string.Empty : decision.Reason);
-        }
-
-        private static PlayerFieldKey MakeUniqueFieldKey(IDictionary<PlayerFieldKey, VisiblePlayerField> fields, PlayerFieldKey key)
-        {
-            if (!fields.ContainsKey(key))
-            {
-                return key;
-            }
-
-            // Grouped fields such as technical attributes remain addressable by name through Attributes.
-            return key;
         }
 
         private static int CalculateFieldConfidence(PlayerRawSnapshot raw)

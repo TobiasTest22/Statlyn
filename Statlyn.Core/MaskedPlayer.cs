@@ -12,7 +12,7 @@ namespace Statlyn.Core
             ProviderType providerType,
             int scoutKnowledgePercentage,
             int confidence,
-            IDictionary<PlayerFieldKey, VisiblePlayerField> fields,
+            IDictionary<FieldInstanceKey, VisiblePlayerField> fields,
             IReadOnlyList<BlockedFieldNotice> blockedFields,
             IDictionary<string, VisibleField<int>> attributes,
             IDictionary<string, VisibleField<string>> facts)
@@ -23,7 +23,7 @@ namespace Statlyn.Core
             ProviderType = providerType;
             ScoutKnowledgePercentage = Clamp(scoutKnowledgePercentage);
             Confidence = Clamp(confidence);
-            Fields = new Dictionary<PlayerFieldKey, VisiblePlayerField>(fields ?? new Dictionary<PlayerFieldKey, VisiblePlayerField>());
+            Fields = new Dictionary<FieldInstanceKey, VisiblePlayerField>(fields ?? new Dictionary<FieldInstanceKey, VisiblePlayerField>());
             BlockedFields = blockedFields ?? new List<BlockedFieldNotice>();
             Attributes = new Dictionary<string, VisibleField<int>>(attributes ?? new Dictionary<string, VisibleField<int>>(), StringComparer.OrdinalIgnoreCase);
             Facts = new Dictionary<string, VisibleField<string>>(facts ?? new Dictionary<string, VisibleField<string>>(), StringComparer.OrdinalIgnoreCase);
@@ -45,7 +45,7 @@ namespace Statlyn.Core
                 providerType,
                 scoutKnowledgePercentage,
                 confidence,
-                new Dictionary<PlayerFieldKey, VisiblePlayerField>(),
+                new Dictionary<FieldInstanceKey, VisiblePlayerField>(),
                 new List<BlockedFieldNotice>(),
                 attributes,
                 facts)
@@ -64,7 +64,7 @@ namespace Statlyn.Core
 
         public int Confidence { get; }
 
-        public IReadOnlyDictionary<PlayerFieldKey, VisiblePlayerField> Fields { get; }
+        public IReadOnlyDictionary<FieldInstanceKey, VisiblePlayerField> Fields { get; }
 
         public IReadOnlyList<BlockedFieldNotice> BlockedFields { get; }
 

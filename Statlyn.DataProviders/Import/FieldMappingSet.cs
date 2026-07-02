@@ -20,6 +20,11 @@ namespace Statlyn.DataProviders.Import
 
         public FieldMapping Resolve(string columnName, FieldPolicyRegistry registry)
         {
+            if (registry.IsForbiddenRawName(columnName))
+            {
+                return new FieldMapping(columnName, registry.ResolveKey(columnName, PlayerFieldKey.Unknown), columnName, FieldValueKind.Number);
+            }
+
             foreach (var mapping in _mappings)
             {
                 if (string.Equals(mapping.SourceColumn, columnName, System.StringComparison.OrdinalIgnoreCase))
@@ -28,7 +33,7 @@ namespace Statlyn.DataProviders.Import
                 }
             }
 
-            return new FieldMapping(columnName, registry.ResolveKey(columnName, PlayerFieldKey.Unknown), FieldValueKind.Text);
+            return new FootballFieldCatalog(registry).Resolve(columnName);
         }
     }
 }

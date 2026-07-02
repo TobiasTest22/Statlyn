@@ -11,6 +11,8 @@ Unity CI is not configured yet. Use this manual checklist after opening `Statlyn
 - Navigation is visible.
 - Player Profile slice loads.
 - Profile slice clearly shows fixture mode.
+- Profile slice clearly shows no live FM26 data.
+- Profile slice shows source confidence, data completeness, role fit, confidence, risk, radar placeholder, percentile bars, evidence cards and missing/blocked-data warnings.
 - Diagnostics panel loads.
 - No fake live FM26 data is shown.
 - No real player images, club badges or unlicensed flags are shown.

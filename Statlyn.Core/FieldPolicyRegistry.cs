@@ -111,6 +111,11 @@ namespace Statlyn.Core
                     return PlayerFieldKey.PlayerStat;
                 case "physicaldata":
                     return PlayerFieldKey.PhysicalData;
+                case "scoutobservation":
+                    return PlayerFieldKey.ScoutObservation;
+                case "clubbadge":
+                case "clubbadgeimage":
+                    return PlayerFieldKey.ClubBadge;
                 case "scoutknowledge":
                     return PlayerFieldKey.ScoutKnowledge;
                 case "scoutstars":
@@ -162,12 +167,14 @@ namespace Statlyn.Core
             Register(PlayerFieldKey.PhysicalAttribute, FieldVisibilityCategory.VisibleIfScouted, true, true, true, requiresScoutReport: true, minimumScoutKnowledge: 50);
             Register(PlayerFieldKey.PlayerStat, FieldVisibilityCategory.LicensedExternalData, true, true, true, requiresLicensedSource: true);
             Register(PlayerFieldKey.PhysicalData, FieldVisibilityCategory.LicensedExternalData, true, true, true, requiresLicensedSource: true);
+            Register(PlayerFieldKey.ScoutObservation, FieldVisibilityCategory.VisibleIfScouted, true, true, true);
             Register(PlayerFieldKey.ScoutKnowledge, FieldVisibilityCategory.VisibleIfScouted, true, true, true, requiresScoutReport: true, minimumScoutKnowledge: 1);
             Register(PlayerFieldKey.ScoutStars, FieldVisibilityCategory.VisibleIfScouted, true, true, true, requiresScoutReport: true, minimumScoutKnowledge: 1);
             Register(PlayerFieldKey.ScoutRecommendation, FieldVisibilityCategory.VisibleIfScouted, true, true, true, requiresScoutReport: true, minimumScoutKnowledge: 1);
             Register(PlayerFieldKey.ScoutVisiblePersonalityNote, FieldVisibilityCategory.VisibleIfScouted, true, false, true, requiresScoutReport: true, minimumScoutKnowledge: 1);
             Register(PlayerFieldKey.UserNote, FieldVisibilityCategory.UserEnteredNote, true, false, true);
             Register(PlayerFieldKey.LicensedExternalData, FieldVisibilityCategory.LicensedExternalData, true, true, true, requiresLicensedSource: true);
+            Register(PlayerFieldKey.ClubBadge, FieldVisibilityCategory.LicensedExternalData, true, false, true, requiresLicensedSource: true);
 
             RegisterForbidden(PlayerFieldKey.CurrentAbility, "Hidden FM26 Current Ability is never visible, stored or scored.");
             RegisterForbidden(PlayerFieldKey.PotentialAbility, "Hidden FM26 Potential Ability is never visible, stored or scored.");

@@ -1,0 +1,6 @@
+{
+  "game": "Football Manager 26",
+  "supportedBuilds": [],
+  "defaultStatus": "unsupported",
+  "notes": "No FM26 build has been validated yet. Statlyn must not load fixture players when this list is empty."
+}

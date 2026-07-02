@@ -1,0 +1,8 @@
+{
+  "game": "Football Manager 26",
+  "build": "template",
+  "entity": "nations",
+  "isTemplate": true,
+  "supported": false,
+  "fields": []
+}

@@ -1,0 +1,8 @@
+{
+  "game": "Football Manager 26",
+  "build": "template",
+  "entity": "tactics",
+  "isTemplate": true,
+  "supported": false,
+  "fields": []
+}

@@ -1,0 +1,45 @@
+{
+  "game": "Football Manager 26",
+  "build": "template",
+  "entity": "players",
+  "isTemplate": true,
+  "supported": false,
+  "fields": [
+    {
+      "fieldName": "displayName",
+      "dataType": "string",
+      "pointerPath": null,
+      "validationRule": "non-empty",
+      "visibilityCategory": "alwaysVisible",
+      "canDisplay": true,
+      "canScore": false,
+      "canStore": true,
+      "confidenceEffect": "neutral",
+      "notes": "Visible player identity only."
+    },
+    {
+      "fieldName": "currentAbility",
+      "dataType": "int",
+      "pointerPath": null,
+      "validationRule": "never-map-to-ui",
+      "visibilityCategory": "neverVisible",
+      "canDisplay": false,
+      "canScore": false,
+      "canStore": false,
+      "confidenceEffect": "none",
+      "notes": "Hidden FM value. Never expose or derive scores from this field."
+    },
+    {
+      "fieldName": "potentialAbility",
+      "dataType": "int",
+      "pointerPath": null,
+      "validationRule": "never-map-to-ui",
+      "visibilityCategory": "neverVisible",
+      "canDisplay": false,
+      "canScore": false,
+      "canStore": false,
+      "confidenceEffect": "none",
+      "notes": "Hidden FM value. Never expose or derive scores from this field."
+    }
+  ]
+}

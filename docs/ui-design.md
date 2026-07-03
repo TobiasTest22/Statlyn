@@ -28,15 +28,15 @@ The current Unity shell creates:
 
 The first shell intentionally does not show fake live players. The Player Profile slice may show one synthetic development fixture, clearly labelled as fixture mode.
 
-The Player Profile slice uses synthetic fixture-mode copy to preview layout only. It does not claim live FM26 connectivity, real player images, club badges or unlicensed flags.
+The Player Profile slice uses synthetic fixture-mode copy to preview dashboard layout only. The Player Profile v1 page/report loads persisted safe imported data. Neither surface claims live FM26 connectivity, real player images, club badges or unlicensed flags.
 
 The slice is generated from `MaskedPlayerProfileViewModel` through `UnityProfileRenderModel`, not from raw provider snapshots or hardcoded Unity-only profile data.
 
 ## Player Profile Direction
 
-The player profile should become the design template for later pages. It should include player identity, source confidence, scout knowledge, verdict, role evidence, comparison visuals and missing-data warnings.
+The player profile should become the design template for later pages. Player Profile v1 includes player identity, source confidence, verdict, role-output evidence, data quality, scout actions, simple visual sections and missing/blocked-data warnings.
 
-Visual copy should stay honest when data is incomplete. Unknown tactical fit should say unknown, low-confidence risk should read as directional rather than precise, and percentile comparisons should say fixture comparison group only in fixture mode.
+Visual copy should stay honest when data is incomplete. Unknown tactical fit should say unknown, low-confidence risk should read as directional rather than precise, and no percentile or comparison claim should appear unless a real benchmark group exists.
 
 ## Persistence And Future Recruitment Surfaces
 
@@ -47,3 +47,5 @@ Recruitment Centre v1 shows persisted imported players as white/glassy cards wit
 Recruitment Centre screens should show local import status, source permissions, safe audit counts, player stat counts, physical metric counts, reset/default filters and role-output evidence without exposing raw provider snapshots or blocked raw values.
 
 Recruitment UI should not become an attribute-only rating board. Attributes can support evidence, but role-specific performance output, scout observations, sample size, tactical fit and source confidence should be the primary direction.
+
+Player Profile v1 follows this by placing Core Role Output, Supporting Output, Missing Output, Data Quality and Scout Actions before Attribute Support.

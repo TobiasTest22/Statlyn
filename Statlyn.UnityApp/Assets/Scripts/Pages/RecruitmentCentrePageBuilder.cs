@@ -4,8 +4,6 @@ using System.Globalization;
 using System.IO;
 using Statlyn.Data;
 using Statlyn.Data.Recruitment;
-using Statlyn.UI;
-using Statlyn.UI.UnityBridge;
 using Statlyn.UnityApp.Components;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -186,28 +184,7 @@ namespace Statlyn.UnityApp.Pages
             profile.Clear();
             try
             {
-                using (var factory = RuntimeDatabaseFactory.CreateFile(databasePath))
-                {
-                    var preview = new RecruitmentCentreProfilePreviewService(factory).LoadProfilePreview(statlynPlayerId);
-                    if (preview == null)
-                    {
-                        profile.Add(StatlynUiFactory.MakeCard("Profile Preview", new[] { "Persisted player could not be loaded safely." }));
-                        return;
-                    }
-
-                    var unityModel = UnityProfileRenderModel.From(preview.MaskedProfile);
-                    profile.Add(StatlynUiFactory.MakeCard("Profile Preview", new[]
-                    {
-                        preview.PlayerName,
-                        "Source: " + preview.SourceName,
-                        preview.ModeLabel,
-                        unityModel.IsLiveFm26Data ? "Live FM26 data" : "No live FM26 data",
-                        "Role: " + preview.RoleName,
-                        "Role fit: " + preview.RoleFit + " | Confidence: " + preview.Confidence + " | Risk: " + preview.Risk,
-                        "Output metrics: " + string.Join(", ", preview.OutputMetrics)
-                    }));
-                    profile.Add(StatlynUiFactory.MakeMessages("Profile Evidence", new[] { preview.MissingDataWarning, preview.BlockedDataSafeNotice }));
-                }
+                PlayerProfilePageBuilder.RenderProfileReport(databasePath, statlynPlayerId, profile);
             }
             catch (Exception ex)
             {

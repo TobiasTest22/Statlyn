@@ -26,6 +26,7 @@ namespace Statlyn.UnityApp
         private readonly DashboardPageBuilder _dashboard = new DashboardPageBuilder();
         private readonly DataSourcesPageBuilder _dataSources = new DataSourcesPageBuilder();
         private readonly RecruitmentCentrePageBuilder _recruitmentCentre = new RecruitmentCentrePageBuilder();
+        private readonly PlayerProfilePageBuilder _playerProfile = new PlayerProfilePageBuilder();
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void CreateRuntimeShell()
@@ -100,6 +101,12 @@ namespace Statlyn.UnityApp
             if (pageName == "Recruitment")
             {
                 _recruitmentCentre.Build(main);
+                return;
+            }
+
+            if (pageName == "Player Profile")
+            {
+                _playerProfile.Build(main);
                 return;
             }
 

@@ -26,6 +26,13 @@ This copies the managed Statlyn assemblies, SQLite managed dependencies, Windows
 - Profile slice keeps FM26 memory maps marked unsupported until validated maps exist.
 - Profile slice shows source confidence, data completeness, role fit, confidence, risk, radar placeholder, percentile bars, evidence cards and missing/blocked-data warnings.
 - Blocked-data notice does not show raw hidden values.
+- Player Profile navigation opens the Player Profile v1 page.
+- Player Profile page shows persisted-safe/no-live-FM26 header copy and the official Statlyn logo mark.
+- `Load First Imported Player` loads a profile after a safe CSV import.
+- Manual `StatlynPlayerId` loading works for an imported player.
+- Profile report shows identity, source, verdict, role/output fit, core output, supporting output, missing output, data quality/sample size, attribute support, evidence, scout actions and blocked-data safe notice.
+- Profile report says generic/import metrics are not FM26-verified.
+- Profile report says `No benchmark yet.` and does not show fake percentiles.
 - Diagnostics panel loads.
 - Data Sources navigation opens a CSV-only page.
 - Data Sources page shows the active local SQLite path.
@@ -44,8 +51,8 @@ This copies the managed Statlyn assemblies, SQLite managed dependencies, Windows
 - Reset filters returns search/source/position/minimum filters to defaults.
 - Sort selector works for role fit, confidence, data completeness, source and position.
 - Player cards show source confidence, completeness, persisted role name, role fit, tactical-fit status, confidence, recommendation, risk, output metrics, blocked-field count and missing-data count.
-- `Open Profile` shows a persisted safe profile preview or a safe error card.
-- Profile preview shows selected player name, source, fixture/import mode, no live FM26 data, role name, role fit/confidence/risk, output metrics, missing-data warning and blocked-data safe notice.
+- `Open Profile` shows the full persisted safe Player Profile report or a safe error card.
+- Profile report from Recruitment Centre shows selected player name, source, fixture/import mode, no live FM26 data, role name, role fit/confidence/risk, output metrics, missing-data warning and blocked-data safe notice.
 - No fake live FM26 data is shown.
 - No real player images, club badges or unlicensed flags are shown.
 - Empty/unsupported states remain honest.

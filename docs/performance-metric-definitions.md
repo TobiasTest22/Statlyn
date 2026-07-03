@@ -32,8 +32,14 @@ Definitions support:
 
 Attributes can support interpretation, but performance output should increasingly drive recruitment evidence.
 
-Recruitment Centre v1 uses these generic/import-ready definitions for row summaries. xG, xA, progressive actions, defensive output, goalkeeper output and physical metrics can appear as safe labels/values when imported. They remain generic football metrics unless later FM26 validation marks them supported.
+Recruitment Centre v1 and Player Profile v1 use these generic/import-ready definitions for summaries and report metric tiles. xG, xA, progressive actions, defensive output, goalkeeper output and physical metrics can appear as safe labels/values when imported. They remain generic football metrics unless later FM26 validation marks them supported.
 
 ## Sample Size
 
 Metrics that require minutes should not be treated as fully reliable unless safe sample minutes are present. The current persistence layer stores sample minutes on `PlayerStat` rows when a safe `Minutes` field exists. If it does not, the row is marked as sample-missing rather than inventing minutes.
+
+Player Profile v1 surfaces minutes in the Data Quality section. If minutes are missing, the profile shows a sample-size warning and keeps the output interpretation provisional.
+
+## Benchmarks
+
+No benchmark means no percentile claim. Player Profile v1 uses simple data-driven visual sections and says `No benchmark yet.` until a real comparison group exists.

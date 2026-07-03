@@ -28,4 +28,4 @@ The milestone brief also referenced `StatLyn_Transparant_Black.png` and `StatLyn
 
 ## Unity Usage
 
-The Unity shell/sidebar loads the official light logo resource through `StatlynUiFactory.LightLogoResourceKey`. Dashboard headers can use a small logo mark, but Data Sources and Recruitment Centre pages should keep ordinary page headings and avoid repeating the logo on every card.
+The Unity shell/sidebar loads the official light logo resource through `StatlynUiFactory.LightLogoResourceKey`. Dashboard and Player Profile headers can use a small logo mark, but Data Sources and Recruitment Centre pages should keep ordinary page headings and avoid repeating the logo on every card.

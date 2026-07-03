@@ -27,22 +27,23 @@ Statlyn is a desktop football recruitment intelligence platform for Football Man
 - Persistence: local SQLite foundation can initialize, import synthetic CSV fixture data, persist masked/source-tagged records, reload safe player data and build a profile view model.
 - Data Sources UI: first Unity page for local CSV path entry, source permissions, read-only column preview, safe import and database diagnostics.
 - Unity runtime validation: Data Sources includes a runtime check for managed assemblies, SQLite dependencies, temporary database initialization and workflow construction.
-- Recruitment Centre: first persisted-safe player list for imported CSV players with search/filter, role/output summaries and safe profile preview.
+- Recruitment Centre: first persisted-safe player list for imported CSV players with search/filter, role/output summaries and full safe profile report loading.
+- Player Profile v1: persisted-safe, output-first recruitment report with role-specific output, data quality, scout actions, blocked-data notice and simple visual sections.
 - Branding: official Statlyn logo assets are copied into Unity `Resources/Branding` and used by the shell/sidebar.
 - Field policy registry: deny-by-default masking for display, scoring and storage.
 - Field instance keys: grouped values such as `TechnicalAttribute:Finishing` and `PlayerStat:xG` are preserved without overwriting.
-- Player Profile: fixture preview flows through `ScoutingKnowledgeFirewall`, `RoleScoringEngine` and `MaskedPlayerProfileViewModel` before Unity renders it.
+- Player Profile: fixture preview still exists on the dashboard, and Player Profile v1 loads persisted safe imported data through `PlayerProfileQueryService` and `PlayerProfileReportViewModel`.
 - Performance output foundation: generic/import-ready metric definitions and role-output expectation templates are seeded for future role-specific scoring.
 
 When FM26 is detected but no validated memory map exists, Statlyn must show an unsupported or partial state and return no fake player data.
 
 CSV and JSON import support is local-file skeleton work only. The Data Sources workflow is CSV-only for now: preview reads headers/counts without storing data, then safe import runs through the provider, scouting firewall and SQLite transaction path. It does not scrape, call FotMob, use unofficial endpoints or assume unlicensed images are available. Fixture data is synthetic development/test data only. The Player Profile slice is generated from a synthetic raw fixture that passes through the scouting firewall, role scoring and masked profile view model. It is not live FM26 data.
 
-Recruitment Centre uses persisted safe SQLite data only. It does not query live FM26, external APIs or raw provider snapshots. Latest role-score names are persisted and reloaded from SQLite; missing scores display `Not scored`. Role/output summaries prefer persisted role-output expectation profiles when available and fall back to generic/import-ready profiles only when needed. Attributes are supporting evidence rather than the whole recruitment model.
+Recruitment Centre and Player Profile use persisted safe SQLite data only. They do not query live FM26, external APIs or raw provider snapshots. Latest role-score names are persisted and reloaded from SQLite; missing scores display `Not scored`. Role/output summaries prefer persisted role-output expectation profiles when available and fall back to generic/import-ready profiles only when needed. Attributes are supporting evidence rather than the whole recruitment model.
 
 The SQLite persistence layer is local-only foundation work. It stores masked players, visible permitted fields, player stats, physical metrics, source metadata, role scores, blocked-field audit metadata and import audit counts. Imports run inside a transaction and re-imports replace the current stored player snapshot so safe fields, stats and metrics do not duplicate. It does not store raw provider snapshots, hidden FM26 values or raw blocked values.
 
-Performance metric definitions are generic/import-ready contracts, not official FM26 stat declarations. A metric can only be marked FM26-supported after later validation from visible FM26 data, exported data or a validated memory map. Generic role-output expectation profiles are foundation templates, not final FM26 role templates. Goalkeepers, centre-backs, midfielders, wide attackers and strikers intentionally use different output expectations.
+Performance metric definitions are generic/import-ready contracts, not official FM26 stat declarations. A metric can only be marked FM26-supported after later validation from visible FM26 data, exported data or a validated memory map. Generic role-output expectation profiles are foundation templates, not final FM26 role templates. Goalkeepers, centre-backs, midfielders, wide attackers and strikers intentionally use different output expectations. No fake benchmark percentiles are generated; if no comparison group exists, Player Profile v1 says no benchmark yet.
 
 Official logo usage is documented in `docs/branding.md`. The currently available repo assets are `StatLyn_Logo.png`, `StatLyn_Logo_Reversed.png`, `Statlyn_Logo_Black-text.png` and `Statlyn_Logo_White-text.png`.
 

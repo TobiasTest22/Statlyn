@@ -10,9 +10,9 @@ Milestone 1.9 adds the first Recruitment Centre page powered by persisted safe S
 4. Run Safe Import.
 5. Open Recruitment Centre.
 6. Refresh/search/filter persisted players.
-7. Open a safe profile preview.
+7. Open the full safe Player Profile report.
 
-Recruitment Centre does not parse CSV files directly. It reads only the masked SQLite rows created by the safe import pipeline.
+Recruitment Centre does not parse CSV files directly. It reads only the masked SQLite rows created by the safe import pipeline. Its `Open Profile` action now reuses the same `PlayerProfileQueryService` and `PlayerProfileReportViewModel` pipeline as the Player Profile page.
 
 ## Data Safety
 
@@ -45,7 +45,7 @@ Recruitment Centre loads persisted `RoleOutputExpectationProfile` rows from SQLi
 
 ## Unity UX
 
-The Unity page shows a persisted-safe-data banner, no-live-FM26 label, active database path/status, player count, source list, reset filters button, sort selector, role name, tactical-fit status and clearer output/missing/blocked labels. `Open Profile` remains a preview and uses the safe `MaskedPlayerProfileViewModel` pipeline.
+The Unity page shows a persisted-safe-data banner, no-live-FM26 label, active database path/status, player count, source list, reset filters button, sort selector, role name, tactical-fit status and clearer output/missing/blocked labels. `Open Profile` renders the Player Profile v1 report below the Recruitment Centre results using persisted safe data only.
 
 ## Current Limits
 

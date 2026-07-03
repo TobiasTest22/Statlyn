@@ -38,6 +38,8 @@ Recruitment Centre v1 uses these profiles for output-first row summaries:
 
 Missing core metrics are displayed as missing warnings, not zeroes.
 
-Milestone 1.9.1 changes the Recruitment Centre query path to prefer persisted `RoleOutputExpectationProfile` rows from SQLite. The selector first looks for a persisted profile matching the player's resolved position group and can also match role family where available. If no persisted profile matches, the generic seed profiles remain the fallback.
+Milestone 1.9.1 changes the Recruitment Centre query path to prefer persisted `RoleOutputExpectationProfile` rows from SQLite. Milestone 2.0 applies the same selection path to Player Profile v1. The selector first looks for a persisted profile matching the player's resolved position group and can also match role family where available. If no persisted profile matches, the generic seed profiles remain the fallback.
 
 All current generic profiles must keep `IsFm26Specific=false`. A profile can only become FM26-specific after later validation work explicitly marks it that way. Attributes remain supporting evidence only.
+
+Player Profile v1 leads with role-output profile expectations. Attribute values can appear only in the support section.

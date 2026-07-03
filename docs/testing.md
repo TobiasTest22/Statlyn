@@ -125,6 +125,22 @@ Milestone 1.9.1 adds tests for:
 - Safe Recruitment Centre default/reset behavior and empty state.
 - Safe profile preview labels, role name, output metrics, no-live-FM26 state and blocked-data notice.
 
+Milestone 2.0 adds tests for:
+
+- `PlayerProfileQueryService` loading persisted synthetic players safely.
+- Safe not-found profile results.
+- Missing role score and unknown tactical fit display.
+- Fixture/import source and no-live-FM26 status.
+- Blocked audit notices as count/category/reason only.
+- `PlayerProfileReportViewModel` accepting only safe profile results.
+- Output-first report sections and support-only attributes.
+- Position-specific output expectations.
+- Missing output warnings without zero-filling.
+- Sample minutes and missing-minutes warnings.
+- No fake percentile or comparison group without a benchmark.
+- Low confidence scout actions.
+- Recruitment Centre row to Player Profile report consistency.
+
 Future tests should cover broader persistence migrations, real provider imports, Unity UI state transitions and native connector status parsing.
 
 Unity editor validation remains manual. Run `.\tools\copy-managed-to-unity.ps1` before opening the project so the Unity assembly definition can resolve the shared managed Statlyn DLLs, SQLite dependencies and synthetic fixture CSV, then use the Data Sources runtime check inside Unity. Branding assets live directly under `Statlyn.UnityApp/Assets/Resources/Branding`.

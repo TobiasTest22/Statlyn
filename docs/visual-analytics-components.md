@@ -53,3 +53,8 @@ Recruitment Centre cards use safe mini visuals for:
 - no-live-FM26 label
 
 Missing output remains missing and is never converted to zero. Attribute support remains secondary to output, evidence, data quality and scout actions.
+## Benchmark Visuals
+
+`StatlynBenchmarkStatusVisual` now supports real benchmark metric cards. Each card can display player value, median, average, percentile, sample size, comparison group, source and generic/import verification label.
+
+Percentile is nullable and should be hidden unless the result status is `Available`. Benchmark metrics should appear before attribute support in Player Profile because output evidence remains primary.

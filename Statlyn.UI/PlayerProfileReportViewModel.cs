@@ -36,6 +36,7 @@ namespace Statlyn.UI
             IReadOnlyList<PlayerProfileAttributeSupportViewModel> attributeSupportCards,
             IReadOnlyList<PlayerProfileScoutActionViewModel> scoutActionCards,
             PlayerProfileBlockedDataViewModel blockedDataNotice,
+            PlayerProfileBenchmarkSectionViewModel benchmarkSection,
             IReadOnlyList<PlayerProfileVisualSectionViewModel> visualSections)
         {
             StatlynPlayerId = statlynPlayerId ?? string.Empty;
@@ -66,6 +67,7 @@ namespace Statlyn.UI
             AttributeSupportCards = attributeSupportCards ?? new List<PlayerProfileAttributeSupportViewModel>();
             ScoutActionCards = scoutActionCards ?? new List<PlayerProfileScoutActionViewModel>();
             BlockedDataNotice = blockedDataNotice ?? new PlayerProfileBlockedDataViewModel(0, new List<string>(), new List<string>(), "No blocked data is loaded for this profile.");
+            BenchmarkSection = benchmarkSection ?? new PlayerProfileBenchmarkSectionViewModel(string.Empty, "NoBenchmark", "No benchmark yet.", string.Empty, new List<Statlyn.Data.Benchmarks.PlayerBenchmarkMetricViewModel>(), new List<string>());
             VisualSections = visualSections ?? new List<PlayerProfileVisualSectionViewModel>();
         }
 
@@ -124,6 +126,8 @@ namespace Statlyn.UI
         public IReadOnlyList<PlayerProfileScoutActionViewModel> ScoutActionCards { get; }
 
         public PlayerProfileBlockedDataViewModel BlockedDataNotice { get; }
+
+        public PlayerProfileBenchmarkSectionViewModel BenchmarkSection { get; }
 
         public IReadOnlyList<PlayerProfileVisualSectionViewModel> VisualSections { get; }
 

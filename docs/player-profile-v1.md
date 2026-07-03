@@ -104,3 +104,8 @@ Player Profile v1 does not create fake benchmark percentiles. The 2.1 benchmark 
 ## Unity Status
 
 The Unity page is manually validated through `docs/unity-validation.md`. Unity Editor validation and SQLite-in-Unity loading remain manual unless a release note explicitly says the Editor was opened and checked.
+## Benchmark Foundation v1
+
+Player Profile now includes a benchmark section backed by persisted safe SQLite data. It keeps `No benchmark yet.` when no definition or real comparison group exists, shows `Insufficient sample.` when the sample is below the definition threshold, and only shows a percentile for `Available` benchmark results.
+
+Benchmark cards include player value, median, average, sample size, comparison group, source and the generic/import label. Missing metrics are not treated as zero, and hidden FM26 values or raw blocked values are never used.

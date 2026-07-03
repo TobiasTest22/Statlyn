@@ -15,6 +15,7 @@ namespace Statlyn.UnityApp
             "Shortlists",
             "Player Profile",
             "Role Lab",
+            "Benchmarks",
             "Scout Desk",
             "Alerts",
             "Data Sources",
@@ -30,6 +31,7 @@ namespace Statlyn.UnityApp
         private readonly ShortlistsPageBuilder _shortlists = new ShortlistsPageBuilder();
         private readonly ScoutDeskPageBuilder _scoutDesk = new ScoutDeskPageBuilder();
         private readonly RoleLabPageBuilder _roleLab = new RoleLabPageBuilder();
+        private readonly BenchmarksPageBuilder _benchmarks = new BenchmarksPageBuilder();
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void CreateRuntimeShell()
@@ -128,6 +130,12 @@ namespace Statlyn.UnityApp
             if (pageName == "Role Lab")
             {
                 _roleLab.Build(main);
+                return;
+            }
+
+            if (pageName == "Benchmarks")
+            {
+                _benchmarks.Build(main);
                 return;
             }
 

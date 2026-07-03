@@ -252,6 +252,19 @@ namespace Statlyn.UI
             string comparisonGroup,
             string metricKey,
             int? sampleSize)
+            : this(hasBenchmark, safeMessage, percentile, benchmarkName, comparisonGroup, metricKey, sampleSize, new List<StatlynBenchmarkMetricVisual>())
+        {
+        }
+
+        public StatlynBenchmarkStatusVisual(
+            bool hasBenchmark,
+            string safeMessage,
+            int? percentile,
+            string benchmarkName,
+            string comparisonGroup,
+            string metricKey,
+            int? sampleSize,
+            IReadOnlyList<StatlynBenchmarkMetricVisual> metrics)
         {
             HasBenchmark = hasBenchmark;
             SafeMessage = safeMessage ?? string.Empty;
@@ -260,6 +273,7 @@ namespace Statlyn.UI
             ComparisonGroup = comparisonGroup ?? string.Empty;
             MetricKey = metricKey ?? string.Empty;
             SampleSize = sampleSize;
+            Metrics = metrics ?? new List<StatlynBenchmarkMetricVisual>();
         }
 
         public bool HasBenchmark { get; }
@@ -275,6 +289,55 @@ namespace Statlyn.UI
         public string MetricKey { get; }
 
         public int? SampleSize { get; }
+
+        public IReadOnlyList<StatlynBenchmarkMetricVisual> Metrics { get; }
+    }
+
+    public sealed class StatlynBenchmarkMetricVisual
+    {
+        public StatlynBenchmarkMetricVisual(
+            string metricKey,
+            string playerValue,
+            string median,
+            string average,
+            int? percentile,
+            int sampleSize,
+            string status,
+            string source,
+            string comparisonGroup,
+            string verificationLabel)
+        {
+            MetricKey = metricKey ?? string.Empty;
+            PlayerValue = playerValue ?? string.Empty;
+            Median = median ?? string.Empty;
+            Average = average ?? string.Empty;
+            Percentile = percentile;
+            SampleSize = sampleSize;
+            Status = status ?? string.Empty;
+            Source = source ?? string.Empty;
+            ComparisonGroup = comparisonGroup ?? string.Empty;
+            VerificationLabel = verificationLabel ?? string.Empty;
+        }
+
+        public string MetricKey { get; }
+
+        public string PlayerValue { get; }
+
+        public string Median { get; }
+
+        public string Average { get; }
+
+        public int? Percentile { get; }
+
+        public int SampleSize { get; }
+
+        public string Status { get; }
+
+        public string Source { get; }
+
+        public string ComparisonGroup { get; }
+
+        public string VerificationLabel { get; }
     }
 
     public sealed class StatlynMissingDataVisual
@@ -304,6 +367,7 @@ namespace Statlyn.UI
             StatlynHorizontalBarVisual dataCompletenessBar,
             StatlynWarningVisual riskIndicator,
             IReadOnlyList<StatlynMetricTileVisual> outputMiniList,
+            StatlynBenchmarkStatusVisual benchmarkStatus,
             IReadOnlyList<string> badges,
             string noLiveDataLabel)
         {
@@ -312,6 +376,7 @@ namespace Statlyn.UI
             DataCompletenessBar = dataCompletenessBar;
             RiskIndicator = riskIndicator;
             OutputMiniList = outputMiniList ?? new List<StatlynMetricTileVisual>();
+            BenchmarkStatus = benchmarkStatus;
             Badges = badges ?? new List<string>();
             NoLiveDataLabel = noLiveDataLabel ?? string.Empty;
         }
@@ -325,6 +390,8 @@ namespace Statlyn.UI
         public StatlynWarningVisual RiskIndicator { get; }
 
         public IReadOnlyList<StatlynMetricTileVisual> OutputMiniList { get; }
+
+        public StatlynBenchmarkStatusVisual BenchmarkStatus { get; }
 
         public IReadOnlyList<string> Badges { get; }
 

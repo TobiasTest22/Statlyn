@@ -43,3 +43,8 @@ Player Profile v1 surfaces minutes in the Data Quality section. If minutes are m
 ## Benchmarks
 
 No benchmark means no percentile claim. Player Profile v1 uses data-driven visual sections and says `No benchmark yet.` until a real comparison group exists. The 2.1 benchmark status model currently uses `HasBenchmark=false`, `Percentile=null` and no comparison group.
+## Benchmark Use
+
+Benchmark Foundation v1 uses generic/import metric keys such as `xG`, `xA`, `ProgressivePasses`, `TopSpeed` and goalkeeper output metrics. These keys are not official FM26 mappings.
+
+Benchmark calculations prefer safe `PlayerStat` and `PhysicalMetric` rows. Attribute support is excluded unless explicitly requested as support-only evidence. Missing metrics are not zero, and no hidden FM26 values are benchmarked.

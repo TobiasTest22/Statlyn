@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using Microsoft.Data.Sqlite;
 using Statlyn.Analytics;
+using Statlyn.Data.Benchmarks;
 using Statlyn.Data.Persistence;
 using Statlyn.Core;
 
@@ -14,12 +15,14 @@ namespace Statlyn.Data.Recruitment
         private readonly StatlynDbConnectionFactory _connectionFactory;
         private readonly RecruitmentOutputSummaryService _summaryService;
         private readonly RoleOutputExpectationRepository _roleOutputExpectations;
+        private readonly BenchmarkWorkflowService _benchmarkWorkflow;
 
         public RecruitmentCentreQueryService(StatlynDbConnectionFactory connectionFactory)
         {
             _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
             _summaryService = new RecruitmentOutputSummaryService();
             _roleOutputExpectations = new RoleOutputExpectationRepository(connectionFactory);
+            _benchmarkWorkflow = new BenchmarkWorkflowService(connectionFactory);
         }
 
         public RecruitmentCentreResult Query(RecruitmentCentreQuery? query)
@@ -132,6 +135,7 @@ namespace Statlyn.Data.Recruitment
             var selectedProfile = _summaryService.SelectProfile(positionGroup, string.Empty, profiles);
             var summary = _summaryService.Build(primaryPosition, stats, metrics, selectedProfile, null);
             var missingCount = missingData.Count + summary.MissingCoreMetrics.Count;
+            var benchmarkIndicator = BuildBenchmarkIndicator(_benchmarkWorkflow.BuildPlayerBenchmarkSummary(statlynPlayerId));
             var warnings = new List<string>();
 
             if (summary.MissingCoreMetrics.Count > 0)
@@ -171,9 +175,37 @@ namespace Statlyn.Data.Recruitment
                 blockedCount,
                 missingCount,
                 summary.CoreMetrics.Concat(summary.SupportingMetrics).Take(5).ToList(),
+                benchmarkIndicator,
                 warnings,
                 IsFixture(sourceName, allowedUsage),
                 string.Equals(providerType, ProviderType.FM26LiveMemory.ToString(), StringComparison.OrdinalIgnoreCase) && isLive);
+        }
+
+        private static RecruitmentBenchmarkIndicatorViewModel BuildBenchmarkIndicator(BenchmarkPlayerSummary summary)
+        {
+            if (summary == null || summary.OverallStatus == BenchmarkStatus.NoBenchmark || summary.Results.Count == 0)
+            {
+                return RecruitmentBenchmarkIndicatorViewModel.NoBenchmark();
+            }
+
+            var metric = summary.Results.FirstOrDefault(result => result.Status == BenchmarkStatus.Available) ?? summary.Results.First();
+            var percentile = metric.Status == BenchmarkStatus.Available && metric.Percentile.HasValue
+                ? metric.Percentile.Value.ToString("0.##", CultureInfo.InvariantCulture)
+                : string.Empty;
+            var keyMetric = metric.Status == BenchmarkStatus.Available
+                ? metric.MetricKey
+                : metric.Status == BenchmarkStatus.InsufficientSample
+                    ? "Insufficient sample"
+                    : metric.Status == BenchmarkStatus.MissingMetric
+                        ? "Missing metric"
+                        : "No benchmark yet";
+
+            return new RecruitmentBenchmarkIndicatorViewModel(
+                summary.OverallStatus.ToString(),
+                keyMetric,
+                percentile,
+                metric.SampleSize,
+                summary.SafeMessage);
         }
 
         private IReadOnlyList<PlayerStatRecord> LoadPlayerStats(SqliteConnection connection, long playerId)

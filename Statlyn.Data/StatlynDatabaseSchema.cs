@@ -492,6 +492,49 @@ namespace Statlyn.Data
                         FOREIGN KEY(TacticalRoleId) REFERENCES TacticalRole(Id),
                         FOREIGN KEY(RolePairId) REFERENCES TacticalRolePair(Id)
                     );",
+                    @"CREATE TABLE IF NOT EXISTS BenchmarkDefinition (
+                        Id INTEGER PRIMARY KEY,
+                        BenchmarkName TEXT NOT NULL,
+                        Scope TEXT NOT NULL,
+                        SourceName TEXT NOT NULL,
+                        PositionGroup TEXT NOT NULL,
+                        RoleProfileName TEXT NOT NULL,
+                        TacticalRoleName TEXT NOT NULL,
+                        TacticalRolePairName TEXT NOT NULL,
+                        MetricKeys TEXT NOT NULL,
+                        MinimumSampleSize INTEGER NOT NULL,
+                        MinimumMinutes INTEGER NOT NULL,
+                        IncludeFixtureData INTEGER NOT NULL,
+                        CreatedAtUtc TEXT NOT NULL,
+                        UpdatedAtUtc TEXT NOT NULL,
+                        IsArchived INTEGER NOT NULL DEFAULT 0
+                    );",
+                    @"CREATE TABLE IF NOT EXISTS BenchmarkRun (
+                        Id INTEGER PRIMARY KEY,
+                        BenchmarkDefinitionId INTEGER NOT NULL,
+                        RanAtUtc TEXT NOT NULL,
+                        PlayerCount INTEGER NOT NULL,
+                        MetricCount INTEGER NOT NULL,
+                        SafeMessage TEXT NOT NULL,
+                        FOREIGN KEY(BenchmarkDefinitionId) REFERENCES BenchmarkDefinition(Id)
+                    );",
+                    @"CREATE TABLE IF NOT EXISTS BenchmarkMetricSnapshot (
+                        Id INTEGER PRIMARY KEY,
+                        BenchmarkRunId INTEGER NOT NULL,
+                        MetricKey TEXT NOT NULL,
+                        FieldName TEXT NOT NULL,
+                        MetricType TEXT NOT NULL,
+                        SampleSize INTEGER NOT NULL,
+                        MedianValue REAL NULL,
+                        AverageValue REAL NULL,
+                        MinimumValue REAL NULL,
+                        MaximumValue REAL NULL,
+                        SourceName TEXT NOT NULL,
+                        ComparisonGroup TEXT NOT NULL,
+                        IsGenericImportMetric INTEGER NOT NULL,
+                        IsVerifiedFm26Metric INTEGER NOT NULL DEFAULT 0,
+                        FOREIGN KEY(BenchmarkRunId) REFERENCES BenchmarkRun(Id)
+                    );",
                     @"CREATE UNIQUE INDEX IF NOT EXISTS UX_VisibleField_Player_FieldInstance
                         ON VisibleField (PlayerId, FieldInstanceKey);",
                     @"CREATE UNIQUE INDEX IF NOT EXISTS UX_PlayerStat_Player_FieldInstance
@@ -530,6 +573,18 @@ namespace Statlyn.Data
                         ON RoleOutputMetricRequirement (TacticalRoleId);",
                     @"CREATE INDEX IF NOT EXISTS IX_RoleOutputMetricRequirement_RolePairId
                         ON RoleOutputMetricRequirement (RolePairId);",
+                    @"CREATE INDEX IF NOT EXISTS IX_BenchmarkDefinition_BenchmarkName
+                        ON BenchmarkDefinition (BenchmarkName);",
+                    @"CREATE INDEX IF NOT EXISTS IX_BenchmarkDefinition_Scope
+                        ON BenchmarkDefinition (Scope);",
+                    @"CREATE INDEX IF NOT EXISTS IX_BenchmarkDefinition_PositionGroup
+                        ON BenchmarkDefinition (PositionGroup);",
+                    @"CREATE INDEX IF NOT EXISTS IX_BenchmarkRun_BenchmarkDefinitionId
+                        ON BenchmarkRun (BenchmarkDefinitionId);",
+                    @"CREATE INDEX IF NOT EXISTS IX_BenchmarkMetricSnapshot_BenchmarkRunId
+                        ON BenchmarkMetricSnapshot (BenchmarkRunId);",
+                    @"CREATE INDEX IF NOT EXISTS IX_BenchmarkMetricSnapshot_MetricKey
+                        ON BenchmarkMetricSnapshot (MetricKey);",
                     @"CREATE INDEX IF NOT EXISTS IX_Shortlist_Name
                         ON Shortlist (Name);",
                     @"CREATE INDEX IF NOT EXISTS IX_ShortlistPlayer_ShortlistId

@@ -27,6 +27,7 @@ namespace Statlyn.Data.Recruitment
             int blockedFieldCount,
             int missingDataCount,
             IReadOnlyList<string> keyOutputMetrics,
+            RecruitmentBenchmarkIndicatorViewModel benchmarkIndicator,
             IReadOnlyList<string> keyWarnings,
             bool isFixtureMode,
             bool isLiveFm26Data)
@@ -52,6 +53,7 @@ namespace Statlyn.Data.Recruitment
             BlockedFieldCount = blockedFieldCount;
             MissingDataCount = missingDataCount;
             KeyOutputMetrics = keyOutputMetrics ?? new List<string>();
+            BenchmarkIndicator = benchmarkIndicator ?? RecruitmentBenchmarkIndicatorViewModel.NoBenchmark();
             KeyWarnings = keyWarnings ?? new List<string>();
             IsFixtureMode = isFixtureMode;
             IsLiveFm26Data = isLiveFm26Data;
@@ -99,10 +101,39 @@ namespace Statlyn.Data.Recruitment
 
         public IReadOnlyList<string> KeyOutputMetrics { get; }
 
+        public RecruitmentBenchmarkIndicatorViewModel BenchmarkIndicator { get; }
+
         public IReadOnlyList<string> KeyWarnings { get; }
 
         public bool IsFixtureMode { get; }
 
         public bool IsLiveFm26Data { get; }
+    }
+
+    public sealed class RecruitmentBenchmarkIndicatorViewModel
+    {
+        public RecruitmentBenchmarkIndicatorViewModel(string status, string keyMetric, string percentile, int? sampleSize, string safeMessage)
+        {
+            Status = status ?? string.Empty;
+            KeyMetric = keyMetric ?? string.Empty;
+            Percentile = percentile ?? string.Empty;
+            SampleSize = sampleSize;
+            SafeMessage = safeMessage ?? string.Empty;
+        }
+
+        public string Status { get; }
+
+        public string KeyMetric { get; }
+
+        public string Percentile { get; }
+
+        public int? SampleSize { get; }
+
+        public string SafeMessage { get; }
+
+        public static RecruitmentBenchmarkIndicatorViewModel NoBenchmark()
+        {
+            return new RecruitmentBenchmarkIndicatorViewModel("NoBenchmark", "No benchmark yet", string.Empty, null, "No benchmark yet.");
+        }
     }
 }

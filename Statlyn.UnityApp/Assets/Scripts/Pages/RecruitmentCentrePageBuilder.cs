@@ -178,6 +178,7 @@ namespace Statlyn.UnityApp.Pages
             card.Add(StatlynHorizontalBarComponent.Build(visuals.ConfidenceBar));
             card.Add(StatlynHorizontalBarComponent.Build(visuals.DataCompletenessBar));
             card.Add(MakeMiniRisk(visuals.RiskIndicator));
+            card.Add(new Label("Benchmark: " + visuals.BenchmarkStatus.SafeMessage + " | " + visuals.BenchmarkStatus.MetricKey + (visuals.BenchmarkStatus.SampleSize.HasValue ? " | n=" + visuals.BenchmarkStatus.SampleSize.Value.ToString(CultureInfo.InvariantCulture) : string.Empty)));
 
             var outputList = new VisualElement();
             outputList.AddToClassList("visual-badge-row");

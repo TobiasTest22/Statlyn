@@ -21,6 +21,7 @@ namespace Statlyn.Data.Recruitment
             string recommendation,
             string risk,
             IReadOnlyList<string> keyOutputMetrics,
+            RecruitmentBenchmarkIndicatorViewModel benchmarkIndicator,
             int blockedFieldCount,
             int missingDataCount,
             IReadOnlyList<string> warnings,
@@ -42,6 +43,7 @@ namespace Statlyn.Data.Recruitment
             Recommendation = recommendation ?? string.Empty;
             Risk = risk ?? string.Empty;
             KeyOutputMetrics = keyOutputMetrics ?? new List<string>();
+            BenchmarkIndicator = benchmarkIndicator ?? RecruitmentBenchmarkIndicatorViewModel.NoBenchmark();
             BlockedFieldCount = blockedFieldCount;
             MissingDataCount = missingDataCount;
             Warnings = warnings ?? new List<string>();
@@ -79,6 +81,8 @@ namespace Statlyn.Data.Recruitment
 
         public IReadOnlyList<string> KeyOutputMetrics { get; }
 
+        public RecruitmentBenchmarkIndicatorViewModel BenchmarkIndicator { get; }
+
         public int BlockedFieldCount { get; }
 
         public int MissingDataCount { get; }
@@ -107,6 +111,7 @@ namespace Statlyn.Data.Recruitment
                 row.Recommendation.HasValue ? row.Recommendation.Value.ToString() : "Not scored",
                 row.RiskScore.HasValue ? row.RiskScore.Value.ToString(CultureInfo.InvariantCulture) : "Unknown",
                 row.KeyOutputMetrics,
+                row.BenchmarkIndicator,
                 row.BlockedFieldCount,
                 row.MissingDataCount,
                 row.KeyWarnings,

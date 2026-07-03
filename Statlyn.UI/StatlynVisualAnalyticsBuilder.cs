@@ -66,7 +66,7 @@ namespace Statlyn.UI
                 report.AttributeSupportCards.Select(ToAttributeTile).ToList(),
                 coreMissing,
                 BuildBlockedData(report),
-                BuildBenchmarkStatus());
+                BuildBenchmarkStatus(report));
         }
 
         public static StatlynBenchmarkStatusVisual BuildBenchmarkStatus()
@@ -79,6 +79,32 @@ namespace Statlyn.UI
                 string.Empty,
                 string.Empty,
                 null);
+        }
+
+        public static StatlynBenchmarkStatusVisual BuildBenchmarkStatus(PlayerProfileReportViewModel report)
+        {
+            if (report == null || report.BenchmarkSection == null || report.BenchmarkSection.Metrics.Count == 0)
+            {
+                return BuildBenchmarkStatus();
+            }
+
+            var availableMetrics = report.BenchmarkSection.Metrics
+                .Where(metric => string.Equals(metric.Status, "Available", StringComparison.OrdinalIgnoreCase))
+                .ToList();
+            var first = availableMetrics.FirstOrDefault() ?? report.BenchmarkSection.Metrics.First();
+            var percentile = string.Equals(first.Status, "Available", StringComparison.OrdinalIgnoreCase)
+                ? TryParseInt(first.Percentile)
+                : null;
+
+            return new StatlynBenchmarkStatusVisual(
+                availableMetrics.Count > 0,
+                report.BenchmarkSection.SafeMessage,
+                percentile,
+                report.BenchmarkSection.BenchmarkName,
+                report.BenchmarkSection.ComparisonGroup,
+                first.MetricKey,
+                first.SampleSize,
+                report.BenchmarkSection.Metrics.Select(ToBenchmarkMetricVisual).ToList());
         }
 
         private static IReadOnlyList<StatlynScoreCardVisual> BuildScoreCards(PlayerProfileReportViewModel report)
@@ -190,6 +216,24 @@ namespace Statlyn.UI
                 false);
         }
 
+        private static StatlynBenchmarkMetricVisual ToBenchmarkMetricVisual(Statlyn.Data.Benchmarks.PlayerBenchmarkMetricViewModel metric)
+        {
+            var percentile = string.Equals(metric.Status, "Available", StringComparison.OrdinalIgnoreCase)
+                ? TryParseInt(metric.Percentile)
+                : null;
+            return new StatlynBenchmarkMetricVisual(
+                metric.MetricKey,
+                metric.PlayerValue,
+                metric.Median,
+                metric.Average,
+                percentile,
+                metric.SampleSize,
+                metric.Status,
+                metric.SourceName,
+                metric.ComparisonGroup,
+                metric.VerificationLabel);
+        }
+
         private static StatlynDataQualityVisual ToDataQualityVisual(PlayerProfileDataQualityViewModel card)
         {
             var text = card.Value + " " + card.Caption;
@@ -262,6 +306,18 @@ namespace Statlyn.UI
 
             return null;
         }
+
+        private static int? TryParseInt(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return null;
+            }
+
+            return double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed)
+                ? (int?)Convert.ToInt32(Math.Round(parsed), CultureInfo.InvariantCulture)
+                : null;
+        }
     }
 
     public static class RecruitmentCentreMiniVisualBuilder
@@ -309,8 +365,24 @@ namespace Statlyn.UI
                 new StatlynHorizontalBarVisual("Completeness", DisplayScore(row.DataCompleteness), ClampScore(TryParseScore(row.DataCompleteness)), "Persisted data completeness.", TryParseScore(row.DataCompleteness).HasValue),
                 new StatlynWarningVisual("Risk", "Risk: " + row.Risk + " | Recommendation: " + row.Recommendation, RiskSeverity(row.Risk), row.Warnings.Take(2).ToList()),
                 output,
+                BuildRecruitmentBenchmark(row),
                 badges,
                 row.IsLiveFm26Data ? "Live FM26 data" : "No live FM26 data");
+        }
+
+        private static StatlynBenchmarkStatusVisual BuildRecruitmentBenchmark(RecruitmentCentrePlayerRowViewModel row)
+        {
+            var indicator = row.BenchmarkIndicator ?? RecruitmentBenchmarkIndicatorViewModel.NoBenchmark();
+            var hasBenchmark = string.Equals(indicator.Status, "Available", StringComparison.OrdinalIgnoreCase);
+            var percentile = hasBenchmark ? TryParseInt(indicator.Percentile) : null;
+            return new StatlynBenchmarkStatusVisual(
+                hasBenchmark,
+                indicator.SafeMessage,
+                percentile,
+                string.Empty,
+                string.Empty,
+                indicator.KeyMetric,
+                indicator.SampleSize);
         }
 
         private static string RiskSeverity(string risk)
@@ -371,6 +443,18 @@ namespace Statlyn.UI
             }
 
             return null;
+        }
+
+        private static int? TryParseInt(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return null;
+            }
+
+            return double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed)
+                ? (int?)Convert.ToInt32(Math.Round(parsed), CultureInfo.InvariantCulture)
+                : null;
         }
     }
 }

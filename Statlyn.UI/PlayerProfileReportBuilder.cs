@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using Statlyn.Core;
+using Statlyn.Data.Benchmarks;
 using Statlyn.Data.Persistence;
 using Statlyn.Data.Profile;
 
@@ -60,6 +61,7 @@ namespace Statlyn.UI
                 PlayerProfileAttributeSupportBuilder.Build(result),
                 PlayerProfileScoutActionBuilder.Build(result),
                 PlayerProfileBlockedDataBuilder.Build(result),
+                BuildBenchmarkSection(result.BenchmarkSummary),
                 PlayerProfileVisualSectionBuilder.Build(result, core, supporting));
         }
 
@@ -94,7 +96,49 @@ namespace Statlyn.UI
                 new List<PlayerProfileAttributeSupportViewModel>(),
                 new[] { new PlayerProfileScoutActionViewModel("Find persisted player", result.SafeMessage, "Import a CSV or open an existing Recruitment Centre row.") },
                 new PlayerProfileBlockedDataViewModel(0, new List<string>(), new List<string>(), "No blocked data is loaded for this profile."),
+                BuildBenchmarkSection(null),
                 new[] { new PlayerProfileVisualSectionViewModel("Benchmark", "No benchmark yet.", new[] { "No percentile is displayed without a real comparison group." }) });
+        }
+
+        private static PlayerProfileBenchmarkSectionViewModel BuildBenchmarkSection(BenchmarkPlayerSummary? summary)
+        {
+            if (summary == null)
+            {
+                return new PlayerProfileBenchmarkSectionViewModel(
+                    string.Empty,
+                    BenchmarkStatus.NoBenchmark.ToString(),
+                    "No benchmark yet.",
+                    string.Empty,
+                    new List<PlayerBenchmarkMetricViewModel>(),
+                    new[] { "No percentile is displayed without a real comparison group." });
+            }
+
+            return new PlayerProfileBenchmarkSectionViewModel(
+                summary.BenchmarkName,
+                summary.OverallStatus.ToString(),
+                summary.SafeMessage,
+                summary.ComparisonGroup,
+                summary.Results.Select(ToBenchmarkMetricViewModel).ToList(),
+                summary.Warnings);
+        }
+
+        private static PlayerBenchmarkMetricViewModel ToBenchmarkMetricViewModel(BenchmarkMetricResult result)
+        {
+            return new PlayerBenchmarkMetricViewModel(
+                result.MetricKey,
+                result.FieldName,
+                result.MetricType.ToString(),
+                FormatNullable(result.PlayerValue),
+                FormatNullable(result.BenchmarkMedian),
+                FormatNullable(result.BenchmarkAverage),
+                result.Percentile.HasValue ? result.Percentile.Value.ToString("0.##", CultureInfo.InvariantCulture) : string.Empty,
+                result.SampleSize,
+                result.Status.ToString(),
+                result.SourceName,
+                result.ComparisonGroup,
+                result.IsGenericImportMetric && !result.IsVerifiedFm26Metric
+                    ? "Generic/import metric - not FM26-verified"
+                    : "Not FM26-verified");
         }
 
         private static string BuildOutputFitLabel(PlayerProfileResult result)
@@ -108,6 +152,18 @@ namespace Statlyn.UI
         {
             var field = fields.FirstOrDefault(item => item.Key == key && item.CanDisplay && item.IsKnown && !string.IsNullOrWhiteSpace(item.DisplayValue));
             return field == null ? "Unknown" : field.DisplayValue;
+        }
+
+        private static string FormatNullable(double? value)
+        {
+            if (!value.HasValue)
+            {
+                return "Unavailable";
+            }
+
+            return Math.Abs(value.Value - Math.Round(value.Value)) < 0.001
+                ? ((int)Math.Round(value.Value)).ToString(CultureInfo.InvariantCulture)
+                : value.Value.ToString("0.##", CultureInfo.InvariantCulture);
         }
     }
 }

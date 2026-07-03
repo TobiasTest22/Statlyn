@@ -176,3 +176,8 @@ Recruitment Centre queries the same persisted safe tables. It reads `Player`, la
 `StatlynDatabasePathResolver` resolves a default `Statlyn/statlyn.db` path under local app data, or under a caller-provided application data root. Tests use in-memory SQLite through `RuntimeDatabaseFactory.CreateInMemory()`. Unity uses `Application.persistentDataPath/statlyn.db` for the first Data Sources workflow path. Runtime self-checks use a temporary database under Unity's temporary cache path and clean it up after initialization.
 
 File-backed SQLite connections use pooling disabled so temporary runtime-check databases can be cleaned up reliably and Unity file paths are easier to reason about.
+## Benchmark Tables
+
+Schema v5 adds `BenchmarkDefinition`, `BenchmarkRun` and `BenchmarkMetricSnapshot`. Definitions store scope, source, position group, role/profile selectors, metric keys and sample thresholds. Runs store summary counts and a safe message.
+
+Snapshots store aggregate safe values only: sample size, median, average, minimum and maximum. They do not store selected player raw values, fake percentiles, hidden FM26 values, raw blocked values or raw provider entities.

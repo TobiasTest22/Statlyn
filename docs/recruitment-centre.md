@@ -75,3 +75,8 @@ Milestone 2.3 keeps Recruitment Centre focused on scanning and shortlist entry. 
 CSV local import is the only supported data path. FM26 live data remains unsupported until validated memory maps exist. Output metrics are generic/import-ready and are not official FM26 stats unless later validation marks them supported.
 
 If SQLite fails inside Unity, run the Data Sources runtime check and review the copied dependency paths before using Recruitment Centre.
+## Benchmark Indicator
+
+Recruitment Centre rows now include a compact benchmark indicator. V1 shows the benchmark status, one key metric when available, sample size, and `No benchmark yet` when no valid comparison group exists.
+
+Rows do not show fake percentiles. Percentiles remain blank unless the benchmark result is `Available`, and all benchmark data comes from persisted safe player stats or physical metrics.

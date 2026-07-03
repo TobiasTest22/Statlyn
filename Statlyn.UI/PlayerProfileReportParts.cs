@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using Statlyn.Data.Benchmarks;
 using Statlyn.Data.Persistence;
 
 namespace Statlyn.UI
@@ -212,6 +213,37 @@ namespace Statlyn.UI
         public IReadOnlyList<string> Reasons { get; }
 
         public string SafeMessage { get; }
+    }
+
+    public sealed class PlayerProfileBenchmarkSectionViewModel
+    {
+        public PlayerProfileBenchmarkSectionViewModel(
+            string benchmarkName,
+            string status,
+            string safeMessage,
+            string comparisonGroup,
+            IReadOnlyList<PlayerBenchmarkMetricViewModel> metrics,
+            IReadOnlyList<string> warnings)
+        {
+            BenchmarkName = benchmarkName ?? string.Empty;
+            Status = status ?? string.Empty;
+            SafeMessage = safeMessage ?? string.Empty;
+            ComparisonGroup = comparisonGroup ?? string.Empty;
+            Metrics = metrics ?? new List<PlayerBenchmarkMetricViewModel>();
+            Warnings = warnings ?? new List<string>();
+        }
+
+        public string BenchmarkName { get; }
+
+        public string Status { get; }
+
+        public string SafeMessage { get; }
+
+        public string ComparisonGroup { get; }
+
+        public IReadOnlyList<PlayerBenchmarkMetricViewModel> Metrics { get; }
+
+        public IReadOnlyList<string> Warnings { get; }
     }
 
     public sealed class PlayerProfileVisualSectionViewModel

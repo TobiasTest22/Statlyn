@@ -51,3 +51,8 @@ All current generic profiles must keep `IsFm26Specific=false`. A profile can onl
 Player Profile v1 leads with role-output profile expectations. Attribute values can appear only in the support section.
 
 Role Lab templates are also generic/import-ready by default. `IsOfficialFm26Role=false` unless a future FM26 mapping milestone validates and explicitly marks a role.
+## Benchmark Alignment
+
+Default benchmark definitions follow the same output-first idea as role-output expectation profiles. Wide attackers, strikers, centre-backs, central midfielders and goalkeepers use different metric groups rather than a single attribute-first benchmark.
+
+Benchmarks do not override scout judgement or role-output summaries. They add sample-size-aware comparison context when a real persisted comparison group exists.

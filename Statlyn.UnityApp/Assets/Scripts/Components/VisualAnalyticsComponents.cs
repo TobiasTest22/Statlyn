@@ -222,6 +222,21 @@ namespace Statlyn.UnityApp.Components
             panel.Add(VisualComponentHelpers.Label(visual.SafeMessage, "visual-body"));
             panel.Add(VisualComponentHelpers.Label(visual.HasBenchmark ? "Benchmark available" : "No comparison group loaded", "visual-caption"));
             panel.Add(VisualComponentHelpers.Label(visual.Percentile.HasValue ? "Percentile: " + visual.Percentile.Value.ToString(CultureInfo.InvariantCulture) : "Percentile: unavailable", "visual-caption"));
+            if (visual.Metrics.Count > 0)
+            {
+                foreach (var metric in visual.Metrics)
+                {
+                    panel.Add(VisualComponentHelpers.Label(
+                        metric.MetricKey + " | player " + metric.PlayerValue + " | median " + metric.Median + " | avg " + metric.Average + " | n=" + metric.SampleSize.ToString(CultureInfo.InvariantCulture),
+                        "visual-caption"));
+                    panel.Add(VisualComponentHelpers.Label(
+                        string.IsNullOrWhiteSpace(metric.Percentile.HasValue ? metric.Percentile.Value.ToString(CultureInfo.InvariantCulture) : string.Empty)
+                            ? metric.Status + " | " + metric.VerificationLabel
+                            : "Percentile " + metric.Percentile.Value.ToString(CultureInfo.InvariantCulture) + " | " + metric.VerificationLabel,
+                        "visual-caption"));
+                }
+            }
+
             return panel;
         }
     }

@@ -90,3 +90,8 @@ Role Lab v1 is an operational editor for phase-aware role templates:
 - keep the copy explicit that FM26 validation is pending
 
 Role Lab should not use old duty language, hidden values or attribute-first scoring. The page is intentionally simple text-field UI for v1; later milestones can deepen editing and visual hierarchy.
+## Benchmarks Page
+
+The Benchmarks page is a utility dashboard for generic/import definitions. It includes Statlyn branding, seed and run actions, definition cards, latest run summaries and aggregate snapshot rows.
+
+The page must not show fake benchmark results, fake FM26 verification, hidden values or raw provider data. Empty states should clearly say that no benchmark definitions or no comparison group exists.

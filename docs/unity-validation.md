@@ -95,3 +95,8 @@ This copies the managed Statlyn assemblies, SQLite managed dependencies, Windows
 If the Unity Editor cannot load SQLite native dependencies, record the runtime-check error, verify `Assets/Plugins/x86_64/e_sqlite3.dll`, rerun `tools/copy-managed-to-unity.ps1`, and keep managed `dotnet test` as the source of truth until Unity packaging is adjusted.
 
 Record the Unity version and screenshots when validating a release candidate.
+## Benchmark Validation
+
+Unity validation should include the Benchmarks page after managed assemblies are copied into the Unity project. Check that the page opens, seed definitions works, run definitions works, and snapshot rows show aggregate values only.
+
+Player Profile should still show `No benchmark yet.` without valid definitions or samples. With real imported comparison data, it may show benchmark cards and percentiles only for available results. SQLite-in-Unity must still be manually verified in the Editor before relying on runtime import or benchmark runs there.

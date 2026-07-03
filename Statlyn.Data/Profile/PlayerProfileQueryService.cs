@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Statlyn.Analytics;
 using Statlyn.Core;
+using Statlyn.Data.Benchmarks;
 using Statlyn.Data.Persistence;
 using Statlyn.Data.Recruitment;
 using Statlyn.Data.RoleLab;
@@ -16,6 +17,7 @@ namespace Statlyn.Data.Profile
         private readonly RoleOutputExpectationRepository _roleOutputExpectations;
         private readonly RoleLabOutputProfileBridge _roleLabBridge;
         private readonly RecruitmentOutputSummaryService _summaryService;
+        private readonly BenchmarkWorkflowService _benchmarkWorkflow;
 
         public PlayerProfileQueryService(StatlynDbConnectionFactory connectionFactory)
         {
@@ -28,6 +30,7 @@ namespace Statlyn.Data.Profile
             _roleOutputExpectations = new RoleOutputExpectationRepository(connectionFactory);
             _roleLabBridge = new RoleLabOutputProfileBridge(connectionFactory);
             _summaryService = new RecruitmentOutputSummaryService();
+            _benchmarkWorkflow = new BenchmarkWorkflowService(connectionFactory);
         }
 
         public PlayerProfileResult Query(PlayerProfileQuery? query)
@@ -50,6 +53,7 @@ namespace Statlyn.Data.Profile
             var persistedProfiles = _roleOutputExpectations.LoadAll();
             var selectedProfile = SelectProfile(query.OptionalRoleOutputProfileName, positionGroup, roleScore.RoleName, persistedProfiles);
             var summary = _summaryService.Build(position, loaded.PlayerStats, loaded.PhysicalMetrics, selectedProfile, roleScore);
+            var benchmarkSummary = _benchmarkWorkflow.BuildPlayerBenchmarkSummary(loaded.Player.StatlynPlayerId);
             var warnings = BuildWarnings(loaded.PlayerStats, summary, loaded.MaskedPlayer.BlockedFields.Count, roleScore, loaded.SourceMetadata);
             var diagnostics = new List<string>
             {
@@ -78,7 +82,8 @@ namespace Statlyn.Data.Profile
                 warnings,
                 IsFixture(loaded.SourceMetadata),
                 loaded.SourceMetadata.ProviderType == ProviderType.FM26LiveMemory && loaded.SourceMetadata.IsLive,
-                metricsAreFm26Verified: false);
+                metricsAreFm26Verified: false,
+                benchmarkSummary);
         }
 
         private RoleOutputExpectationProfile? SelectProfile(

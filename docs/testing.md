@@ -198,3 +198,8 @@ Milestone 2.4 adds tests for:
 Future tests should cover broader persistence migrations, real provider imports, Unity UI state transitions and native connector status parsing.
 
 Unity editor validation remains manual. Run `.\tools\copy-managed-to-unity.ps1` before opening the project so the Unity assembly definition can resolve the shared managed Statlyn DLLs, SQLite dependencies and synthetic fixture CSV, then use the Data Sources runtime check inside Unity. Branding assets live directly under `Statlyn.UnityApp/Assets/Resources/Branding`.
+## Benchmark Foundation Tests
+
+Milestone 2.5 adds coverage for benchmark domain models, schema migration idempotence, repository persistence, aggregate-only snapshots, calculation behavior, default seeds, workflow view models, Player Profile integration and Recruitment Centre indicators.
+
+Tests assert that no fake percentiles are produced, missing metrics are not treated as zero, generic/import metrics are not FM26-verified, and hidden-value-looking text is sanitized before storage.

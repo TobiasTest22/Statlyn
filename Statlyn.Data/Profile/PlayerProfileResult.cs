@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Statlyn.Analytics;
 using Statlyn.Core;
+using Statlyn.Data.Benchmarks;
 using Statlyn.Data.Persistence;
 using Statlyn.Data.Recruitment;
 using Statlyn.DataProviders;
@@ -29,7 +30,8 @@ namespace Statlyn.Data.Profile
             bool isFixtureMode,
             bool isLiveFm26Data,
             string tacticalFitDisplay,
-            bool metricsAreFm26Verified)
+            bool metricsAreFm26Verified,
+            BenchmarkPlayerSummary? benchmarkSummary)
         {
             Success = success;
             SafeMessage = safeMessage ?? string.Empty;
@@ -51,6 +53,7 @@ namespace Statlyn.Data.Profile
             IsLiveFm26Data = isLiveFm26Data;
             TacticalFitDisplay = tacticalFitDisplay ?? "Unknown";
             MetricsAreFm26Verified = metricsAreFm26Verified;
+            BenchmarkSummary = benchmarkSummary;
         }
 
         public bool Success { get; }
@@ -93,6 +96,8 @@ namespace Statlyn.Data.Profile
 
         public bool MetricsAreFm26Verified { get; }
 
+        public BenchmarkPlayerSummary? BenchmarkSummary { get; }
+
         public static PlayerProfileResult NotFound(string statlynPlayerId)
         {
             return new PlayerProfileResult(
@@ -115,7 +120,8 @@ namespace Statlyn.Data.Profile
                 false,
                 false,
                 "Unknown",
-                false);
+                false,
+                null);
         }
 
         public static PlayerProfileResult Found(
@@ -134,7 +140,8 @@ namespace Statlyn.Data.Profile
             IReadOnlyList<string> warnings,
             bool isFixtureMode,
             bool isLiveFm26Data,
-            bool metricsAreFm26Verified)
+            bool metricsAreFm26Verified,
+            BenchmarkPlayerSummary? benchmarkSummary = null)
         {
             return new PlayerProfileResult(
                 true,
@@ -156,7 +163,8 @@ namespace Statlyn.Data.Profile
                 isFixtureMode,
                 isLiveFm26Data,
                 latestRoleScore.TacticalFit.HasValue ? latestRoleScore.TacticalFit.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) : "Unknown",
-                metricsAreFm26Verified);
+                metricsAreFm26Verified,
+                benchmarkSummary);
         }
     }
 }

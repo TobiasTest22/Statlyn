@@ -124,6 +124,8 @@ namespace Statlyn.UnityApp.Pages
 
         private static void RenderReport(PlayerProfileReportViewModel report, VisualElement target)
         {
+            var visuals = StatlynVisualAnalyticsBuilder.Build(report);
+
             var identity = new VisualElement();
             identity.AddToClassList("dashboard-grid");
             target.Add(identity);
@@ -140,137 +142,147 @@ namespace Statlyn.UnityApp.Pages
                 report.IsFixtureMode ? "Fixture/import mode" : "Persisted source",
                 report.IsLiveFm26Data ? "Live FM26 data" : "No live FM26 data"
             }));
-            identity.Add(StatlynUiFactory.MakeCard("Verdict", new[]
-            {
-                "Recommendation: " + report.Recommendation,
-                "Role fit: " + report.RoleFit,
-                "Confidence: " + report.Confidence,
-                "Risk: " + report.Risk
-            }));
-            identity.Add(StatlynUiFactory.MakeCard("Role Output", new[]
-            {
-                "Role: " + report.RoleName,
-                "Output fit: " + report.OutputFitLabel,
-                "Tactical fit: " + report.TacticalFitDisplay
-            }));
 
-            target.Add(MakeMetricSection("Core Role Output", report.CoreOutputMetrics, "Output metrics missing"));
-            target.Add(MakeMetricSection("Supporting Output", report.SupportingOutputMetrics, "No supporting output available yet"));
-            target.Add(MakeMetricSection("Physical Output", report.PhysicalOutputMetrics, "No physical output available yet"));
-            target.Add(StatlynUiFactory.MakeMessages("Missing Output", report.MissingOutputMetrics.Count == 0 ? new[] { "No core output missing." } : report.MissingOutputMetrics.ToArray()));
-            target.Add(MakeDataQuality(report));
-            target.Add(MakeAttributeSupport(report));
-            target.Add(MakeEvidence(report));
-            target.Add(MakeScoutActions(report));
-            target.Add(StatlynUiFactory.MakeCard("Blocked Data Safe Notice", new[]
-            {
-                report.BlockedDataNotice.SafeMessage,
-                "Count: " + report.BlockedDataNotice.Count.ToString(CultureInfo.InvariantCulture),
-                "Categories: " + (report.BlockedDataNotice.Categories.Count == 0 ? "None" : string.Join(", ", report.BlockedDataNotice.Categories))
-            }));
-            target.Add(MakeVisualSections(report));
-        }
+            target.Add(MakeScoreCards(visuals));
+            target.Add(MakeRoleOutput(visuals.RoleOutput));
 
-        private static VisualElement MakeMetricSection(string title, System.Collections.Generic.IReadOnlyList<PlayerProfileMetricTileViewModel> metrics, string emptyText)
-        {
-            var grid = new VisualElement();
-            grid.AddToClassList("dashboard-grid");
-            if (metrics == null || metrics.Count == 0)
+            foreach (var group in visuals.MetricGroups)
             {
-                grid.Add(StatlynUiFactory.MakeCard(title, new[] { emptyText, "Missing output is not treated as zero." }));
-                return grid;
+                target.Add(StatlynMetricGroupComponent.Build(group));
             }
 
-            foreach (var metric in metrics)
+            target.Add(MakeDataQuality(visuals));
+            target.Add(MakeMissingData(visuals));
+            target.Add(MakeWarningList(visuals));
+            target.Add(MakeEvidenceSection("Evidence", visuals.Evidence));
+            target.Add(MakeEvidenceSection("Scout Actions", visuals.ScoutActions));
+            target.Add(MakeAttributeSupport(visuals));
+            target.Add(StatlynBlockedDataComponent.Build(visuals.BlockedData));
+            target.Add(StatlynBenchmarkStatusComponent.Build(visuals.BenchmarkStatus));
+        }
+
+        private static VisualElement MakeScoreCards(StatlynVisualAnalyticsViewModel visuals)
+        {
+            var grid = new VisualElement();
+            grid.AddToClassList("visual-score-grid");
+            foreach (var score in visuals.ScoreCards)
             {
-                grid.Add(StatlynUiFactory.MakeCard(metric.Label, new[]
-                {
-                    metric.Value,
-                    metric.Section,
-                    "Source: " + metric.Source,
-                    "Confidence: " + metric.Confidence,
-                    "Sample: " + metric.Sample,
-                    metric.VerificationLabel
-                }));
+                grid.Add(StatlynScoreCardComponent.Build(score));
             }
 
             return grid;
         }
 
-        private static VisualElement MakeDataQuality(PlayerProfileReportViewModel report)
-        {
-            var grid = new VisualElement();
-            grid.AddToClassList("dashboard-grid");
-            foreach (var item in report.DataQualityCards)
-            {
-                grid.Add(StatlynUiFactory.MakeCard(item.Label, new[] { item.Value, item.Caption }));
-            }
-
-            foreach (var warning in report.KeyWarnings.Take(3))
-            {
-                grid.Add(StatlynUiFactory.MakeCard("Warning", new[] { warning }));
-            }
-
-            return grid;
-        }
-
-        private static VisualElement MakeAttributeSupport(PlayerProfileReportViewModel report)
-        {
-            var grid = new VisualElement();
-            grid.AddToClassList("dashboard-grid");
-            if (report.AttributeSupportCards.Count == 0)
-            {
-                grid.Add(StatlynUiFactory.MakeCard("Attribute Support", new[] { "No attribute support available.", "Attributes are support-only." }));
-                return grid;
-            }
-
-            foreach (var item in report.AttributeSupportCards)
-            {
-                grid.Add(StatlynUiFactory.MakeCard(item.Label, new[] { item.Value, "Confidence: " + item.Confidence, item.Caption }));
-            }
-
-            return grid;
-        }
-
-        private static VisualElement MakeEvidence(PlayerProfileReportViewModel report)
-        {
-            var grid = new VisualElement();
-            grid.AddToClassList("dashboard-grid");
-            foreach (var item in report.EvidenceCards)
-            {
-                grid.Add(StatlynUiFactory.MakeCard(item.Title, new[] { item.Category, item.Body, "Source: " + item.Source, "Confidence: " + item.Confidence }));
-            }
-
-            return grid;
-        }
-
-        private static VisualElement MakeScoutActions(PlayerProfileReportViewModel report)
-        {
-            var grid = new VisualElement();
-            grid.AddToClassList("dashboard-grid");
-            foreach (var action in report.ScoutActionCards)
-            {
-                grid.Add(StatlynUiFactory.MakeCard(action.Title, new[] { action.Reason, action.Action }));
-            }
-
-            return grid;
-        }
-
-        private static VisualElement MakeVisualSections(PlayerProfileReportViewModel report)
+        private static VisualElement MakeRoleOutput(StatlynRoleOutputVisual visual)
         {
             var panel = new VisualElement();
-            panel.AddToClassList("diagnostics-panel");
-            panel.Add(StatlynUiFactory.MakeSectionTitle("Visual Sections"));
-            foreach (var section in report.VisualSections)
+            panel.AddToClassList("visual-panel");
+            panel.Add(StatlynUiFactory.MakeSectionTitle("Role / Output"));
+            panel.Add(new Label("Role: " + visual.RoleName));
+            panel.Add(new Label("Output fit: " + visual.OutputFitLabel));
+            panel.Add(new Label("Tactical fit: " + visual.TacticalFitDisplay));
+            foreach (var bar in visual.Bars)
             {
-                panel.Add(StatlynUiFactory.MakeDiagnosticRow(section.Title, section.Summary));
-                foreach (var row in section.Rows.Take(4))
-                {
-                    panel.Add(new Label(row));
-                }
+                panel.Add(StatlynHorizontalBarComponent.Build(bar));
             }
 
             return panel;
+        }
+
+        private static VisualElement MakeDataQuality(StatlynVisualAnalyticsViewModel visuals)
+        {
+            var grid = new VisualElement();
+            grid.AddToClassList("visual-data-grid");
+            foreach (var item in visuals.DataQuality)
+            {
+                grid.Add(StatlynDataQualityComponent.Build(item));
+            }
+
+            return grid;
+        }
+
+        private static VisualElement MakeMissingData(StatlynVisualAnalyticsViewModel visuals)
+        {
+            var panel = new VisualElement();
+            panel.AddToClassList("visual-panel");
+            panel.Add(StatlynUiFactory.MakeSectionTitle("Missing Data"));
+            foreach (var item in visuals.MissingData)
+            {
+                panel.Add(StatlynMissingDataComponent.Build(item));
+            }
+
+            return panel;
+        }
+
+        private static VisualElement MakeWarningList(StatlynVisualAnalyticsViewModel visuals)
+        {
+            var panel = new VisualElement();
+            panel.AddToClassList("visual-panel");
+            panel.Add(StatlynUiFactory.MakeSectionTitle("Warnings"));
+            if (visuals.Warnings.Count == 0)
+            {
+                panel.Add(new Label("No additional warnings."));
+                return panel;
+            }
+
+            foreach (var warning in visuals.Warnings.Take(4))
+            {
+                panel.Add(StatlynWarningPanelComponent.Build(warning));
+            }
+
+            return panel;
+        }
+
+        private static VisualElement MakeAttributeSupport(StatlynVisualAnalyticsViewModel visuals)
+        {
+            var section = new VisualElement();
+            section.AddToClassList("visual-section");
+            section.Add(StatlynUiFactory.MakeSectionTitle("Attribute Support"));
+            section.Add(new Label("Supporting evidence only; output metrics remain primary."));
+
+            var grid = new VisualElement();
+            grid.AddToClassList("visual-metric-grid");
+            section.Add(grid);
+
+            if (visuals.AttributeSupport.Count == 0)
+            {
+                grid.Add(StatlynMetricTileComponent.Build(new StatlynMetricTileVisual(
+                    "Attribute Support",
+                    "Unavailable",
+                    "Attribute Support",
+                    "Masked profile",
+                    "n/a",
+                    "No attributes available",
+                    "Supporting evidence only",
+                    false,
+                    false)));
+                return section;
+            }
+
+            foreach (var item in visuals.AttributeSupport)
+            {
+                grid.Add(StatlynMetricTileComponent.Build(item));
+            }
+
+            return section;
+        }
+
+        private static VisualElement MakeEvidenceSection(string title, System.Collections.Generic.IReadOnlyList<StatlynEvidenceVisual> visuals)
+        {
+            var section = new VisualElement();
+            section.AddToClassList("visual-section");
+            section.Add(StatlynUiFactory.MakeSectionTitle(title));
+
+            var grid = new VisualElement();
+            grid.AddToClassList("visual-evidence-grid");
+            section.Add(grid);
+
+            foreach (var item in visuals)
+            {
+                grid.Add(StatlynEvidenceCardComponent.Build(item));
+            }
+
+            return section;
         }
 
         private static string FindFirstImportedPlayerId(string databasePath)

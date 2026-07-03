@@ -95,7 +95,8 @@ namespace Statlyn.Tests
             Assert.Equal("Tactical fit unknown", profile.RoleFitVisual.TacticalFitLabel);
             Assert.Contains("Tactical fit unknown", renderModel.RoleFitCaption);
             Assert.DoesNotContain("Tactical fit: 0", renderModel.RoleFitCaption, StringComparison.OrdinalIgnoreCase);
-            Assert.All(profile.PercentileBars, bar => Assert.Equal("Fixture comparison group", bar.ComparisonGroup));
+            Assert.All(profile.PercentileBars, bar => Assert.Equal("No benchmark yet.", bar.ComparisonGroup));
+            Assert.All(profile.PercentileBars, bar => Assert.True(bar.IsMissing));
             Assert.All(profile.RadarMetrics, metric => Assert.False(string.IsNullOrWhiteSpace(metric.SourceName)));
         }
 

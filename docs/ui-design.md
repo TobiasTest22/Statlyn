@@ -28,21 +28,21 @@ The current Unity shell creates:
 
 The first shell intentionally does not show fake live players. The Player Profile slice may show one synthetic development fixture, clearly labelled as fixture mode.
 
-The Player Profile slice uses synthetic fixture-mode copy to preview dashboard layout only. The Player Profile v1 page/report loads persisted safe imported data. Neither surface claims live FM26 connectivity, real player images, club badges or unlicensed flags.
+The Player Profile slice uses synthetic fixture-mode copy to preview dashboard layout only. The Player Profile v1 page/report loads persisted safe imported data. Neither surface claims live FM26 connectivity, real player images, club badges or unlicensed flags. Dashboard preview visuals should be labelled as masked evidence and benchmark-unavailable status, not radar, percentile or trend claims.
 
 The slice is generated from `MaskedPlayerProfileViewModel` through `UnityProfileRenderModel`, not from raw provider snapshots or hardcoded Unity-only profile data.
 
 ## Player Profile Direction
 
-The player profile should become the design template for later pages. Player Profile v1 includes player identity, source confidence, verdict, role-output evidence, data quality, scout actions, simple visual sections and missing/blocked-data warnings.
+The player profile should become the design template for later pages. Player Profile v1 includes player identity, source confidence, verdict score cards, role-output evidence, metric groups, data quality, scout actions, reusable visual sections and missing/blocked-data warnings.
 
-Visual copy should stay honest when data is incomplete. Unknown tactical fit should say unknown, low-confidence risk should read as directional rather than precise, and no percentile or comparison claim should appear unless a real benchmark group exists.
+Visual copy should stay honest when data is incomplete. Unknown tactical fit should say unknown, low-confidence risk should read as directional rather than precise, missing output should not be drawn as zero, and no percentile or comparison claim should appear unless a real benchmark group exists.
 
 ## Persistence And Future Recruitment Surfaces
 
 The first Data Sources screen is wired into the Unity shell for local CSV imports. It should stay functional and honest: manual CSV path entry, source metadata, permission toggles, read-only preview, safe import counts and database diagnostics. It must not show network sources, fake live FM26 data, unlicensed player images, club badges or provider flags.
 
-Recruitment Centre v1 shows persisted imported players as white/glassy cards with source confidence, completeness, persisted role name, role fit, tactical-fit status, recommendation, risk, output metrics, blocked-field count and missing-data count. It should feel analytical rather than spreadsheet-only, but it remains deliberately simple.
+Recruitment Centre v1 shows persisted imported players as white/glassy cards with source confidence, completeness, persisted role name, role fit, tactical-fit status, recommendation, risk, output metrics, blocked-field count and missing-data count. Milestone 2.1 adds compact mini visuals for role fit, confidence, completeness, risk, output, missing-data badges and blocked-field badges. It should feel analytical rather than spreadsheet-only, but it remains deliberately simple.
 
 Recruitment Centre screens should show local import status, source permissions, safe audit counts, player stat counts, physical metric counts, reset/default filters and role-output evidence without exposing raw provider snapshots or blocked raw values.
 

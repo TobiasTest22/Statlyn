@@ -19,9 +19,9 @@ It uses:
 - Flag placeholder.
 - Source confidence card.
 - Data completeness card.
-- Role fit placeholder.
+- Role fit preview.
 - Confidence and risk cards.
-- Radar and percentile placeholders.
+- Masked evidence and benchmark-unavailable panels.
 - Role evidence cards.
 - Missing-data warning.
 
@@ -52,7 +52,7 @@ Milestone 1.7 also proves that an imported synthetic CSV player can be persisted
 
 ## Visual Intelligence
 
-Milestone 1.6 adds UI-ready visual model contracts for radar metrics, percentile bars, role fit, confidence, risk, evidence cards, trend placeholders, comparison cards, missing data warnings and blocked data notices. These are placeholders for future chart rendering, not decorative chart output.
+Milestone 1.6 adds UI-ready visual model contracts for masked evidence, unavailable benchmark bars, role fit, confidence, risk, evidence cards, historical-data placeholders, comparison cards, missing data warnings and blocked data notices. Milestone 2.1 keeps benchmark-style output unavailable until a real comparison group exists; the dashboard preview must not present fake radar, percentile or trend claims.
 
 ## Safety Rules
 

@@ -24,15 +24,16 @@ This copies the managed Statlyn assemblies, SQLite managed dependencies, Windows
 - Profile slice clearly shows fixture mode.
 - Profile slice clearly shows no live FM26 data.
 - Profile slice keeps FM26 memory maps marked unsupported until validated maps exist.
-- Profile slice shows source confidence, data completeness, role fit, confidence, risk, radar placeholder, percentile bars, evidence cards and missing/blocked-data warnings.
+- Profile slice shows source confidence, data completeness, role fit, confidence, risk, masked evidence, benchmark-unavailable status, evidence cards and missing/blocked-data warnings.
 - Blocked-data notice does not show raw hidden values.
 - Player Profile navigation opens the Player Profile v1 page.
 - Player Profile page shows persisted-safe/no-live-FM26 header copy and the official Statlyn logo mark.
 - `Load First Imported Player` loads a profile after a safe CSV import.
 - Manual `StatlynPlayerId` loading works for an imported player.
-- Profile report shows identity, source, verdict, role/output fit, core output, supporting output, missing output, data quality/sample size, attribute support, evidence, scout actions and blocked-data safe notice.
+- Profile report shows identity, source, verdict score cards, role/output fit, core output, supporting output, physical output, data quality/sample size, missing output, warnings, evidence, scout actions, attribute support, blocked-data safe notice and benchmark status.
+- Profile report visual components render score cards, horizontal bars, metric tiles, data-quality tiles, evidence cards, warning panels, missing-data panels, blocked-data panels and benchmark status from safe view models only.
 - Profile report says generic/import metrics are not FM26-verified.
-- Profile report says `No benchmark yet.` and does not show fake percentiles.
+- Profile report says `No benchmark yet.` and benchmark percentile is unavailable until a real comparison group exists.
 - Diagnostics panel loads.
 - Data Sources navigation opens a CSV-only page.
 - Data Sources page shows the active local SQLite path.
@@ -50,7 +51,7 @@ This copies the managed Statlyn assemblies, SQLite managed dependencies, Windows
 - Search/source/position/minimum filters refresh the player cards.
 - Reset filters returns search/source/position/minimum filters to defaults.
 - Sort selector works for role fit, confidence, data completeness, source and position.
-- Player cards show source confidence, completeness, persisted role name, role fit, tactical-fit status, confidence, recommendation, risk, output metrics, blocked-field count and missing-data count.
+- Player cards show source confidence, completeness, persisted role name, role fit score, tactical-fit status, confidence/completeness bars, risk indicator, output mini list, blocked-field badge, missing-data badge and no-live-FM26 label.
 - `Open Profile` shows the full persisted safe Player Profile report or a safe error card.
 - Profile report from Recruitment Centre shows selected player name, source, fixture/import mode, no live FM26 data, role name, role fit/confidence/risk, output metrics, missing-data warning and blocked-data safe notice.
 - No fake live FM26 data is shown.

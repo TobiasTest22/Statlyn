@@ -197,7 +197,9 @@ namespace Statlyn.Tests
             Assert.Contains(visuals.MissingDataWarnings, warning => warning.FieldName == "Pace");
             Assert.True(visuals.ConfidenceVisual.Score < 100);
             Assert.NotEqual("Sign", profile.RoleFitVisual.StatusLabel);
-            Assert.All(visuals.PercentileBars, bar => Assert.False(string.IsNullOrWhiteSpace(bar.ComparisonGroup)));
+            Assert.All(visuals.PercentileBars, bar => Assert.Equal("No benchmark yet.", bar.ComparisonGroup));
+            Assert.All(visuals.PercentileBars, bar => Assert.True(bar.IsMissing));
+            Assert.All(visuals.PercentileBars, bar => Assert.Contains("No benchmark", bar.MissingReason, StringComparison.OrdinalIgnoreCase));
             Assert.All(visuals.RadarMetrics, metric => Assert.False(string.IsNullOrWhiteSpace(metric.SourceName)));
             Assert.Equal(AvatarDisplayMode.Initials, profile.AvatarMode);
             Assert.Equal(FlagDisplayMode.BundledSafeFlag, profile.FlagDisplayMode);

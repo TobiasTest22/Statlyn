@@ -1,6 +1,6 @@
 # Recruitment Centre
 
-Milestone 1.9 adds the first Recruitment Centre page powered by persisted safe SQLite data. Milestone 1.9.1 hardens role names, output-profile selection, branding and preview labels.
+Milestone 1.9 adds the first Recruitment Centre page powered by persisted safe SQLite data. Milestone 1.9.1 hardens role names, output-profile selection, branding and preview labels. Milestone 2.1 adds safe mini visuals for scanning imported players.
 
 ## Flow
 
@@ -45,7 +45,18 @@ Recruitment Centre loads persisted `RoleOutputExpectationProfile` rows from SQLi
 
 ## Unity UX
 
-The Unity page shows a persisted-safe-data banner, no-live-FM26 label, active database path/status, player count, source list, reset filters button, sort selector, role name, tactical-fit status and clearer output/missing/blocked labels. `Open Profile` renders the Player Profile v1 report below the Recruitment Centre results using persisted safe data only.
+The Unity page shows a persisted-safe-data banner, no-live-FM26 label, active database path/status, player count, source list, reset filters button, sort selector, role name and tactical-fit status. Player cards now bind through `RecruitmentCentreMiniVisualBuilder`, which accepts only `RecruitmentCentrePlayerRowViewModel` and rejects raw provider entities.
+
+Mini visuals include:
+
+- role-fit score
+- confidence and data-completeness bars
+- risk indicator
+- output mini list
+- missing-data and blocked-field badges
+- no-live-FM26 label
+
+`Open Profile` renders the Player Profile v1 report below the Recruitment Centre results using persisted safe data only.
 
 ## Current Limits
 

@@ -22,8 +22,7 @@ namespace Statlyn.UI.Visuals
                 throw new InvalidOperationException("Visual intelligence models require a masked player.");
             }
 
-            var isFixtureMode = IsFixtureMode(sourceMetadata);
-            var comparisonGroup = isFixtureMode ? "Fixture comparison group" : "No validated comparison group";
+            var comparisonGroup = "No benchmark yet.";
             var radar = maskedPlayer.Fields.Values
                 .Where(field => field.CanScore && field.IsKnown && field.NumericValue.HasValue)
                 .Take(6)
@@ -33,7 +32,7 @@ namespace Statlyn.UI.Visuals
             var bars = maskedPlayer.Fields.Values
                 .Where(field => field.CanScore && field.IsKnown && field.NumericValue.HasValue)
                 .Take(6)
-                .Select(field => new PercentileBar(field.FieldName, field.NumericValue!.Value, ToPercentile(field), comparisonGroup, field.Confidence, sourceMetadata.SourceName, false, string.Empty))
+                .Select(field => new PercentileBar(field.FieldName, field.NumericValue!.Value, 0, comparisonGroup, field.Confidence, sourceMetadata.SourceName, true, "No benchmark loaded."))
                 .ToList();
 
             var missing = roleScore.MissingData
@@ -67,27 +66,10 @@ namespace Statlyn.UI.Visuals
                 new ConfidenceVisual(roleScore.Confidence, roleScore.Confidence < 55 ? "Low" : roleScore.Confidence < 75 ? "Medium" : "High", BuildConfidenceReason(roleScore, sourceMetadata, maskedPlayer, completeness), sourceMetadata.SourceConfidence, maskedPlayer.ScoutKnowledgePercentage, completeness.CompletenessPercentage),
                 new RiskVisual(roleScore.RiskScore, roleScore.Confidence < 55 ? "Directional" : roleScore.RiskScore > 65 ? "Elevated" : "Controlled", roleScore.NegativeEvidence.Select(item => item.Message).ToList(), completeness.CompletenessPercentage < 50, roleScore.Confidence < 55, maskedPlayer.BlockedFields.Count > 0),
                 evidence,
-                new List<TrendVisual> { new TrendVisual("Performance trend", new List<double>(), "Unavailable", sourceMetadata.SourceName, false, "No trend data available yet.") },
+                new List<TrendVisual> { new TrendVisual("Historical data", new List<double>(), "Unavailable", sourceMetadata.SourceName, false, "No history loaded yet.") },
                 new List<ComparisonCard>(),
                 missing,
                 blocked);
-        }
-
-        private static int ToPercentile(VisiblePlayerField field)
-        {
-            if (!field.NumericValue.HasValue)
-            {
-                return 0;
-            }
-
-            var max = field.Key == PlayerFieldKey.TechnicalAttribute ? 20.0 : 100.0;
-            return Math.Max(0, Math.Min(100, (int)Math.Round(field.NumericValue.Value / max * 100.0)));
-        }
-
-        private static bool IsFixtureMode(SourceMetadata sourceMetadata)
-        {
-            return sourceMetadata.SourceName.IndexOf("fixture", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                   sourceMetadata.AllowedUsage.IndexOf("fixture", StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
         private static string BuildConfidenceReason(RoleScore roleScore, SourceMetadata sourceMetadata, MaskedPlayer maskedPlayer, DataCompletenessReport completeness)

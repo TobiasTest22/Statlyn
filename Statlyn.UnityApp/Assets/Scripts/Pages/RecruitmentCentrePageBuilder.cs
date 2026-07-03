@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using Statlyn.Data;
 using Statlyn.Data.Recruitment;
+using Statlyn.UI;
 using Statlyn.UnityApp.Components;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -155,28 +156,62 @@ namespace Statlyn.UnityApp.Pages
 
         private static VisualElement MakePlayerCard(string databasePath, RecruitmentCentrePlayerRowViewModel row, VisualElement profile)
         {
+            var visuals = RecruitmentCentreMiniVisualBuilder.Build(row);
             var card = new VisualElement();
             card.AddToClassList("glass-card");
             card.Add(StatlynUiFactory.MakeSectionTitle(row.Name));
             card.Add(new Label(row.Age + " | " + row.Nationality + " | " + row.Position));
             card.Add(new Label("Source: " + row.Source + " (" + row.SourceConfidence + " confidence)"));
-            card.Add(new Label("Completeness: " + row.DataCompleteness));
             card.Add(new Label("Role: " + row.RoleName));
-            card.Add(new Label("Role fit: " + row.RoleFit + " | Tactical fit: " + row.TacticalFit));
-            card.Add(new Label("Confidence: " + row.Confidence));
-            card.Add(new Label("Recommendation: " + row.Recommendation + " | Risk: " + row.Risk));
-            card.Add(new Label("Output metrics: " + (row.KeyOutputMetrics.Count == 0 ? "Output metrics missing" : string.Join(", ", row.KeyOutputMetrics))));
-            card.Add(new Label("Blocked field count: " + row.BlockedFieldCount.ToString(CultureInfo.InvariantCulture)));
-            card.Add(new Label("Missing data: " + row.MissingDataCount.ToString(CultureInfo.InvariantCulture)));
-            if (row.Warnings.Count > 0)
+            card.Add(new Label("Tactical fit: " + row.TacticalFit));
+            card.Add(StatlynBadgeRowComponent.Build(visuals.Badges));
+            card.Add(MakeMiniScore(visuals.RoleFitScore));
+            card.Add(StatlynHorizontalBarComponent.Build(visuals.ConfidenceBar));
+            card.Add(StatlynHorizontalBarComponent.Build(visuals.DataCompletenessBar));
+            card.Add(MakeMiniRisk(visuals.RiskIndicator));
+
+            var outputList = new VisualElement();
+            outputList.AddToClassList("visual-badge-row");
+            foreach (var metric in visuals.OutputMiniList)
             {
-                card.Add(new Label("Warning: " + row.Warnings[0]));
+                var label = new Label(metric.Label + ": " + metric.Value);
+                label.AddToClassList("visual-badge");
+                outputList.Add(label);
             }
+
+            card.Add(outputList);
+            card.Add(new Label(visuals.NoLiveDataLabel));
 
             var open = new Button { text = "Open Profile" };
             open.clicked += () => RenderProfile(databasePath, row.StatlynPlayerId, profile);
             card.Add(open);
             return card;
+        }
+
+        private static VisualElement MakeMiniScore(StatlynScoreCardVisual visual)
+        {
+            var panel = new VisualElement();
+            panel.AddToClassList("visual-mini-row");
+            var label = new Label(visual.Title + ": " + visual.Value);
+            label.AddToClassList("visual-title");
+            panel.Add(label);
+            panel.Add(new Label(visual.Caption));
+            return panel;
+        }
+
+        private static VisualElement MakeMiniRisk(StatlynWarningVisual visual)
+        {
+            var panel = new VisualElement();
+            panel.AddToClassList("visual-mini-row");
+            var label = new Label(visual.Message);
+            label.AddToClassList("visual-warning-text");
+            panel.Add(label);
+            foreach (var row in visual.Rows)
+            {
+                panel.Add(new Label(row));
+            }
+
+            return panel;
         }
 
         private static void RenderProfile(string databasePath, string statlynPlayerId, VisualElement profile)

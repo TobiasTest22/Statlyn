@@ -141,6 +141,17 @@ Milestone 2.0 adds tests for:
 - Low confidence scout actions.
 - Recruitment Centre row to Player Profile report consistency.
 
+Milestone 2.1 adds tests for:
+
+- Refactored Player Profile report builders staying aligned with the public report.
+- Safe visual analytics models rejecting raw provider entities.
+- Output-first visual section ordering with Attribute Support after output/evidence.
+- Benchmark status using `HasBenchmark=false`, `Percentile=null` and `No benchmark yet.`
+- Missing output appearing as missing visuals, not zero values.
+- Generic/import metric status becoming visual warnings.
+- Recruitment Centre mini visuals binding only safe row view models.
+- Legacy fixture visual bars no longer fabricating fixture comparison groups.
+
 Future tests should cover broader persistence migrations, real provider imports, Unity UI state transitions and native connector status parsing.
 
 Unity editor validation remains manual. Run `.\tools\copy-managed-to-unity.ps1` before opening the project so the Unity assembly definition can resolve the shared managed Statlyn DLLs, SQLite dependencies and synthetic fixture CSV, then use the Data Sources runtime check inside Unity. Branding assets live directly under `Statlyn.UnityApp/Assets/Resources/Branding`.

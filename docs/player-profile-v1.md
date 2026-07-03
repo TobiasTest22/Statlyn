@@ -1,6 +1,6 @@
 # Player Profile v1
 
-Milestone 2.0 adds the first persisted-safe Player Profile report.
+Milestone 2.0 adds the first persisted-safe Player Profile report. Milestone 2.1 adds reusable safe visual analytics models and Unity UI Toolkit component builders for the report.
 
 ## Flow
 
@@ -45,9 +45,27 @@ The report is output-first:
 - evidence cards
 - scout/recruitment actions
 - blocked-data safe notice
-- simple visual-section foundation
+- benchmark status
+- reusable visual analytics components
 
 Attributes are support-only and should not lead the report. Missing output metrics lower confidence and are displayed as missing, not zero.
+
+Milestone 2.1 splits the report construction into focused builders for metric tiles, evidence, data quality, attribute support, scout actions, blocked-data notices and visual sections. The public report model still accepts only `PlayerProfileResult`; raw provider entities are rejected before any UI binding can occur.
+
+## Visual Analytics Components
+
+`StatlynVisualAnalyticsBuilder` converts `PlayerProfileReportViewModel` into safe visuals only. It builds:
+
+- verdict score cards
+- role/output bars
+- metric groups for core, supporting and physical output
+- data-quality tiles
+- warning, evidence and scout-action cards
+- missing-data and blocked-data panels
+- support-only attribute tiles
+- benchmark status
+
+The Unity Player Profile page consumes those visuals through UI Toolkit component builders. It keeps the visible order as identity/source, verdict score cards, role/output, core output, supporting output, physical output, data quality, missing data, warnings, evidence, scout actions, attribute support, blocked data and benchmark status.
 
 ## Generic Metric Status
 
@@ -55,7 +73,7 @@ Current metric and role-output profiles are generic/import-ready. They are not o
 
 ## Benchmarks
 
-Player Profile v1 does not create fake benchmark percentiles. If no real comparison group exists, the visual section says `No benchmark yet.`
+Player Profile v1 does not create fake benchmark percentiles. The 2.1 benchmark foundation sets `HasBenchmark=false`, `Percentile=null` and `SafeMessage=No benchmark yet.` until a real comparison group exists.
 
 ## Unity Status
 

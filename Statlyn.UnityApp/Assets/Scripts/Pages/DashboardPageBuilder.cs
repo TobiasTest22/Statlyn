@@ -107,26 +107,26 @@ namespace Statlyn.UnityApp.Pages
             visualGrid.AddToClassList("profile-visual-grid");
             profile.Add(visualGrid);
 
-            var radar = new VisualElement();
-            radar.AddToClassList("radar-card");
-            radar.Add(StatlynUiFactory.MakeSectionTitle("Radar Chart"));
+            var evidencePanel = new VisualElement();
+            evidencePanel.AddToClassList("visual-panel");
+            evidencePanel.Add(StatlynUiFactory.MakeSectionTitle("Masked Evidence"));
             foreach (var metric in model.RadarMetrics)
             {
-                radar.Add(new Label(metric.Label + ": " + metric.Value + " / " + metric.MaximumValue + " (" + metric.Confidence + "% confidence)"));
+                evidencePanel.Add(new Label(metric.Label + ": " + metric.Value + " / " + metric.MaximumValue + " (" + metric.Confidence + "% confidence)"));
             }
 
-            radar.AddToClassList("placeholder-text");
-            visualGrid.Add(radar);
+            visualGrid.Add(evidencePanel);
 
-            var bars = new VisualElement();
-            bars.AddToClassList("percentile-card");
-            bars.Add(StatlynUiFactory.MakeSectionTitle("Percentile Bars"));
+            var benchmark = new VisualElement();
+            benchmark.AddToClassList("visual-panel");
+            benchmark.Add(StatlynUiFactory.MakeSectionTitle("Benchmark Status"));
+            benchmark.Add(new Label("No benchmark yet."));
             foreach (var bar in model.PercentileBars)
             {
-                bars.Add(MakePercentileBar(bar.Label + " vs " + bar.ComparisonGroup, bar.Percentile));
+                benchmark.Add(new Label(bar.Label + ": " + bar.ComparisonGroup));
             }
 
-            visualGrid.Add(bars);
+            visualGrid.Add(benchmark);
 
             var evidence = new VisualElement();
             evidence.AddToClassList("evidence-grid");
@@ -144,21 +144,6 @@ namespace Statlyn.UnityApp.Pages
             profile.Add(warning);
 
             return profile;
-        }
-
-        private static VisualElement MakePercentileBar(string label, int value)
-        {
-            var row = new VisualElement();
-            row.AddToClassList("percentile-row");
-            row.Add(new Label(label));
-            var track = new VisualElement();
-            track.AddToClassList("percentile-track");
-            var fill = new VisualElement();
-            fill.AddToClassList("percentile-fill");
-            fill.style.width = Length.Percent(value);
-            track.Add(fill);
-            row.Add(track);
-            return row;
         }
 
         private static VisualElement MakeEvidenceCard(string title, string copy)

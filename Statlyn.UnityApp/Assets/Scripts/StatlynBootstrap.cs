@@ -1,3 +1,5 @@
+using System.Linq;
+using Statlyn.Data.Workflow;
 using Statlyn.UnityApp.Pages;
 using Statlyn.UnityApp.Components;
 using UnityEngine;
@@ -8,20 +10,7 @@ namespace Statlyn.UnityApp
     public sealed class StatlynBootstrap : MonoBehaviour
     {
         private static readonly string[] NavigationItems =
-        {
-            "Home",
-            "Squad",
-            "Recruitment",
-            "Shortlists",
-            "Player Profile",
-            "Role Lab",
-            "Benchmarks",
-            "Scout Desk",
-            "Alerts",
-            "Data Sources",
-            "Settings",
-            "Diagnostics"
-        };
+            UnityNavigationCatalog.Items.Select(item => item.Name).ToArray();
 
         private UIDocument _document;
         private readonly DashboardPageBuilder _dashboard = new DashboardPageBuilder();
@@ -32,6 +21,8 @@ namespace Statlyn.UnityApp
         private readonly ScoutDeskPageBuilder _scoutDesk = new ScoutDeskPageBuilder();
         private readonly RoleLabPageBuilder _roleLab = new RoleLabPageBuilder();
         private readonly BenchmarksPageBuilder _benchmarks = new BenchmarksPageBuilder();
+        private readonly DiagnosticsPageBuilder _diagnostics = new DiagnosticsPageBuilder();
+        private readonly NotBuiltPageBuilder _notBuilt = new NotBuiltPageBuilder();
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void CreateRuntimeShell()
@@ -97,6 +88,12 @@ namespace Statlyn.UnityApp
 
         private void ShowPage(VisualElement main, string pageName)
         {
+            if (pageName == "Home")
+            {
+                _dashboard.Build(main);
+                return;
+            }
+
             if (pageName == "Data Sources")
             {
                 _dataSources.Build(main);
@@ -139,7 +136,14 @@ namespace Statlyn.UnityApp
                 return;
             }
 
-            _dashboard.Build(main);
+            if (pageName == "Diagnostics")
+            {
+                _diagnostics.Build(main);
+                return;
+            }
+
+            var navItem = UnityNavigationCatalog.Items.FirstOrDefault(item => item.Name == pageName);
+            _notBuilt.Build(main, string.IsNullOrWhiteSpace(pageName) ? "Not Built" : pageName, navItem == null ? "This page is not built yet." : navItem.SafeSubtitle);
         }
     }
 }

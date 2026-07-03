@@ -14,7 +14,7 @@ namespace Statlyn.UnityApp.Pages
         public void Build(VisualElement main)
         {
             main.Clear();
-            var databasePath = Path.Combine(Application.persistentDataPath, "statlyn.db");
+            var databasePath = new StatlynDatabasePathResolver().ResolvePath(Application.persistentDataPath, StatlynDatabasePathMode.RuntimeMain);
             BuildHeader(main, databasePath, out var status);
 
             var safety = new VisualElement();

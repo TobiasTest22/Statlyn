@@ -62,6 +62,61 @@ namespace Statlyn.UnityApp.Components
             return card;
         }
 
+        public static VisualElement MakePageHeader(string title, string subtitle, string statusText, string logoResourceKey = LightLogoResourceKey)
+        {
+            var header = new VisualElement();
+            header.AddToClassList("header");
+
+            var headerBrand = new VisualElement();
+            headerBrand.AddToClassList("header-brand");
+            header.Add(headerBrand);
+
+            var logo = MakeLogoImage(logoResourceKey, "header-logo");
+            if (logo != null)
+            {
+                headerBrand.Add(logo);
+            }
+
+            var titleStack = new VisualElement();
+            titleStack.AddToClassList("title-stack");
+            headerBrand.Add(titleStack);
+
+            var titleLabel = new Label(title ?? string.Empty);
+            titleLabel.AddToClassList("screen-title");
+            titleStack.Add(titleLabel);
+
+            var subtitleLabel = new Label(subtitle ?? string.Empty);
+            subtitleLabel.AddToClassList("screen-subtitle");
+            titleStack.Add(subtitleLabel);
+
+            var status = new Label(statusText ?? string.Empty);
+            status.AddToClassList("status-pill");
+            header.Add(status);
+
+            return header;
+        }
+
+        public static VisualElement MakeSafetyBanner(params string[] rows)
+        {
+            return MakeCard("Safety", rows == null || rows.Length == 0 ? new[] { "Persisted safe data only", "No live FM26 data" } : rows);
+        }
+
+        public static VisualElement MakeEmptyState(string title, params string[] rows)
+        {
+            return MakeCard(title, rows == null || rows.Length == 0 ? new[] { "No data is shown." } : rows);
+        }
+
+        public static VisualElement MakeErrorCard(string title, params string[] rows)
+        {
+            return MakeCard(title, rows == null || rows.Length == 0 ? new[] { "A safe error occurred." } : rows);
+        }
+
+        public static VisualElement MakeRuntimeStatusCard(string title, bool? status, string detail)
+        {
+            var label = status.HasValue ? status.Value ? "Passed" : "Failed" : "Not run";
+            return MakeCard(title, new[] { label, detail ?? string.Empty });
+        }
+
         public static Label MakeSectionTitle(string title)
         {
             var label = new Label(title);

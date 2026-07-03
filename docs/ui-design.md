@@ -95,3 +95,9 @@ Role Lab should not use old duty language, hidden values or attribute-first scor
 The Benchmarks page is a utility dashboard for generic/import definitions. It includes Statlyn branding, seed and run actions, definition cards, latest run summaries and aggregate snapshot rows.
 
 The page must not show fake benchmark results, fake FM26 verification, hidden values or raw provider data. Empty states should clearly say that no benchmark definitions or no comparison group exists.
+
+## Runtime UI Baseline
+
+Milestone 2.6 keeps the existing white/glassy UI and adds consistency helpers for page headers, safety banners, empty states, error cards and runtime status cards.
+
+Navigation items should never silently fall back to Home. Built pages open directly; unfinished pages show a clear `This page is not built yet` placeholder with no fake data. The Diagnostics page owns Runtime Check and Full Smoke Test controls.

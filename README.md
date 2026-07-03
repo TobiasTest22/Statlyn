@@ -33,6 +33,7 @@ Statlyn is a desktop football recruitment intelligence platform for Football Man
 - Scout Desk v1: persisted local human scouting workflow for creating assignments, submitting qualitative reports, answering role/output prompts and optionally updating shortlist status from a scout recommendation.
 - Role Lab v1: editable phase-aware role templates, role pairs, output metric requirements, scout questions and red flags; generic/import-safe until FM26 validation exists.
 - Benchmark Foundation v1: generic/import benchmark definitions, aggregate-only benchmark runs and nullable percentiles from persisted safe SQLite comparison groups.
+- Unity runtime validation v1: Diagnostics page, Runtime Check and Full Smoke Test covering the CSV-only workflow against a separate smoke-test database.
 - Branding: official Statlyn logo assets are copied into Unity `Resources/Branding` and used by the shell/sidebar.
 - Field policy registry: deny-by-default masking for display, scoring and storage.
 - Field instance keys: grouped values such as `TechnicalAttribute:Finishing` and `PlayerStat:xG` are preserved without overwriting.
@@ -107,7 +108,7 @@ Before opening Unity, copy the shared managed assemblies, SQLite dependencies an
 .\tools\copy-managed-to-unity.ps1
 ```
 
-Unity editor validation is still manual unless a release note says it was opened and checked locally. SQLite is verified by managed tests; use the Data Sources page's `Run Runtime Check` button in Unity to validate SQLite loading in the Editor before relying on CSV import there.
+Unity editor validation is still manual unless a release note says it was opened and checked locally. SQLite is verified by managed tests; use the Diagnostics page's `Run Runtime Check` and `Run Full Smoke Test` buttons in Unity to validate SQLite loading and the local CSV workflow in the Editor before relying on runtime import there.
 
 GitHub Actions validates the managed build/tests and the native CMake build.
 

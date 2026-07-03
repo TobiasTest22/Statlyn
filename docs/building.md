@@ -38,3 +38,14 @@ The copy script now includes Statlyn managed assemblies, Microsoft.Data.Sqlite/S
 Open `Statlyn.UnityApp` in Unity 6 or newer. The shell includes the Data Sources page for local CSV preview/import and the first Recruitment Centre page for persisted safe players. Click `Run Runtime Check` before preview/import to verify copied assemblies, SQLite loading, temporary database initialization and workflow construction. SQLite persistence is verified in managed tests; SQLite runtime loading inside Unity still needs manual Editor validation.
 
 Use `docs/unity-validation.md` for the current manual Unity checklist.
+## Unity Runtime Preparation
+
+Before opening the Unity desktop app, run:
+
+```powershell
+.\tools\copy-managed-to-unity.ps1
+```
+
+This copies the Statlyn managed assemblies, SQLite dependencies, `e_sqlite3` native plugin and the synthetic fixture CSV into the Unity project.
+
+After opening `Statlyn.UnityApp` in Unity 6 or newer, use the Diagnostics page to run `Run Runtime Check` and `Run Full Smoke Test`. The smoke test uses a separate smoke-test database and does not require FM26.

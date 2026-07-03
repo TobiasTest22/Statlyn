@@ -203,3 +203,19 @@ Unity editor validation remains manual. Run `.\tools\copy-managed-to-unity.ps1` 
 Milestone 2.5 adds coverage for benchmark domain models, schema migration idempotence, repository persistence, aggregate-only snapshots, calculation behavior, default seeds, workflow view models, Player Profile integration and Recruitment Centre indicators.
 
 Tests assert that no fake percentiles are produced, missing metrics are not treated as zero, generic/import metrics are not FM26-verified, and hidden-value-looking text is sanitized before storage.
+
+## Unity Smoke Tests
+
+Milestone 2.6 adds `Milestone26Tests` for the Unity-facing smoke-test service. These tests run the full CSV-only workflow against a temporary smoke-test database in normal .NET:
+
+- resolve a smoke-test database path
+- find the synthetic fixture
+- preview and import CSV
+- query Recruitment Centre
+- load Player Profile
+- add to shortlist
+- create a scout assignment and report
+- seed Role Lab
+- seed and run benchmarks
+
+The tests also verify path separation, fixture missing-state messaging, navigation metadata, no FM26 requirement and no hidden raw values in smoke-test output.

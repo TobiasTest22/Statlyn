@@ -15,6 +15,16 @@ namespace Statlyn.Data
             return factory;
         }
 
+        public static StatlynDbConnectionFactory CreateForMode(string appDataRoot, StatlynDatabasePathMode mode)
+        {
+            if (mode == StatlynDatabasePathMode.UnitTestInMemory)
+            {
+                return CreateInMemory();
+            }
+
+            return CreateFile(new StatlynDatabasePathResolver().ResolvePath(appDataRoot, mode));
+        }
+
         public static StatlynDbConnectionFactory CreateInMemory(string? name = null)
         {
             var factory = StatlynDbConnectionFactory.CreateInMemory(name);

@@ -100,3 +100,50 @@ Record the Unity version and screenshots when validating a release candidate.
 Unity validation should include the Benchmarks page after managed assemblies are copied into the Unity project. Check that the page opens, seed definitions works, run definitions works, and snapshot rows show aggregate values only.
 
 Player Profile should still show `No benchmark yet.` without valid definitions or samples. With real imported comparison data, it may show benchmark cards and percentiles only for available results. SQLite-in-Unity must still be manually verified in the Editor before relying on runtime import or benchmark runs there.
+
+See `docs/unity-smoke-test.md` for the automated smoke-test step descriptions and database-mode details.
+
+## Manual Validation Protocol
+
+Opening:
+
+- Open `Statlyn.UnityApp` in Unity 6 or newer.
+- Confirm there are no compile errors.
+- Confirm the official Statlyn logo appears.
+- Confirm all navigation items open either a built page or a safe placeholder.
+
+Runtime:
+
+- Open `Diagnostics`.
+- Run `Run Runtime Check`.
+- Run `Run Full Smoke Test`.
+- Confirm SQLite temp DB initializes.
+- Confirm the synthetic fixture is found.
+- Confirm no FM26 process is required.
+
+Workflow:
+
+- Open `Data Sources`.
+- Select the synthetic CSV fixture.
+- Preview the synthetic CSV.
+- Run Safe Import.
+- Open `Recruitment Centre` and confirm imported synthetic players appear.
+- Open `Player Profile` and load the first imported player.
+- Add the player to a shortlist.
+- Open `Shortlists` and confirm the player appears.
+- Create a Scout Desk assignment.
+- Submit a qualitative scout report.
+- Open `Role Lab` and seed roles.
+- Open `Benchmarks`, seed definitions and run definitions.
+- Confirm benchmark sections show real status and no fake percentiles.
+
+Safety:
+
+- No raw CurrentAbility, PotentialAbility or Professionalism values are visible.
+- No fake live FM26 data is shown.
+- No external API or scraping path is used.
+- No unlicensed images, badges or provider flags are shown.
+- No fake benchmark percentiles are shown.
+- Generic/import metrics are clearly labelled as not FM26-verified.
+
+If Unity Editor is not opened, report that clearly. If SQLite-in-Unity is not manually verified, report that clearly.

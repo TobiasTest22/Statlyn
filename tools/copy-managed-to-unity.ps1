@@ -127,6 +127,7 @@ Write-Host "Statlyn Unity copy summary"
 Write-Host "Managed plugin folder: $targetDir"
 Write-Host "Native plugin folder: $nativePluginDir"
 Write-Host "Fixture folder: $fixtureTargetDir"
+Write-Host "Fixture resolver expected path: Statlyn.UnityApp\Assets\StreamingAssets\Statlyn\Fixtures\players.sample.csv"
 Write-Host ("Files copied: " + $copied.Count)
 foreach ($item in $copied) {
     Write-Host " - $item"

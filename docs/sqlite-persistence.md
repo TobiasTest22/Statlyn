@@ -181,3 +181,13 @@ File-backed SQLite connections use pooling disabled so temporary runtime-check d
 Schema v5 adds `BenchmarkDefinition`, `BenchmarkRun` and `BenchmarkMetricSnapshot`. Definitions store scope, source, position group, role/profile selectors, metric keys and sample thresholds. Runs store summary counts and a safe message.
 
 Snapshots store aggregate safe values only: sample size, median, average, minimum and maximum. They do not store selected player raw values, fake percentiles, hidden FM26 values, raw blocked values or raw provider entities.
+
+## Runtime Database Modes
+
+Milestone 2.6 separates database path intent:
+
+- `RuntimeMain` uses the stable Unity main database path under `Application.persistentDataPath`.
+- `RuntimeSmokeTest` uses a separate `StatlynSmokeTest\statlyn-smoke-test.db` path under the temporary root.
+- `UnitTestInMemory` keeps normal test databases in memory.
+
+The full smoke test clears and recreates the smoke-test database by default. It should not modify the main runtime database unless a user deliberately runs normal Data Sources import.

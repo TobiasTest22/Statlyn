@@ -1,6 +1,6 @@
 # Player Profile v1
 
-Milestone 2.0 adds the first persisted-safe Player Profile report. Milestone 2.1 adds reusable safe visual analytics models and Unity UI Toolkit component builders for the report. Milestone 2.2 adds a safe add-to-shortlist action and membership panel.
+Milestone 2.0 adds the first persisted-safe Player Profile report. Milestone 2.1 adds reusable safe visual analytics models and Unity UI Toolkit component builders for the report. Milestone 2.2 adds a safe add-to-shortlist action and membership panel. Milestone 2.3 adds latest scout report summary and a create-assignment action.
 
 ## Flow
 
@@ -11,6 +11,7 @@ Milestone 2.0 adds the first persisted-safe Player Profile report. Milestone 2.1
 5. Open Player Profile.
 6. Load the first imported player or enter a `StatlynPlayerId`.
 7. Add the player to the Main Recruitment List when the profile is worth tracking.
+8. Create a Scout Desk assignment or review the latest qualitative scout report.
 
 Recruitment Centre also uses the same Player Profile report pipeline when `Open Profile` is clicked.
 
@@ -29,6 +30,8 @@ Player Profile v1 reads only persisted safe SQLite data:
 It does not reconstruct raw provider snapshots, expose `PlayerRawSnapshot`, expose hidden FM26 values, show raw blocked values, use player images, display club badges, or claim live FM26 support.
 
 The shortlist action uses `StatlynPlayerId` plus the safe persisted profile context. It does not add fake players and does not store raw provider data.
+
+The Scout Desk action also uses only `StatlynPlayerId` and safe role labels. It does not pass raw provider objects, ask for CA/PA, or treat scout notes as exact hidden personality attributes.
 
 CSV/fixture/import sources are labelled as no live FM26 data. FM26 remains unsupported until validated memory maps exist.
 
@@ -50,6 +53,7 @@ The report is output-first:
 - blocked-data safe notice
 - benchmark status
 - shortlist membership/add action
+- latest scout report summary and create-assignment action
 - reusable visual analytics components
 
 Attributes are support-only and should not lead the report. Missing output metrics lower confidence and are displayed as missing, not zero.
@@ -79,6 +83,12 @@ The profile page can add the loaded player to `Main Recruitment List`. Default s
 - strong visible role fit and confidence can suggest `Shortlist` or `StrongTarget`
 - no path automatically stores a `Sign` decision
 - blocked-field counts add warnings but do not expose raw values
+
+## Scout Report Summary
+
+Player Profile shows the latest scout recommendation, confidence, report date and short safe summary. If no report exists, it says `No scout report yet.`
+
+Scout reports are local-only qualitative observations. They can say things like `looks composed` or `handles pressure well`, but hidden-looking numeric assignments such as `CA 155`, `PA=180` or `Professionalism: 20` are redacted before storage.
 
 ## Generic Metric Status
 

@@ -30,6 +30,7 @@ Statlyn is a desktop football recruitment intelligence platform for Football Man
 - Recruitment Centre: first persisted-safe player list for imported CSV players with search/filter, role/output summaries and full safe profile report loading.
 - Player Profile v1: persisted-safe, output-first recruitment report with role-specific output, reusable visual analytics components, data quality, scout actions, blocked-data notice and benchmark-unavailable status.
 - Shortlists v1: persisted-safe recruitment decision workflow for creating shortlists, adding players from Recruitment Centre or Player Profile, updating status/priority/follow-up and removing players.
+- Scout Desk v1: persisted local human scouting workflow for creating assignments, submitting qualitative reports, answering role/output prompts and optionally updating shortlist status from a scout recommendation.
 - Branding: official Statlyn logo assets are copied into Unity `Resources/Branding` and used by the shell/sidebar.
 - Field policy registry: deny-by-default masking for display, scoring and storage.
 - Field instance keys: grouped values such as `TechnicalAttribute:Finishing` and `PlayerStat:xG` are preserved without overwriting.
@@ -40,13 +41,13 @@ When FM26 is detected but no validated memory map exists, Statlyn must show an u
 
 CSV and JSON import support is local-file skeleton work only. The Data Sources workflow is CSV-only for now: preview reads headers/counts without storing data, then safe import runs through the provider, scouting firewall and SQLite transaction path. It does not scrape, call FotMob, use unofficial endpoints or assume unlicensed images are available. Fixture data is synthetic development/test data only. The Player Profile slice is generated from a synthetic raw fixture that passes through the scouting firewall, role scoring and masked profile view model. It is not live FM26 data.
 
-Recruitment Centre, Player Profile and Shortlists use persisted safe SQLite data only. They do not query live FM26, external APIs or raw provider snapshots. Latest role-score names are persisted and reloaded from SQLite; missing scores display `Not scored`. Role/output summaries prefer persisted role-output expectation profiles when available and fall back to generic/import-ready profiles only when needed. Attributes are supporting evidence rather than the whole recruitment model. Recruitment Centre cards now use safe mini visuals for role fit, confidence, completeness, risk, output, missing-data and blocked-field badges. Shortlists store workflow labels such as status, priority and follow-up action; they are not FM hidden values.
+Recruitment Centre, Player Profile, Shortlists and Scout Desk use persisted safe SQLite data only. They do not query live FM26, external APIs or raw provider snapshots. Latest role-score names are persisted and reloaded from SQLite; missing scores display `Not scored`. Role/output summaries prefer persisted role-output expectation profiles when available and fall back to generic/import-ready profiles only when needed. Attributes are supporting evidence rather than the whole recruitment model. Recruitment Centre cards now use safe mini visuals for role fit, confidence, completeness, risk, output, missing-data and blocked-field badges. Shortlists store workflow labels such as status, priority and follow-up action; they are not FM hidden values. Scout reports store qualitative human observations and redact hidden-value-looking numeric assignments such as exact CA, PA or hidden personality values before persistence.
 
-The SQLite persistence layer is local-only foundation work. It stores masked players, visible permitted fields, player stats, physical metrics, source metadata, role scores, shortlist workflow rows, blocked-field audit metadata and import audit counts. Imports run inside a transaction and re-imports replace the current stored player snapshot so safe fields, stats and metrics do not duplicate. It does not store raw provider snapshots, hidden FM26 values or raw blocked values.
+The SQLite persistence layer is local-only foundation work. It stores masked players, visible permitted fields, player stats, physical metrics, source metadata, role scores, shortlist workflow rows, scout assignments, qualitative scout reports, blocked-field audit metadata and import audit counts. Imports run inside a transaction and re-imports replace the current stored player snapshot so safe fields, stats and metrics do not duplicate. It does not store raw provider snapshots, hidden FM26 values or raw blocked values.
 
 Performance metric definitions are generic/import-ready contracts, not official FM26 stat declarations. A metric can only be marked FM26-supported after later validation from visible FM26 data, exported data or a validated memory map. Generic role-output expectation profiles are foundation templates, not final FM26 role templates. Goalkeepers, centre-backs, midfielders, wide attackers and strikers intentionally use different output expectations. No fake benchmark percentiles are generated; if no comparison group exists, Player Profile v1 says no benchmark yet.
 
-Official logo usage is documented in `docs/branding.md`. Visual analytics components are documented in `docs/visual-analytics-components.md`. Shortlists are documented in `docs/shortlists.md`. The currently available repo assets are `StatLyn_Logo.png`, `StatLyn_Logo_Reversed.png`, `Statlyn_Logo_Black-text.png` and `Statlyn_Logo_White-text.png`.
+Official logo usage is documented in `docs/branding.md`. Visual analytics components are documented in `docs/visual-analytics-components.md`. Shortlists are documented in `docs/shortlists.md`. Scout Desk is documented in `docs/scout-desk.md` and report safety in `docs/scout-report-safety.md`. The currently available repo assets are `StatLyn_Logo.png`, `StatLyn_Logo_Reversed.png`, `Statlyn_Logo_Black-text.png` and `Statlyn_Logo_White-text.png`.
 
 ## Repository Layout
 
@@ -116,7 +117,7 @@ Raw FM26 data may not bind to UI and may not enter scoring. The required flow is
 raw provider data -> scouting knowledge firewall -> masked player -> scoring/UI
 ```
 
-Hidden CA, hidden PA and hidden personality values are blocked by design and covered by tests.
+Hidden CA, hidden PA and hidden personality values are blocked by design and covered by tests. Scout report notes are allowed to be qualitative, but hidden-looking numeric assignments are redacted before storage.
 
 Attributes are supporting evidence for recruitment analysis. Future scoring should increasingly be driven by performance output, role-specific statistical evidence, scout observations, source confidence, sample size and tactical fit.
 

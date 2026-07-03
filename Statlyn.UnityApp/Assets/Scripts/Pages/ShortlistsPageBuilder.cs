@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using Statlyn.Data;
+using Statlyn.Data.Scouting;
 using Statlyn.Data.Shortlists;
 using Statlyn.UnityApp.Components;
 using UnityEngine;
@@ -208,6 +209,7 @@ namespace Statlyn.UnityApp.Pages
             card.Add(new Label("Output: " + (player.KeyOutputMetrics.Count == 0 ? "Output metrics missing" : string.Join(", ", player.KeyOutputMetrics))));
             card.Add(new Label("Missing data: " + player.MissingDataCount.ToString(CultureInfo.InvariantCulture) + " | Blocked fields: " + player.BlockedFieldCount.ToString(CultureInfo.InvariantCulture)));
             card.Add(new Label(player.IsLiveFm26Data ? "Live FM26 data" : "No live FM26 data"));
+            card.Add(new Label("Scout report: " + LoadScoutReportLabel(databasePath, player.StatlynPlayerId)));
 
             var status = new DropdownField("Status", EnumNames<ShortlistStatus>(), SafeIndex(EnumNames<ShortlistStatus>(), player.Status));
             var priority = new DropdownField("Priority", EnumNames<ShortlistPriority>(), SafeIndex(EnumNames<ShortlistPriority>(), player.Priority));
@@ -222,10 +224,28 @@ namespace Statlyn.UnityApp.Pages
             var actions = new VisualElement();
             actions.AddToClassList("action-row");
             card.Add(actions);
+            var scout = new Button { text = "Create Scout Assignment" };
             var save = new Button { text = "Update" };
             var remove = new Button { text = "Remove" };
+            actions.Add(scout);
             actions.Add(save);
             actions.Add(remove);
+
+            scout.clicked += () =>
+            {
+                try
+                {
+                    using (var factory = RuntimeDatabaseFactory.CreateFile(databasePath))
+                    {
+                        var result = new ScoutDeskWorkflowService(factory).CreateAssignmentFromShortlistPlayer(player.ShortlistPlayerId, string.Empty, null);
+                        message.text = result.SafeMessage;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    message.text = "Could not create scout assignment safely: " + ex.GetType().Name + ": " + ex.Message;
+                }
+            };
 
             save.clicked += () =>
             {
@@ -277,6 +297,27 @@ namespace Statlyn.UnityApp.Pages
         private static List<string> EnumNames<TEnum>()
         {
             return new List<string>(Enum.GetNames(typeof(TEnum)));
+        }
+
+        private static string LoadScoutReportLabel(string databasePath, string statlynPlayerId)
+        {
+            try
+            {
+                using (var factory = RuntimeDatabaseFactory.CreateFile(databasePath))
+                {
+                    var summary = new ScoutDeskWorkflowService(factory).BuildLatestReportSummary(statlynPlayerId);
+                    if (!summary.HasReport)
+                    {
+                        return summary.Summary;
+                    }
+
+                    return summary.Recommendation + " | Confidence: " + summary.Confidence + " | " + summary.ReportDate + " | " + summary.Summary;
+                }
+            }
+            catch
+            {
+                return "Scout report unavailable.";
+            }
         }
 
         private static int SafeIndex(List<string> values, string value)

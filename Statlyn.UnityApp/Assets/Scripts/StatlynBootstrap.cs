@@ -28,6 +28,7 @@ namespace Statlyn.UnityApp
         private readonly RecruitmentCentrePageBuilder _recruitmentCentre = new RecruitmentCentrePageBuilder();
         private readonly PlayerProfilePageBuilder _playerProfile = new PlayerProfilePageBuilder();
         private readonly ShortlistsPageBuilder _shortlists = new ShortlistsPageBuilder();
+        private readonly ScoutDeskPageBuilder _scoutDesk = new ScoutDeskPageBuilder();
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void CreateRuntimeShell()
@@ -114,6 +115,12 @@ namespace Statlyn.UnityApp
             if (pageName == "Shortlists")
             {
                 _shortlists.Build(main);
+                return;
+            }
+
+            if (pageName == "Scout Desk")
+            {
+                _scoutDesk.Build(main);
                 return;
             }
 

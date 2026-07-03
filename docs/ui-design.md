@@ -62,3 +62,16 @@ Shortlists v1 closes the first recruitment loop: import CSV, review Recruitment 
 - remove action
 
 Status, priority and follow-up labels are recruitment workflow labels only. They must not imply hidden ability, hidden personality, fee certainty or automatic signing decisions. The UI should keep no-live-FM26 and no-hidden-data copy visible where it matters.
+
+## Scout Desk Direction
+
+Scout Desk v1 extends the loop from shortlist decision tracking into human scouting. It should stay operational, local and qualitative:
+
+- create assignment from persisted player ID or shortlist player
+- show assignment cards with player, role, status, priority and latest report
+- show generated role/output scout questions
+- provide simple qualitative report fields
+- show report history and safe notices
+- allow optional linked shortlist status update
+
+Scout Desk should not look like a hidden-attribute editor. It must not ask for exact CA, PA, hidden personality or raw blocked values. Mental/character observations are allowed only as qualitative scout notes.

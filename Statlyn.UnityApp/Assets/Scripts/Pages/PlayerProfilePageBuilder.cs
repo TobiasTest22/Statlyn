@@ -5,6 +5,7 @@ using System.Linq;
 using Statlyn.Data;
 using Statlyn.Data.Profile;
 using Statlyn.Data.Recruitment;
+using Statlyn.Data.Scouting;
 using Statlyn.Data.Shortlists;
 using Statlyn.UI;
 using Statlyn.UnityApp.Components;
@@ -145,6 +146,7 @@ namespace Statlyn.UnityApp.Pages
             }));
 
             target.Add(MakeShortlistPanel(databasePath, report));
+            target.Add(MakeScoutReportPanel(databasePath, report));
             target.Add(MakeScoreCards(visuals));
             target.Add(MakeRoleOutput(visuals.RoleOutput));
 
@@ -188,6 +190,44 @@ namespace Statlyn.UnityApp.Pages
                 panel.Add(StatlynHorizontalBarComponent.Build(bar));
             }
 
+            return panel;
+        }
+
+        private static VisualElement MakeScoutReportPanel(string databasePath, PlayerProfileReportViewModel report)
+        {
+            var panel = new VisualElement();
+            panel.AddToClassList("visual-panel");
+            panel.Add(StatlynUiFactory.MakeSectionTitle("Latest Scout Report"));
+            panel.Add(new Label(LoadScoutReportLabel(databasePath, report.StatlynPlayerId)));
+            panel.Add(new Label("Data and scout judgement can disagree; scout reports do not override outputs automatically."));
+
+            var message = new Label(string.Empty);
+            message.AddToClassList("card-row");
+            var create = new Button { text = "Create Scout Assignment" };
+            create.clicked += () =>
+            {
+                try
+                {
+                    using (var factory = RuntimeDatabaseFactory.CreateFile(databasePath))
+                    {
+                        var result = new ScoutDeskWorkflowService(factory).CreateAssignment(new CreateScoutAssignmentRequest
+                        {
+                            StatlynPlayerId = report.StatlynPlayerId,
+                            RoleName = report.RoleName,
+                            Priority = ShortlistPriority.Medium,
+                            AssignmentTitle = "Scout " + report.RoleName
+                        });
+                        message.text = result.SafeMessage;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    message.text = "Could not create scout assignment safely: " + ex.GetType().Name + ": " + ex.Message;
+                }
+            };
+
+            panel.Add(create);
+            panel.Add(message);
             return panel;
         }
 
@@ -324,6 +364,27 @@ namespace Statlyn.UnityApp.Pages
             catch
             {
                 return "Shortlist status unavailable.";
+            }
+        }
+
+        private static string LoadScoutReportLabel(string databasePath, string statlynPlayerId)
+        {
+            try
+            {
+                using (var factory = RuntimeDatabaseFactory.CreateFile(databasePath))
+                {
+                    var summary = new ScoutDeskWorkflowService(factory).BuildLatestReportSummary(statlynPlayerId);
+                    if (!summary.HasReport)
+                    {
+                        return summary.Summary;
+                    }
+
+                    return summary.Recommendation + " | Confidence: " + summary.Confidence + " | " + summary.ReportDate + " | " + summary.Summary;
+                }
+            }
+            catch
+            {
+                return "Scout report unavailable.";
             }
         }
 

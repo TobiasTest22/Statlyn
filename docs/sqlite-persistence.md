@@ -28,6 +28,7 @@ Stored:
 - physical metrics such as TopSpeed and SprintDistance
 - persisted role name and nullable tactical fit in role scores
 - shortlists and shortlist-player workflow labels
+- scout assignments, qualitative scout reports and scout report question answers
 - blocked-field audit metadata
 - import audit counts and safe diagnostics
 - generic performance metric definitions
@@ -39,6 +40,7 @@ Not stored:
 - hidden FM26 values
 - raw blocked values
 - hidden-value-derived shortlist labels
+- hidden-value-derived scout report fields
 - unmasked provider fields
 - unlicensed image bytes, URLs, badges or flags
 
@@ -71,6 +73,44 @@ Milestone 2.2 expands `Shortlist` and `ShortlistPlayer` for persisted recruitmen
 - created and updated timestamps
 
 The unique `ShortlistId + StatlynPlayerId` index keeps double-adds idempotent. These tables do not store raw provider snapshots, hidden FM26 values or raw blocked values. User notes are user-entered workflow text and pass through the same hidden-value-looking text sanitizer before storage.
+
+## Scout Desk
+
+Milestone 2.3 adds local human scouting tables:
+
+`ScoutAssignment` stores:
+
+- persisted `StatlynPlayerId`
+- optional `ShortlistPlayerId` and `ShortlistId`
+- persisted `PlayerId`
+- assignment title
+- sanitized role name
+- position group
+- priority
+- assignment status
+- assigned-to text
+- created, updated, due and closed timestamps
+- source name
+- archive state
+
+`ScoutReport` stores:
+
+- optional assignment link
+- persisted `PlayerId` and `StatlynPlayerId`
+- report date
+- role assessed
+- qualitative observation ratings
+- scout recommendation
+- confidence
+- strengths, weaknesses, risks and final summary
+- follow-up action
+- created and updated timestamps
+
+`ScoutReportQuestion` stores role/output prompts and qualitative answers linked to a report.
+
+Scout report text runs through `ScoutTextSanitizer` before storage. Normal qualitative language such as `looks professional` or `handles pressure well` is preserved. Hidden-looking exact assignments such as `CA 155`, `PA=180`, `Professionalism: 20`, `Pressure = 18` or `Consistency 17` are redacted.
+
+Scout Desk indexes cover assignment player/status/shortlist lookups and report player/assignment/date lookups. Existing `ScoutReport` tables are expanded idempotently with `EnsureColumn` so older local databases keep their report rows.
 
 ## Diagnostics And Recommendations
 

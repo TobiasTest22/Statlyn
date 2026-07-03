@@ -1,6 +1,6 @@
 # Recruitment Centre
 
-Milestone 1.9 adds the first Recruitment Centre page powered by persisted safe SQLite data. Milestone 1.9.1 hardens role names, output-profile selection, branding and preview labels. Milestone 2.1 adds safe mini visuals for scanning imported players. Milestone 2.2 adds add-to-shortlist workflow actions.
+Milestone 1.9 adds the first Recruitment Centre page powered by persisted safe SQLite data. Milestone 1.9.1 hardens role names, output-profile selection, branding and preview labels. Milestone 2.1 adds safe mini visuals for scanning imported players. Milestone 2.2 adds add-to-shortlist workflow actions. Milestone 2.3 extends the downstream loop through Shortlists and Scout Desk.
 
 ## Flow
 
@@ -12,6 +12,7 @@ Milestone 1.9 adds the first Recruitment Centre page powered by persisted safe S
 6. Refresh/search/filter persisted players.
 7. Open the full safe Player Profile report.
 8. Add persisted safe players to the Main Recruitment List.
+9. Create scout assignments from Shortlists or Player Profile when human validation is needed.
 
 Recruitment Centre does not parse CSV files directly. It reads only the masked SQLite rows created by the safe import pipeline. Its `Open Profile` action now reuses the same `PlayerProfileQueryService` and `PlayerProfileReportViewModel` pipeline as the Player Profile page.
 
@@ -29,6 +30,8 @@ Recruitment Centre uses:
 It does not use `PlayerRawSnapshot`, raw provider entities, hidden FM26 values or raw blocked values. Blocked fields appear only as counts or safe warnings. No player images, badges or provider flags are displayed.
 
 Shortlist actions pass `StatlynPlayerId` and safe row labels only. They do not pass raw player objects, hidden FM26 fields or raw blocked values.
+
+Scout Desk continues the same safety boundary. Assignment and report creation use persisted safe IDs, not raw provider rows, and report summaries do not expose hidden values.
 
 `RoleScore.RoleName` is persisted and reloaded. When a score exists but an old row has no role name, the UI shows `Unknown role`; when no score exists, it shows `Not scored`. Hidden-value-looking role labels are not surfaced.
 
@@ -62,6 +65,8 @@ Mini visuals include:
 `Open Profile` renders the Player Profile v1 report below the Recruitment Centre results using persisted safe data only.
 
 Milestone 2.2 adds a `Add to Main Recruitment List` button and a `Shortlisted` badge when the player belongs to an active shortlist. Double-adds are idempotent and refresh safe workflow labels instead of duplicating rows.
+
+Milestone 2.3 keeps Recruitment Centre focused on scanning and shortlist entry. Scout assignments are created from Shortlists or Player Profile so the workflow remains explicit.
 
 ## Current Limits
 

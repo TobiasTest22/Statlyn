@@ -1,6 +1,6 @@
 # Shortlists
 
-Milestone 2.2 adds Shortlists v1, the first persisted recruitment decision workflow.
+Milestone 2.2 adds Shortlists v1, the first persisted recruitment decision workflow. Milestone 2.3 connects Shortlists to Scout Desk assignments.
 
 ## Flow
 
@@ -13,6 +13,9 @@ Import CSV
 -> Add to Shortlist
 -> Shortlists page
 -> status / priority / follow-up tracking
+-> Create scout assignment
+-> Submit qualitative scout report
+-> optional shortlist status update
 ```
 
 Shortlists use persisted safe SQLite data only. Players are added by `StatlynPlayerId`, not by raw provider objects.
@@ -41,6 +44,18 @@ Shortlists use persisted safe SQLite data only. Players are added by `StatlynPla
 - created and updated timestamps
 
 The same player cannot duplicate inside the same shortlist. Adding the player again refreshes safe workflow labels.
+
+## Scout Desk Action
+
+Each shortlist player row has `Create Scout Assignment`. The action passes the persisted `ShortlistPlayerId` and `StatlynPlayerId` into `ScoutDeskWorkflowService`.
+
+Defaults come from the shortlist row:
+
+- role name
+- priority
+- shortlist link
+
+The Shortlists page also shows the latest scout report recommendation, confidence, date and short safe summary. If no report exists, it displays `No scout report yet.`
 
 ## Workflow Labels
 
@@ -99,8 +114,10 @@ Shortlists do not store:
 
 User notes are user-entered workflow text and are sanitized for hidden-value-looking patterns before storage.
 
+Scout report summaries shown on Shortlists are qualitative local notes. Exact hidden-looking assignments such as `CA 155`, `PA=180` or `Professionalism: 20` are redacted before storage and display.
+
 ## Unity Status
 
-The Unity Shortlists page can create shortlists, view overview cards, view player details, update status/priority/follow-up/user note and remove players.
+The Unity Shortlists page can create shortlists, view overview cards, view player details, create Scout Desk assignments, show latest scout report summary, update status/priority/follow-up/user note and remove players.
 
 Unity Editor validation remains manual unless a release note explicitly says the Editor was opened and checked. SQLite-in-Unity loading should be confirmed with the Data Sources runtime check after running `tools/copy-managed-to-unity.ps1`.

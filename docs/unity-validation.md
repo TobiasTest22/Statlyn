@@ -36,6 +36,8 @@ This copies the managed Statlyn assemblies, SQLite managed dependencies, Windows
 - Profile report says `No benchmark yet.` and benchmark percentile is unavailable until a real comparison group exists.
 - Profile report shows shortlist membership status and `Add to Main Recruitment List`.
 - Adding from Player Profile creates or updates the Main Recruitment List safely.
+- Profile report shows latest scout report summary or `No scout report yet.`
+- Profile report can create a Scout Desk assignment from the loaded persisted player.
 - Diagnostics panel loads.
 - Data Sources navigation opens a CSV-only page.
 - Data Sources page shows the active local SQLite path.
@@ -62,8 +64,20 @@ This copies the managed Statlyn assemblies, SQLite managed dependencies, Windows
 - Create shortlist form creates a persisted shortlist.
 - Shortlists overview shows shortlist name, player count, active/archive status and updated time.
 - Shortlist detail shows persisted players with status, priority, follow-up, role fit, confidence, key output metrics, warnings and no-live-FM26 state.
+- Shortlist player rows show latest scout report summary or `No scout report yet.`
+- Shortlist player rows can create Scout Desk assignments safely.
 - Status, priority, follow-up and user note can be updated safely.
 - Remove button removes a player from the shortlist.
+- Scout Desk navigation opens the Scout Desk page.
+- Scout Desk page shows the official Statlyn logo mark and `Human scouting workflow - qualitative observations only`.
+- Scout Desk can create an assignment from a persisted `StatlynPlayerId`.
+- Scout Desk can create an assignment for the first shortlisted player.
+- Assignment cards show player, role, status, priority, latest report, missing output, blocked audits and no-live-FM26 state.
+- Assignment detail shows generated role/output scout questions.
+- Scout report form can submit qualitative ratings, recommendation, confidence, strengths, weaknesses, risks, final summary and question answers.
+- Linked shortlist update toggle updates shortlist status/follow-up only when selected.
+- Report history shows the latest qualitative report.
+- Hidden-looking exact text such as `CA 155`, `PA=180` or `Professionalism: 20` is not displayed after report submission.
 - No fake live FM26 data is shown.
 - No real player images, club badges or unlicensed flags are shown.
 - Empty/unsupported states remain honest.

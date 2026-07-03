@@ -164,6 +164,21 @@ Milestone 2.2 adds tests for:
 - view-model safety, output metric preservation and no-live-FM26 labels
 - shortlist decision helper suggestions for low confidence, missing output, strong targets and blocked-field warnings
 
+Milestone 2.3 adds tests for:
+
+- Scout Desk enums staying free of hidden-value terminology
+- assignment/report/question schema, indexes and idempotent migrations
+- `ScoutTextSanitizer` redacting hidden-looking exact assignments while preserving qualitative notes
+- repository assignment creation, report submission, latest report loading, question answers, status updates and archive hiding
+- missing-player and raw-provider rejection
+- output-specific scout question generation for strikers, wide attackers, centre-backs and goalkeepers
+- blocked-field and low-source-confidence scout prompts
+- assignment creation from shortlist players with inherited priority and role
+- optional shortlist status and follow-up updates from scout reports
+- Unity-facing Scout Desk view-model safety, no-live-FM26 labels and latest report summaries
+- latest report missing state for Player Profile and shortlist display
+- absence of raw provider entities, raw blocked values, fake live FM26 data and hidden numeric values
+
 Future tests should cover broader persistence migrations, real provider imports, Unity UI state transitions and native connector status parsing.
 
 Unity editor validation remains manual. Run `.\tools\copy-managed-to-unity.ps1` before opening the project so the Unity assembly definition can resolve the shared managed Statlyn DLLs, SQLite dependencies and synthetic fixture CSV, then use the Data Sources runtime check inside Unity. Branding assets live directly under `Statlyn.UnityApp/Assets/Resources/Branding`.

@@ -177,18 +177,61 @@ namespace Statlyn.Data
                         LastUpdatedUtc TEXT NOT NULL,
                         FOREIGN KEY(PlayerId) REFERENCES Player(Id)
                     );",
+                    @"CREATE TABLE IF NOT EXISTS ScoutAssignment (
+                        Id INTEGER PRIMARY KEY,
+                        StatlynPlayerId TEXT NOT NULL,
+                        ShortlistPlayerId INTEGER NULL,
+                        ShortlistId INTEGER NULL,
+                        PlayerId INTEGER NOT NULL,
+                        AssignmentTitle TEXT NOT NULL,
+                        RoleName TEXT NOT NULL,
+                        PositionGroup TEXT NOT NULL,
+                        Priority TEXT NOT NULL,
+                        Status TEXT NOT NULL,
+                        AssignedTo TEXT NOT NULL,
+                        CreatedAtUtc TEXT NOT NULL,
+                        DueAtUtc TEXT NULL,
+                        UpdatedAtUtc TEXT NOT NULL,
+                        ClosedAtUtc TEXT NULL,
+                        SourceName TEXT NOT NULL,
+                        IsArchived INTEGER NOT NULL DEFAULT 0,
+                        FOREIGN KEY(PlayerId) REFERENCES Player(Id),
+                        FOREIGN KEY(ShortlistPlayerId) REFERENCES ShortlistPlayer(Id),
+                        FOREIGN KEY(ShortlistId) REFERENCES Shortlist(Id)
+                    );",
                     @"CREATE TABLE IF NOT EXISTS ScoutReport (
                         Id INTEGER PRIMARY KEY,
+                        AssignmentId INTEGER NULL,
                         PlayerId INTEGER NOT NULL,
+                        StatlynPlayerId TEXT NOT NULL,
                         ReportDateUtc TEXT NOT NULL,
                         RoleAssessed TEXT NOT NULL,
-                        Strengths TEXT NULL,
-                        Weaknesses TEXT NULL,
-                        Risk TEXT NULL,
-                        Recommendation TEXT NOT NULL,
+                        TechnicalRating TEXT NOT NULL DEFAULT 'Unknown',
+                        TacticalRating TEXT NOT NULL DEFAULT 'Unknown',
+                        PhysicalRating TEXT NOT NULL DEFAULT 'Unknown',
+                        MentalRating TEXT NOT NULL DEFAULT 'Unknown',
+                        OverallRecommendation TEXT NOT NULL DEFAULT 'ScoutFurther',
                         Confidence INTEGER NOT NULL,
-                        FollowUpAction TEXT NULL,
-                        FOREIGN KEY(PlayerId) REFERENCES Player(Id)
+                        Strengths TEXT NOT NULL DEFAULT '',
+                        Weaknesses TEXT NOT NULL DEFAULT '',
+                        Risks TEXT NOT NULL DEFAULT '',
+                        Risk TEXT NULL,
+                        Recommendation TEXT NOT NULL DEFAULT 'ScoutFurther',
+                        FollowUpAction TEXT NOT NULL DEFAULT 'None',
+                        FinalSummary TEXT NOT NULL DEFAULT '',
+                        CreatedAtUtc TEXT NOT NULL DEFAULT '',
+                        UpdatedAtUtc TEXT NOT NULL DEFAULT '',
+                        FOREIGN KEY(PlayerId) REFERENCES Player(Id),
+                        FOREIGN KEY(AssignmentId) REFERENCES ScoutAssignment(Id)
+                    );",
+                    @"CREATE TABLE IF NOT EXISTS ScoutReportQuestion (
+                        Id INTEGER PRIMARY KEY,
+                        ReportId INTEGER NOT NULL,
+                        Question TEXT NOT NULL,
+                        Answer TEXT NOT NULL,
+                        Category TEXT NOT NULL,
+                        CreatedAtUtc TEXT NOT NULL,
+                        FOREIGN KEY(ReportId) REFERENCES ScoutReport(Id)
                     );",
                     @"CREATE TABLE IF NOT EXISTS RoleModel (
                         Id INTEGER PRIMARY KEY,
@@ -383,6 +426,18 @@ namespace Statlyn.Data
                         ON RoleScore (PlayerId, RoleModelId, CreatedAtUtc);",
                     @"CREATE UNIQUE INDEX IF NOT EXISTS UX_BlockedFieldAudit_Entity_Field
                         ON BlockedFieldAudit (SourceEntityId, FieldKey, FieldName);",
+                    @"CREATE INDEX IF NOT EXISTS IX_ScoutAssignment_StatlynPlayerId
+                        ON ScoutAssignment (StatlynPlayerId);",
+                    @"CREATE INDEX IF NOT EXISTS IX_ScoutAssignment_Status
+                        ON ScoutAssignment (Status);",
+                    @"CREATE INDEX IF NOT EXISTS IX_ScoutAssignment_ShortlistId
+                        ON ScoutAssignment (ShortlistId);",
+                    @"CREATE INDEX IF NOT EXISTS IX_ScoutReport_StatlynPlayerId
+                        ON ScoutReport (StatlynPlayerId);",
+                    @"CREATE INDEX IF NOT EXISTS IX_ScoutReport_AssignmentId
+                        ON ScoutReport (AssignmentId);",
+                    @"CREATE INDEX IF NOT EXISTS IX_ScoutReport_ReportDateUtc
+                        ON ScoutReport (ReportDateUtc);",
                     @"CREATE INDEX IF NOT EXISTS IX_Shortlist_Name
                         ON Shortlist (Name);",
                     @"CREATE INDEX IF NOT EXISTS IX_ShortlistPlayer_ShortlistId

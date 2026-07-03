@@ -414,6 +414,84 @@ namespace Statlyn.Data
                         MissingDataImpact TEXT NOT NULL,
                         FOREIGN KEY(ProfileName) REFERENCES RoleOutputExpectationProfile(ProfileName)
                     );",
+                    @"CREATE TABLE IF NOT EXISTS TacticalRole (
+                        Id INTEGER PRIMARY KEY,
+                        RoleName TEXT NOT NULL,
+                        TacticalPhase TEXT NOT NULL,
+                        RoleFamily TEXT NOT NULL,
+                        Source TEXT NOT NULL,
+                        IsOfficialFm26Role INTEGER NOT NULL DEFAULT 0,
+                        Fm26RoleId TEXT NULL,
+                        PositionGroup TEXT NOT NULL,
+                        ValidSlots TEXT NOT NULL,
+                        MovementBehaviour TEXT NOT NULL,
+                        BuildUpBehaviour TEXT NOT NULL,
+                        FinalThirdBehaviour TEXT NOT NULL,
+                        PressingBehaviour TEXT NOT NULL,
+                        DefensiveBlockBehaviour TEXT NOT NULL,
+                        TransitionBehaviour TEXT NOT NULL,
+                        CreatedAtUtc TEXT NOT NULL,
+                        UpdatedAtUtc TEXT NOT NULL,
+                        IsArchived INTEGER NOT NULL DEFAULT 0
+                    );",
+                    @"CREATE TABLE IF NOT EXISTS TacticalRolePair (
+                        Id INTEGER PRIMARY KEY,
+                        PairName TEXT NOT NULL,
+                        InPossessionRoleId INTEGER NOT NULL,
+                        OutOfPossessionRoleId INTEGER NOT NULL,
+                        InPossessionSlot TEXT NOT NULL,
+                        OutOfPossessionSlot TEXT NOT NULL,
+                        InPossessionFormation TEXT NOT NULL,
+                        OutOfPossessionFormation TEXT NOT NULL,
+                        TransitionComplexityScore INTEGER NOT NULL,
+                        TacticalRiskScore INTEGER NOT NULL,
+                        PositionalFamiliarityNeed TEXT NOT NULL,
+                        CreatedAtUtc TEXT NOT NULL,
+                        UpdatedAtUtc TEXT NOT NULL,
+                        IsArchived INTEGER NOT NULL DEFAULT 0,
+                        FOREIGN KEY(InPossessionRoleId) REFERENCES TacticalRole(Id),
+                        FOREIGN KEY(OutOfPossessionRoleId) REFERENCES TacticalRole(Id)
+                    );",
+                    @"CREATE TABLE IF NOT EXISTS RoleOutputMetricRequirement (
+                        Id INTEGER PRIMARY KEY,
+                        TacticalRoleId INTEGER NULL,
+                        RolePairId INTEGER NULL,
+                        MetricKey TEXT NOT NULL,
+                        FieldName TEXT NOT NULL,
+                        Weight REAL NOT NULL,
+                        Importance TEXT NOT NULL,
+                        Direction TEXT NOT NULL,
+                        MinimumSampleMinutes INTEGER NOT NULL,
+                        Per90Required INTEGER NOT NULL,
+                        NormalizationHint TEXT NOT NULL,
+                        EvidenceTemplate TEXT NOT NULL,
+                        MissingDataImpact TEXT NOT NULL,
+                        FOREIGN KEY(TacticalRoleId) REFERENCES TacticalRole(Id),
+                        FOREIGN KEY(RolePairId) REFERENCES TacticalRolePair(Id)
+                    );",
+                    @"CREATE TABLE IF NOT EXISTS RoleScoutQuestion (
+                        Id INTEGER PRIMARY KEY,
+                        TacticalRoleId INTEGER NULL,
+                        RolePairId INTEGER NULL,
+                        Category TEXT NOT NULL,
+                        Question TEXT NOT NULL,
+                        WhyItMatters TEXT NOT NULL,
+                        SuggestedObservationType TEXT NOT NULL,
+                        FOREIGN KEY(TacticalRoleId) REFERENCES TacticalRole(Id),
+                        FOREIGN KEY(RolePairId) REFERENCES TacticalRolePair(Id)
+                    );",
+                    @"CREATE TABLE IF NOT EXISTS RoleRedFlag (
+                        Id INTEGER PRIMARY KEY,
+                        TacticalRoleId INTEGER NULL,
+                        RolePairId INTEGER NULL,
+                        FieldName TEXT NOT NULL,
+                        Operator TEXT NOT NULL,
+                        Threshold TEXT NOT NULL,
+                        Message TEXT NOT NULL,
+                        AppliesToPhase TEXT NOT NULL,
+                        FOREIGN KEY(TacticalRoleId) REFERENCES TacticalRole(Id),
+                        FOREIGN KEY(RolePairId) REFERENCES TacticalRolePair(Id)
+                    );",
                     @"CREATE UNIQUE INDEX IF NOT EXISTS UX_VisibleField_Player_FieldInstance
                         ON VisibleField (PlayerId, FieldInstanceKey);",
                     @"CREATE UNIQUE INDEX IF NOT EXISTS UX_PlayerStat_Player_FieldInstance
@@ -438,6 +516,20 @@ namespace Statlyn.Data
                         ON ScoutReport (AssignmentId);",
                     @"CREATE INDEX IF NOT EXISTS IX_ScoutReport_ReportDateUtc
                         ON ScoutReport (ReportDateUtc);",
+                    @"CREATE INDEX IF NOT EXISTS IX_TacticalRole_RoleName
+                        ON TacticalRole (RoleName);",
+                    @"CREATE INDEX IF NOT EXISTS IX_TacticalRole_TacticalPhase
+                        ON TacticalRole (TacticalPhase);",
+                    @"CREATE INDEX IF NOT EXISTS IX_TacticalRole_RoleFamily
+                        ON TacticalRole (RoleFamily);",
+                    @"CREATE INDEX IF NOT EXISTS IX_TacticalRole_Source
+                        ON TacticalRole (Source);",
+                    @"CREATE INDEX IF NOT EXISTS IX_TacticalRolePair_PairName
+                        ON TacticalRolePair (PairName);",
+                    @"CREATE INDEX IF NOT EXISTS IX_RoleOutputMetricRequirement_TacticalRoleId
+                        ON RoleOutputMetricRequirement (TacticalRoleId);",
+                    @"CREATE INDEX IF NOT EXISTS IX_RoleOutputMetricRequirement_RolePairId
+                        ON RoleOutputMetricRequirement (RolePairId);",
                     @"CREATE INDEX IF NOT EXISTS IX_Shortlist_Name
                         ON Shortlist (Name);",
                     @"CREATE INDEX IF NOT EXISTS IX_ShortlistPlayer_ShortlistId

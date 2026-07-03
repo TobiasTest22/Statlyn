@@ -32,6 +32,9 @@ namespace Statlyn.UnityApp.Pages
             helper.SetEnabled(false);
             helper.value = "Use a Recruitment Centre row or load the first imported player.";
             form.Add(helper);
+            var roleLabSelection = new TextField("Role Lab role/pair");
+            roleLabSelection.value = string.Empty;
+            form.Add(roleLabSelection);
 
             var actions = new VisualElement();
             actions.AddToClassList("action-row");
@@ -46,16 +49,16 @@ namespace Statlyn.UnityApp.Pages
             main.Add(results);
             RenderEmpty(results);
 
-            load.clicked += () => RenderProfileReport(databasePath, statlynPlayerId.value, results);
+            load.clicked += () => RenderProfileReport(databasePath, statlynPlayerId.value, results, roleLabSelection.value);
             loadFirst.clicked += () =>
             {
                 var first = FindFirstImportedPlayerId(databasePath);
                 statlynPlayerId.value = first;
-                RenderProfileReport(databasePath, first, results);
+                RenderProfileReport(databasePath, first, results, roleLabSelection.value);
             };
         }
 
-        public static void RenderProfileReport(string databasePath, string statlynPlayerId, VisualElement target)
+        public static void RenderProfileReport(string databasePath, string statlynPlayerId, VisualElement target, string roleLabSelection = "")
         {
             target.Clear();
             if (string.IsNullOrWhiteSpace(statlynPlayerId))
@@ -68,7 +71,7 @@ namespace Statlyn.UnityApp.Pages
             {
                 using (var factory = RuntimeDatabaseFactory.CreateFile(databasePath))
                 {
-                    var result = new PlayerProfileQueryService(factory).Query(new PlayerProfileQuery { StatlynPlayerId = statlynPlayerId });
+                    var result = new PlayerProfileQueryService(factory).Query(new PlayerProfileQuery { StatlynPlayerId = statlynPlayerId, OptionalRoleOutputProfileName = roleLabSelection ?? string.Empty });
                     if (!result.Success)
                     {
                         target.Add(StatlynUiFactory.MakeCard("Player Profile", new[] { result.SafeMessage, "No fake player is shown." }));

@@ -1,6 +1,6 @@
 # Player Profile v1
 
-Milestone 2.0 adds the first persisted-safe Player Profile report. Milestone 2.1 adds reusable safe visual analytics models and Unity UI Toolkit component builders for the report. Milestone 2.2 adds a safe add-to-shortlist action and membership panel. Milestone 2.3 adds latest scout report summary and a create-assignment action.
+Milestone 2.0 adds the first persisted-safe Player Profile report. Milestone 2.1 adds reusable safe visual analytics models and Unity UI Toolkit component builders for the report. Milestone 2.2 adds a safe add-to-shortlist action and membership panel. Milestone 2.3 adds latest scout report summary and a create-assignment action. Milestone 2.4 adds an optional Role Lab role/pair selector foundation.
 
 ## Flow
 
@@ -12,6 +12,7 @@ Milestone 2.0 adds the first persisted-safe Player Profile report. Milestone 2.1
 6. Load the first imported player or enter a `StatlynPlayerId`.
 7. Add the player to the Main Recruitment List when the profile is worth tracking.
 8. Create a Scout Desk assignment or review the latest qualitative scout report.
+9. Optionally enter a Role Lab role or pair name to test a phase-aware output profile.
 
 Recruitment Centre also uses the same Player Profile report pipeline when `Open Profile` is clicked.
 
@@ -32,6 +33,8 @@ It does not reconstruct raw provider snapshots, expose `PlayerRawSnapshot`, expo
 The shortlist action uses `StatlynPlayerId` plus the safe persisted profile context. It does not add fake players and does not store raw provider data.
 
 The Scout Desk action also uses only `StatlynPlayerId` and safe role labels. It does not pass raw provider objects, ask for CA/PA, or treat scout notes as exact hidden personality attributes.
+
+The Role Lab selector resolves a persisted `TacticalRole` or `TacticalRolePair` through `RoleLabOutputProfileBridge`. If no Role Lab match exists, Player Profile keeps using persisted role-output profiles and generic/import fallbacks.
 
 CSV/fixture/import sources are labelled as no live FM26 data. FM26 remains unsupported until validated memory maps exist.
 

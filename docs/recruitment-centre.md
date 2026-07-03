@@ -1,6 +1,6 @@
 # Recruitment Centre
 
-Milestone 1.9 adds the first Recruitment Centre page powered by persisted safe SQLite data. Milestone 1.9.1 hardens role names, output-profile selection, branding and preview labels. Milestone 2.1 adds safe mini visuals for scanning imported players. Milestone 2.2 adds add-to-shortlist workflow actions. Milestone 2.3 extends the downstream loop through Shortlists and Scout Desk.
+Milestone 1.9 adds the first Recruitment Centre page powered by persisted safe SQLite data. Milestone 1.9.1 hardens role names, output-profile selection, branding and preview labels. Milestone 2.1 adds safe mini visuals for scanning imported players. Milestone 2.2 adds add-to-shortlist workflow actions. Milestone 2.3 extends the downstream loop through Shortlists and Scout Desk. Milestone 2.4 keeps Recruitment Centre stable while Role Lab becomes available for selected Player Profile output profiles.
 
 ## Flow
 
@@ -33,6 +33,8 @@ Shortlist actions pass `StatlynPlayerId` and safe row labels only. They do not p
 
 Scout Desk continues the same safety boundary. Assignment and report creation use persisted safe IDs, not raw provider rows, and report summaries do not expose hidden values.
 
+Role Lab follows the same persisted-safe boundary. It stores editable role templates, metric requirements, scout questions and red flags, not raw provider data or official FM26 role mappings.
+
 `RoleScore.RoleName` is persisted and reloaded. When a score exists but an old row has no role name, the UI shows `Unknown role`; when no score exists, it shows `Not scored`. Hidden-value-looking role labels are not surfaced.
 
 ## Output Summaries
@@ -47,7 +49,7 @@ Rows are output-first and position-specific:
 
 Attributes can support interpretation, but they are not the Recruitment Centre's primary model. Missing core metrics are shown as missing warnings, not zero values.
 
-Recruitment Centre loads persisted `RoleOutputExpectationProfile` rows from SQLite and selects the best match by position group, then role family where available. If no persisted profile matches, it falls back to the generic import-only seed profiles. Those profiles are not official FM26 role templates.
+Recruitment Centre loads persisted `RoleOutputExpectationProfile` rows from SQLite and selects the best match by position group, then role family where available. If no persisted profile matches, it falls back to the generic import-only seed profiles. Those profiles are not official FM26 role templates. Role Lab selection is not a Recruitment Centre filter yet; selected Role Lab profiles are currently exercised through Player Profile.
 
 ## Unity UX
 

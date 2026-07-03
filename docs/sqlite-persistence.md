@@ -29,6 +29,7 @@ Stored:
 - persisted role name and nullable tactical fit in role scores
 - shortlists and shortlist-player workflow labels
 - scout assignments, qualitative scout reports and scout report question answers
+- Role Lab tactical roles, role pairs, output metric requirements, scout questions and red flags
 - blocked-field audit metadata
 - import audit counts and safe diagnostics
 - generic performance metric definitions
@@ -41,6 +42,7 @@ Not stored:
 - raw blocked values
 - hidden-value-derived shortlist labels
 - hidden-value-derived scout report fields
+- hidden-value-derived Role Lab templates
 - unmasked provider fields
 - unlicensed image bytes, URLs, badges or flags
 
@@ -111,6 +113,36 @@ Milestone 2.3 adds local human scouting tables:
 Scout report text runs through `ScoutTextSanitizer` before storage. Normal qualitative language such as `looks professional` or `handles pressure well` is preserved. Hidden-looking exact assignments such as `CA 155`, `PA=180`, `Professionalism: 20`, `Pressure = 18` or `Consistency 17` are redacted.
 
 Scout Desk indexes cover assignment player/status/shortlist lookups and report player/assignment/date lookups. Existing `ScoutReport` tables are expanded idempotently with `EnsureColumn` so older local databases keep their report rows.
+
+## Role Lab
+
+Milestone 2.4 adds editable phase-aware role modelling tables:
+
+`TacticalRole` stores:
+
+- role name
+- tactical phase
+- role family
+- source
+- `IsOfficialFm26Role` defaulting false
+- optional future FM26 role id
+- position group
+- valid slots
+- movement, build-up, final-third, pressing, defensive-block and transition behaviour
+- timestamps and archive state
+
+`TacticalRolePair` stores:
+
+- in-possession and out-of-possession role links
+- IP/OOP slots
+- IP/OOP formation labels
+- transition complexity
+- tactical risk
+- positional familiarity note
+
+`RoleOutputMetricRequirement`, `RoleScoutQuestion` and `RoleRedFlag` store output-first expectations and qualitative prompts for roles or role pairs.
+
+Role Lab text is sanitized before persistence. Built-in seed roles use `Source=BuiltInSeed`, `IsOfficialFm26Role=false` and generic/import-ready language. They are not official FM26 mappings and do not store old duty templates, CA, PA, hidden personality values, raw provider data or raw blocked values.
 
 ## Diagnostics And Recommendations
 

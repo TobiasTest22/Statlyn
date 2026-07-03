@@ -30,6 +30,8 @@ This copies the managed Statlyn assemblies, SQLite managed dependencies, Windows
 - Player Profile page shows persisted-safe/no-live-FM26 header copy and the official Statlyn logo mark.
 - `Load First Imported Player` loads a profile after a safe CSV import.
 - Manual `StatlynPlayerId` loading works for an imported player.
+- Optional Role Lab role/pair text field can be left blank without changing existing profile behavior.
+- Optional Role Lab role/pair text field can use a seeded role name after Role Lab seeding.
 - Profile report shows identity, source, verdict score cards, role/output fit, core output, supporting output, physical output, data quality/sample size, missing output, warnings, evidence, scout actions, attribute support, blocked-data safe notice and benchmark status.
 - Profile report visual components render score cards, horizontal bars, metric tiles, data-quality tiles, evidence cards, warning panels, missing-data panels, blocked-data panels and benchmark status from safe view models only.
 - Profile report says generic/import metrics are not FM26-verified.
@@ -78,6 +80,14 @@ This copies the managed Statlyn assemblies, SQLite managed dependencies, Windows
 - Linked shortlist update toggle updates shortlist status/follow-up only when selected.
 - Report history shows the latest qualitative report.
 - Hidden-looking exact text such as `CA 155`, `PA=180` or `Professionalism: 20` is not displayed after report submission.
+- Role Lab navigation opens the Role Lab page.
+- Role Lab page shows the official Statlyn logo mark and `FM26-style phase roles - not official FM26 mappings yet`.
+- Seed roles creates generic/import IP and OOP templates.
+- Seeded roles show `Generic/import role template; FM26 validation pending.`
+- Create role saves a user-created role.
+- Create role pair saves IP/OOP role links and different slots.
+- Role detail shows behaviours, metric requirements, scout questions and red flags.
+- Role Lab does not show fake official FM26 mappings, old duties, CA/PA or hidden personality values.
 - No fake live FM26 data is shown.
 - No real player images, club badges or unlicensed flags are shown.
 - Empty/unsupported states remain honest.

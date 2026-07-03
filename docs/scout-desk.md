@@ -1,6 +1,6 @@
 # Scout Desk
 
-Milestone 2.3 adds Scout Desk v1, the first persisted human scouting workflow.
+Milestone 2.3 adds Scout Desk v1, the first persisted human scouting workflow. Milestone 2.4 lets Scout Desk use Role Lab scout questions when an assignment role name matches a persisted tactical role.
 
 ## Flow
 
@@ -49,6 +49,8 @@ Ratings are scout observations, not hidden FM attributes. Scout recommendations 
 
 `ScoutQuestionGenerator` creates prompts from position, missing output, blocked-field counts and source confidence.
 
+If an assignment role matches a Role Lab tactical role, Scout Desk includes that role's persisted scout questions. If no match exists, it falls back to generated prompts.
+
 Examples:
 
 - missing striker xG: shooting-position observation
@@ -59,6 +61,8 @@ Examples:
 - blocked fields: observe behavior directly and do not infer hidden values
 
 Questions are prompts for observation, not requests for exact CA, PA or hidden personality values.
+
+Role Lab questions follow the same rule. They are sanitized before display and storage.
 
 ## Unity Page
 

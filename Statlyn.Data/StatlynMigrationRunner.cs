@@ -71,6 +71,26 @@ namespace Statlyn.Data
                 EnsureColumn(connection, "ScoutReport", "FinalSummary", "TEXT NOT NULL DEFAULT ''");
                 EnsureColumn(connection, "ScoutReport", "CreatedAtUtc", "TEXT NOT NULL DEFAULT ''");
                 EnsureColumn(connection, "ScoutReport", "UpdatedAtUtc", "TEXT NOT NULL DEFAULT ''");
+                EnsureColumn(connection, "TacticalRole", "IsOfficialFm26Role", "INTEGER NOT NULL DEFAULT 0");
+                EnsureColumn(connection, "TacticalRole", "Fm26RoleId", "TEXT NULL");
+                EnsureColumn(connection, "TacticalRole", "ValidSlots", "TEXT NOT NULL DEFAULT ''");
+                EnsureColumn(connection, "TacticalRole", "MovementBehaviour", "TEXT NOT NULL DEFAULT ''");
+                EnsureColumn(connection, "TacticalRole", "BuildUpBehaviour", "TEXT NOT NULL DEFAULT ''");
+                EnsureColumn(connection, "TacticalRole", "FinalThirdBehaviour", "TEXT NOT NULL DEFAULT ''");
+                EnsureColumn(connection, "TacticalRole", "PressingBehaviour", "TEXT NOT NULL DEFAULT ''");
+                EnsureColumn(connection, "TacticalRole", "DefensiveBlockBehaviour", "TEXT NOT NULL DEFAULT ''");
+                EnsureColumn(connection, "TacticalRole", "TransitionBehaviour", "TEXT NOT NULL DEFAULT ''");
+                EnsureColumn(connection, "TacticalRole", "UpdatedAtUtc", "TEXT NOT NULL DEFAULT ''");
+                EnsureColumn(connection, "TacticalRole", "IsArchived", "INTEGER NOT NULL DEFAULT 0");
+                EnsureColumn(connection, "TacticalRolePair", "InPossessionSlot", "TEXT NOT NULL DEFAULT ''");
+                EnsureColumn(connection, "TacticalRolePair", "OutOfPossessionSlot", "TEXT NOT NULL DEFAULT ''");
+                EnsureColumn(connection, "TacticalRolePair", "InPossessionFormation", "TEXT NOT NULL DEFAULT ''");
+                EnsureColumn(connection, "TacticalRolePair", "OutOfPossessionFormation", "TEXT NOT NULL DEFAULT ''");
+                EnsureColumn(connection, "TacticalRolePair", "TransitionComplexityScore", "INTEGER NOT NULL DEFAULT 0");
+                EnsureColumn(connection, "TacticalRolePair", "TacticalRiskScore", "INTEGER NOT NULL DEFAULT 0");
+                EnsureColumn(connection, "TacticalRolePair", "PositionalFamiliarityNeed", "TEXT NOT NULL DEFAULT ''");
+                EnsureColumn(connection, "TacticalRolePair", "UpdatedAtUtc", "TEXT NOT NULL DEFAULT ''");
+                EnsureColumn(connection, "TacticalRolePair", "IsArchived", "INTEGER NOT NULL DEFAULT 0");
 
                 foreach (var statement in deferredIndexes)
                 {
@@ -122,7 +142,9 @@ namespace Statlyn.Data
             return statement.IndexOf("IX_Shortlist", StringComparison.OrdinalIgnoreCase) >= 0 ||
                    statement.IndexOf("UX_ShortlistPlayer", StringComparison.OrdinalIgnoreCase) >= 0 ||
                    statement.IndexOf("IX_ScoutAssignment", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                   statement.IndexOf("IX_ScoutReport", StringComparison.OrdinalIgnoreCase) >= 0;
+                   statement.IndexOf("IX_ScoutReport", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   statement.IndexOf("IX_TacticalRole", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   statement.IndexOf("IX_RoleOutputMetricRequirement", StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
         private static bool HasColumn(SqliteConnection connection, string tableName, string columnName)

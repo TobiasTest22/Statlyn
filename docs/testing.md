@@ -179,6 +179,22 @@ Milestone 2.3 adds tests for:
 - latest report missing state for Player Profile and shortlist display
 - absence of raw provider entities, raw blocked values, fake live FM26 data and hidden numeric values
 
+Milestone 2.4 adds tests for:
+
+- phase-aware Role Lab enums and models
+- tactical role, role pair, metric requirement, scout question and red-flag schema/indexes
+- schema version 4 idempotent migration safety
+- repository save/load/archive and hidden-value sanitization
+- built-in seed roles with IP/OOP coverage, metrics, questions and red flags
+- seed idempotency and non-official FM26 status
+- no old duty foundation or core Mezzala/Enganche/Trequartista templates
+- Role Lab output-profile bridge for roles and pairs
+- Player Profile selected Role Lab role output summary
+- existing Recruitment Centre fallback stability
+- workflow service and Unity-facing view-model safety
+- Scout Desk Role Lab question matching and generated fallback
+- no raw provider data, raw blocked values, hidden values or fake live FM26 data
+
 Future tests should cover broader persistence migrations, real provider imports, Unity UI state transitions and native connector status parsing.
 
 Unity editor validation remains manual. Run `.\tools\copy-managed-to-unity.ps1` before opening the project so the Unity assembly definition can resolve the shared managed Statlyn DLLs, SQLite dependencies and synthetic fixture CSV, then use the Data Sources runtime check inside Unity. Branding assets live directly under `Statlyn.UnityApp/Assets/Resources/Branding`.

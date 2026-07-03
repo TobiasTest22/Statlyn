@@ -1,6 +1,6 @@
 # Role Output Expectations
 
-Milestone 1.7 adds generic role-output expectation profiles for future role-specific scoring.
+Milestone 1.7 adds generic role-output expectation profiles for future role-specific scoring. Milestone 2.4 adds Role Lab as the first editable phase-aware source of role-output expectations.
 
 These are not final FM26 roles, not FM24 duty templates and not FM26-specific assumptions. They are neutral templates that keep different position groups from being judged by the same outputs.
 
@@ -38,8 +38,16 @@ Recruitment Centre v1 uses these profiles for output-first row summaries:
 
 Missing core metrics are displayed as missing warnings, not zeroes.
 
-Milestone 1.9.1 changes the Recruitment Centre query path to prefer persisted `RoleOutputExpectationProfile` rows from SQLite. Milestone 2.0 applies the same selection path to Player Profile v1. The selector first looks for a persisted profile matching the player's resolved position group and can also match role family where available. If no persisted profile matches, the generic seed profiles remain the fallback.
+Milestone 1.9.1 changes the Recruitment Centre query path to prefer persisted `RoleOutputExpectationProfile` rows from SQLite. Milestone 2.0 applies the same selection path to Player Profile v1. Milestone 2.4 adds `RoleLabOutputProfileBridge`, which can convert selected `TacticalRole` or `TacticalRolePair` metric requirements into the same profile shape.
+
+Selection order:
+
+- selected Role Lab role or pair when explicitly provided
+- persisted `RoleOutputExpectationProfile`
+- generic/import seed profile
 
 All current generic profiles must keep `IsFm26Specific=false`. A profile can only become FM26-specific after later validation work explicitly marks it that way. Attributes remain supporting evidence only.
 
 Player Profile v1 leads with role-output profile expectations. Attribute values can appear only in the support section.
+
+Role Lab templates are also generic/import-ready by default. `IsOfficialFm26Role=false` unless a future FM26 mapping milestone validates and explicitly marks a role.

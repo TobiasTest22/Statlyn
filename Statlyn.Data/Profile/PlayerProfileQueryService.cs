@@ -5,6 +5,7 @@ using Statlyn.Analytics;
 using Statlyn.Core;
 using Statlyn.Data.Persistence;
 using Statlyn.Data.Recruitment;
+using Statlyn.Data.RoleLab;
 using Statlyn.DataProviders;
 
 namespace Statlyn.Data.Profile
@@ -13,6 +14,7 @@ namespace Statlyn.Data.Profile
     {
         private readonly PersistedMaskedPlayerLoader _loader;
         private readonly RoleOutputExpectationRepository _roleOutputExpectations;
+        private readonly RoleLabOutputProfileBridge _roleLabBridge;
         private readonly RecruitmentOutputSummaryService _summaryService;
 
         public PlayerProfileQueryService(StatlynDbConnectionFactory connectionFactory)
@@ -24,6 +26,7 @@ namespace Statlyn.Data.Profile
 
             _loader = new PersistedMaskedPlayerLoader(connectionFactory);
             _roleOutputExpectations = new RoleOutputExpectationRepository(connectionFactory);
+            _roleLabBridge = new RoleLabOutputProfileBridge(connectionFactory);
             _summaryService = new RecruitmentOutputSummaryService();
         }
 
@@ -86,6 +89,12 @@ namespace Statlyn.Data.Profile
         {
             if (!string.IsNullOrWhiteSpace(explicitProfileName))
             {
+                var roleLabProfile = _roleLabBridge.FindSelectedProfile(explicitProfileName);
+                if (roleLabProfile != null)
+                {
+                    return roleLabProfile;
+                }
+
                 var explicitProfile = _roleOutputExpectations.FindByName(explicitProfileName);
                 if (explicitProfile != null)
                 {

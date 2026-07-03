@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Statlyn.Data.Profile;
 using Statlyn.Data.Recruitment;
+using Statlyn.Data.RoleLab;
 using Statlyn.Data.Shortlists;
 
 namespace Statlyn.Data.Scouting
@@ -15,6 +16,7 @@ namespace Statlyn.Data.Scouting
         private readonly PlayerProfileQueryService _profiles;
         private readonly RecruitmentCentreQueryService _recruitmentCentre;
         private readonly ScoutQuestionGenerator _questionGenerator;
+        private readonly RoleLabRepository _roleLab;
 
         public ScoutDeskWorkflowService(StatlynDbConnectionFactory connectionFactory)
         {
@@ -24,6 +26,7 @@ namespace Statlyn.Data.Scouting
             _profiles = new PlayerProfileQueryService(connectionFactory);
             _recruitmentCentre = new RecruitmentCentreQueryService(connectionFactory);
             _questionGenerator = new ScoutQuestionGenerator();
+            _roleLab = new RoleLabRepository(connectionFactory);
         }
 
         public ScoutDeskWorkflowResult CreateAssignmentFromShortlistPlayer(long shortlistPlayerId, string assignedTo, DateTimeOffset? dueAtUtc)
@@ -129,9 +132,7 @@ namespace Statlyn.Data.Scouting
 
             var row = BuildRow(assignment, LoadRecruitmentRowsById());
             var profile = _profiles.Query(new PlayerProfileQuery { StatlynPlayerId = assignment.StatlynPlayerId, IncludeBlockedAudit = true });
-            var prompts = profile.Success
-                ? _questionGenerator.Generate(profile)
-                : _questionGenerator.Generate(assignment.PositionGroup, Array.Empty<string>(), 0, 100);
+            var prompts = BuildQuestionPrompts(assignment, profile);
             var reports = _repository.LoadReportsForAssignment(assignment.Id)
                 .Select(report => new ScoutReportViewModel(report, _repository.LoadQuestionsForReport(report.Id)))
                 .ToList();
@@ -183,6 +184,29 @@ namespace Statlyn.Data.Scouting
                 profile.BlockedFields.Count,
                 profile.IsLiveFm26Data,
                 profile.Warnings);
+        }
+
+        private IReadOnlyList<ScoutQuestionPrompt> BuildQuestionPrompts(ScoutAssignmentRecord assignment, PlayerProfileResult profile)
+        {
+            var role = _roleLab.LoadRoleByName(assignment.RoleName);
+            if (role != null)
+            {
+                var roleQuestions = _roleLab.LoadScoutQuestionsForRole(role.Id)
+                    .Select(question => new ScoutQuestionPrompt(
+                        ScoutTextSanitizer.Sanitize(question.Category),
+                        ScoutTextSanitizer.Sanitize(question.Question),
+                        ScoutTextSanitizer.Sanitize(question.WhyItMatters),
+                        ScoutTextSanitizer.Sanitize(question.SuggestedObservationType)))
+                    .ToList();
+                if (roleQuestions.Count > 0)
+                {
+                    return roleQuestions;
+                }
+            }
+
+            return profile.Success
+                ? _questionGenerator.Generate(profile)
+                : _questionGenerator.Generate(assignment.PositionGroup, Array.Empty<string>(), 0, 100);
         }
 
         private IReadOnlyDictionary<string, RecruitmentCentrePlayerRowViewModel> LoadRecruitmentRowsById()

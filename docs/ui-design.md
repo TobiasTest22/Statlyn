@@ -4,6 +4,8 @@ Statlyn uses a white, calm, glassy desktop-first interface.
 
 Official logo assets are documented in `docs/branding.md`. The Unity shell uses the official Statlyn logo from `Assets/Resources/Branding`; do not create placeholder logos or pull external branding assets.
 
+Longer-term UI direction is a premium sports analytics command center: dark navy/charcoal base, teal/cyan active accents, dense readable cards, KPI panels and professional club-operations hierarchy. Milestone 2.4 does not redesign the shell, but Role Lab page structure should remain compatible with that future direction.
+
 ## Direction
 
 - Off-white background.
@@ -75,3 +77,16 @@ Scout Desk v1 extends the loop from shortlist decision tracking into human scout
 - allow optional linked shortlist status update
 
 Scout Desk should not look like a hidden-attribute editor. It must not ask for exact CA, PA, hidden personality or raw blocked values. Mental/character observations are allowed only as qualitative scout notes.
+
+## Role Lab Direction
+
+Role Lab v1 is an operational editor for phase-aware role templates:
+
+- seed generic/import templates
+- create simple user roles
+- show phase, family, source and official-FM26 status
+- show output metric requirements before scout questions and red flags
+- create simple IP/OOP role pairs
+- keep the copy explicit that FM26 validation is pending
+
+Role Lab should not use old duty language, hidden values or attribute-first scoring. The page is intentionally simple text-field UI for v1; later milestones can deepen editing and visual hierarchy.

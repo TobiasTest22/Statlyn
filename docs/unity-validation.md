@@ -34,6 +34,8 @@ This copies the managed Statlyn assemblies, SQLite managed dependencies, Windows
 - Profile report visual components render score cards, horizontal bars, metric tiles, data-quality tiles, evidence cards, warning panels, missing-data panels, blocked-data panels and benchmark status from safe view models only.
 - Profile report says generic/import metrics are not FM26-verified.
 - Profile report says `No benchmark yet.` and benchmark percentile is unavailable until a real comparison group exists.
+- Profile report shows shortlist membership status and `Add to Main Recruitment List`.
+- Adding from Player Profile creates or updates the Main Recruitment List safely.
 - Diagnostics panel loads.
 - Data Sources navigation opens a CSV-only page.
 - Data Sources page shows the active local SQLite path.
@@ -52,8 +54,16 @@ This copies the managed Statlyn assemblies, SQLite managed dependencies, Windows
 - Reset filters returns search/source/position/minimum filters to defaults.
 - Sort selector works for role fit, confidence, data completeness, source and position.
 - Player cards show source confidence, completeness, persisted role name, role fit score, tactical-fit status, confidence/completeness bars, risk indicator, output mini list, blocked-field badge, missing-data badge and no-live-FM26 label.
+- Player cards show `Add to Main Recruitment List`.
+- Player cards show a `Shortlisted` badge after the player belongs to an active shortlist.
 - `Open Profile` shows the full persisted safe Player Profile report or a safe error card.
 - Profile report from Recruitment Centre shows selected player name, source, fixture/import mode, no live FM26 data, role name, role fit/confidence/risk, output metrics, missing-data warning and blocked-data safe notice.
+- Shortlists navigation opens the Shortlists page.
+- Create shortlist form creates a persisted shortlist.
+- Shortlists overview shows shortlist name, player count, active/archive status and updated time.
+- Shortlist detail shows persisted players with status, priority, follow-up, role fit, confidence, key output metrics, warnings and no-live-FM26 state.
+- Status, priority, follow-up and user note can be updated safely.
+- Remove button removes a player from the shortlist.
 - No fake live FM26 data is shown.
 - No real player images, club badges or unlicensed flags are shown.
 - Empty/unsupported states remain honest.

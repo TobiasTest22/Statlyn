@@ -5,6 +5,7 @@ using System.Linq;
 using Statlyn.Data;
 using Statlyn.Data.Profile;
 using Statlyn.Data.Recruitment;
+using Statlyn.Data.Shortlists;
 using Statlyn.UI;
 using Statlyn.UnityApp.Components;
 using UnityEngine;
@@ -73,7 +74,7 @@ namespace Statlyn.UnityApp.Pages
                         return;
                     }
 
-                    RenderReport(PlayerProfileReportViewModel.From(result), target);
+                    RenderReport(databasePath, PlayerProfileReportViewModel.From(result), target);
                 }
             }
             catch (Exception ex)
@@ -122,7 +123,7 @@ namespace Statlyn.UnityApp.Pages
             cards.Add(StatlynUiFactory.MakeCard("Safety", new[] { "Persisted safe data only", "No raw blocked values", "No fake live FM26 data" }));
         }
 
-        private static void RenderReport(PlayerProfileReportViewModel report, VisualElement target)
+        private static void RenderReport(string databasePath, PlayerProfileReportViewModel report, VisualElement target)
         {
             var visuals = StatlynVisualAnalyticsBuilder.Build(report);
 
@@ -143,6 +144,7 @@ namespace Statlyn.UnityApp.Pages
                 report.IsLiveFm26Data ? "Live FM26 data" : "No live FM26 data"
             }));
 
+            target.Add(MakeShortlistPanel(databasePath, report));
             target.Add(MakeScoreCards(visuals));
             target.Add(MakeRoleOutput(visuals.RoleOutput));
 
@@ -265,6 +267,64 @@ namespace Statlyn.UnityApp.Pages
             }
 
             return section;
+        }
+
+        private static VisualElement MakeShortlistPanel(string databasePath, PlayerProfileReportViewModel report)
+        {
+            var panel = new VisualElement();
+            panel.AddToClassList("visual-panel");
+            panel.Add(StatlynUiFactory.MakeSectionTitle("Shortlist"));
+            panel.Add(new Label(LoadMembershipLabel(databasePath, report.StatlynPlayerId)));
+
+            var message = new Label(string.Empty);
+            message.AddToClassList("card-row");
+            var add = new Button { text = "Add to Main Recruitment List" };
+            add.clicked += () =>
+            {
+                try
+                {
+                    using (var factory = RuntimeDatabaseFactory.CreateFile(databasePath))
+                    {
+                        var result = new ShortlistWorkflowService(factory).AddToShortlist(new ShortlistAddPlayerRequest
+                        {
+                            ShortlistName = ShortlistWorkflowService.DefaultShortlistName,
+                            CreateShortlistIfMissing = true,
+                            StatlynPlayerId = report.StatlynPlayerId,
+                            AddedReason = "Added from Player Profile safe report."
+                        });
+                        message.text = result.SafeMessage;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    message.text = "Could not add to shortlist safely: " + ex.GetType().Name + ": " + ex.Message;
+                }
+            };
+
+            panel.Add(add);
+            panel.Add(message);
+            return panel;
+        }
+
+        private static string LoadMembershipLabel(string databasePath, string statlynPlayerId)
+        {
+            try
+            {
+                using (var factory = RuntimeDatabaseFactory.CreateFile(databasePath))
+                {
+                    var memberships = new ShortlistWorkflowService(factory).LoadMembershipsForPlayer(statlynPlayerId);
+                    if (memberships.Count == 0)
+                    {
+                        return "Not shortlisted yet.";
+                    }
+
+                    return "Shortlisted: " + memberships[0].Status + " | Priority: " + memberships[0].Priority + " | Follow-up: " + memberships[0].FollowUpAction;
+                }
+            }
+            catch
+            {
+                return "Shortlist status unavailable.";
+            }
         }
 
         private static VisualElement MakeEvidenceSection(string title, System.Collections.Generic.IReadOnlyList<StatlynEvidenceVisual> visuals)

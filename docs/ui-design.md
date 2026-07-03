@@ -49,3 +49,16 @@ Recruitment Centre screens should show local import status, source permissions, 
 Recruitment UI should not become an attribute-only rating board. Attributes can support evidence, but role-specific performance output, scout observations, sample size, tactical fit and source confidence should be the primary direction.
 
 Player Profile v1 follows this by placing Core Role Output, Supporting Output, Missing Output, Data Quality and Scout Actions before Attribute Support.
+
+## Shortlists Direction
+
+Shortlists v1 closes the first recruitment loop: import CSV, review Recruitment Centre, open Player Profile, add to Shortlist and track a decision. The Shortlists page should stay quiet and operational:
+
+- create shortlist form
+- shortlist overview cards
+- selected shortlist detail
+- player status, priority and follow-up controls
+- safe output metrics and warnings
+- remove action
+
+Status, priority and follow-up labels are recruitment workflow labels only. They must not imply hidden ability, hidden personality, fee certainty or automatic signing decisions. The UI should keep no-live-FM26 and no-hidden-data copy visible where it matters.

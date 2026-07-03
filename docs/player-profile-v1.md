@@ -1,6 +1,6 @@
 # Player Profile v1
 
-Milestone 2.0 adds the first persisted-safe Player Profile report. Milestone 2.1 adds reusable safe visual analytics models and Unity UI Toolkit component builders for the report.
+Milestone 2.0 adds the first persisted-safe Player Profile report. Milestone 2.1 adds reusable safe visual analytics models and Unity UI Toolkit component builders for the report. Milestone 2.2 adds a safe add-to-shortlist action and membership panel.
 
 ## Flow
 
@@ -10,6 +10,7 @@ Milestone 2.0 adds the first persisted-safe Player Profile report. Milestone 2.1
 4. Run Safe Import.
 5. Open Player Profile.
 6. Load the first imported player or enter a `StatlynPlayerId`.
+7. Add the player to the Main Recruitment List when the profile is worth tracking.
 
 Recruitment Centre also uses the same Player Profile report pipeline when `Open Profile` is clicked.
 
@@ -26,6 +27,8 @@ Player Profile v1 reads only persisted safe SQLite data:
 - data completeness
 
 It does not reconstruct raw provider snapshots, expose `PlayerRawSnapshot`, expose hidden FM26 values, show raw blocked values, use player images, display club badges, or claim live FM26 support.
+
+The shortlist action uses `StatlynPlayerId` plus the safe persisted profile context. It does not add fake players and does not store raw provider data.
 
 CSV/fixture/import sources are labelled as no live FM26 data. FM26 remains unsupported until validated memory maps exist.
 
@@ -46,6 +49,7 @@ The report is output-first:
 - scout/recruitment actions
 - blocked-data safe notice
 - benchmark status
+- shortlist membership/add action
 - reusable visual analytics components
 
 Attributes are support-only and should not lead the report. Missing output metrics lower confidence and are displayed as missing, not zero.
@@ -66,6 +70,15 @@ Milestone 2.1 splits the report construction into focused builders for metric ti
 - benchmark status
 
 The Unity Player Profile page consumes those visuals through UI Toolkit component builders. It keeps the visible order as identity/source, verdict score cards, role/output, core output, supporting output, physical output, data quality, missing data, warnings, evidence, scout actions, attribute support, blocked data and benchmark status.
+
+## Shortlist Action
+
+The profile page can add the loaded player to `Main Recruitment List`. Default shortlist labels are suggested by `ShortlistDecisionHelper` from visible context:
+
+- low confidence or missing output prefers `ScoutFurther`
+- strong visible role fit and confidence can suggest `Shortlist` or `StrongTarget`
+- no path automatically stores a `Sign` decision
+- blocked-field counts add warnings but do not expose raw values
 
 ## Generic Metric Status
 

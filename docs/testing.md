@@ -152,6 +152,18 @@ Milestone 2.1 adds tests for:
 - Recruitment Centre mini visuals binding only safe row view models.
 - Legacy fixture visual bars no longer fabricating fixture comparison groups.
 
+Milestone 2.2 adds tests for:
+
+- shortlist status, priority and follow-up labels staying free of hidden-value terminology
+- expanded shortlist schema columns, indexes and idempotent migrations
+- repository create/add/update/remove/archive behavior
+- idempotent double-add through `ShortlistId + StatlynPlayerId`
+- raw provider entity rejection for shortlist adds
+- workflow adds from default persisted data, Recruitment Centre rows and Player Profile results
+- missing-player safe errors
+- view-model safety, output metric preservation and no-live-FM26 labels
+- shortlist decision helper suggestions for low confidence, missing output, strong targets and blocked-field warnings
+
 Future tests should cover broader persistence migrations, real provider imports, Unity UI state transitions and native connector status parsing.
 
 Unity editor validation remains manual. Run `.\tools\copy-managed-to-unity.ps1` before opening the project so the Unity assembly definition can resolve the shared managed Statlyn DLLs, SQLite dependencies and synthetic fixture CSV, then use the Data Sources runtime check inside Unity. Branding assets live directly under `Statlyn.UnityApp/Assets/Resources/Branding`.

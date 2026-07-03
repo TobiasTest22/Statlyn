@@ -27,6 +27,7 @@ Stored:
 - player stats such as xG and xA
 - physical metrics such as TopSpeed and SprintDistance
 - persisted role name and nullable tactical fit in role scores
+- shortlists and shortlist-player workflow labels
 - blocked-field audit metadata
 - import audit counts and safe diagnostics
 - generic performance metric definitions
@@ -37,6 +38,7 @@ Not stored:
 - raw provider snapshots
 - hidden FM26 values
 - raw blocked values
+- hidden-value-derived shortlist labels
 - unmasked provider fields
 - unlicensed image bytes, URLs, badges or flags
 
@@ -47,6 +49,28 @@ One import uses a single SQLite connection and transaction for source metadata, 
 Re-import currently uses snapshot replace for player-scoped rows. When the same player is imported again, Statlyn updates the player record, deletes current visible fields, player stats, physical metrics, role scores, blocked audit rows and profile snapshot rows for that player, then inserts the fresh masked snapshot. This keeps reload deterministic and prevents xG, TopSpeed or Finishing rows from doubling.
 
 Unique indexes reinforce this behavior for visible fields, player stats, physical metrics and blocked audit rows.
+
+## Shortlists
+
+Milestone 2.2 expands `Shortlist` and `ShortlistPlayer` for persisted recruitment decision tracking.
+
+`Shortlist` stores:
+
+- name and description
+- created and updated timestamps
+- active/archived state
+
+`ShortlistPlayer` stores:
+
+- `ShortlistId`
+- persisted `PlayerId`
+- persisted `StatlynPlayerId`
+- status, priority and follow-up action workflow labels
+- sanitized role name and recommendation text
+- added reason and user note
+- created and updated timestamps
+
+The unique `ShortlistId + StatlynPlayerId` index keeps double-adds idempotent. These tables do not store raw provider snapshots, hidden FM26 values or raw blocked values. User notes are user-entered workflow text and pass through the same hidden-value-looking text sanitizer before storage.
 
 ## Diagnostics And Recommendations
 

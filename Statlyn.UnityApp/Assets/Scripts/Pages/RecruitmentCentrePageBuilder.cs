@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using Statlyn.Data;
 using Statlyn.Data.Recruitment;
+using Statlyn.Data.Shortlists;
 using Statlyn.UI;
 using Statlyn.UnityApp.Components;
 using UnityEngine;
@@ -165,6 +166,14 @@ namespace Statlyn.UnityApp.Pages
             card.Add(new Label("Role: " + row.RoleName));
             card.Add(new Label("Tactical fit: " + row.TacticalFit));
             card.Add(StatlynBadgeRowComponent.Build(visuals.Badges));
+            var membership = LoadMembershipLabel(databasePath, row.StatlynPlayerId);
+            if (!string.IsNullOrWhiteSpace(membership))
+            {
+                var badge = new Label(membership);
+                badge.AddToClassList("visual-badge");
+                card.Add(badge);
+            }
+
             card.Add(MakeMiniScore(visuals.RoleFitScore));
             card.Add(StatlynHorizontalBarComponent.Build(visuals.ConfidenceBar));
             card.Add(StatlynHorizontalBarComponent.Build(visuals.DataCompletenessBar));
@@ -181,6 +190,37 @@ namespace Statlyn.UnityApp.Pages
 
             card.Add(outputList);
             card.Add(new Label(visuals.NoLiveDataLabel));
+
+            var shortlistMessage = new Label(string.Empty);
+            shortlistMessage.AddToClassList("card-row");
+            var addToShortlist = new Button { text = "Add to Main Recruitment List" };
+            addToShortlist.clicked += () =>
+            {
+                try
+                {
+                    using (var factory = RuntimeDatabaseFactory.CreateFile(databasePath))
+                    {
+                        var result = new ShortlistWorkflowService(factory).AddFromRecruitmentCentreRow(
+                            new ShortlistAddPlayerRequest
+                            {
+                                ShortlistName = ShortlistWorkflowService.DefaultShortlistName,
+                                CreateShortlistIfMissing = true,
+                                Status = ShortlistStatus.Watchlist,
+                                Priority = ShortlistPriority.Medium,
+                                FollowUpAction = ShortlistFollowUpAction.WatchMore,
+                                AddedReason = "Added from Recruitment Centre safe row."
+                            },
+                            row);
+                        shortlistMessage.text = result.SafeMessage;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    shortlistMessage.text = "Could not add to shortlist safely: " + ex.GetType().Name + ": " + ex.Message;
+                }
+            };
+            card.Add(addToShortlist);
+            card.Add(shortlistMessage);
 
             var open = new Button { text = "Open Profile" };
             open.clicked += () => RenderProfile(databasePath, row.StatlynPlayerId, profile);
@@ -212,6 +252,27 @@ namespace Statlyn.UnityApp.Pages
             }
 
             return panel;
+        }
+
+        private static string LoadMembershipLabel(string databasePath, string statlynPlayerId)
+        {
+            try
+            {
+                using (var factory = RuntimeDatabaseFactory.CreateFile(databasePath))
+                {
+                    var memberships = new ShortlistWorkflowService(factory).LoadMembershipsForPlayer(statlynPlayerId);
+                    if (memberships.Count == 0)
+                    {
+                        return string.Empty;
+                    }
+
+                    return "Shortlisted: " + memberships[0].Status + " (" + memberships.Count.ToString(CultureInfo.InvariantCulture) + ")";
+                }
+            }
+            catch
+            {
+                return string.Empty;
+            }
         }
 
         private static void RenderProfile(string databasePath, string statlynPlayerId, VisualElement profile)

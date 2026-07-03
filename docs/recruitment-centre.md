@@ -1,6 +1,6 @@
 # Recruitment Centre
 
-Milestone 1.9 adds the first Recruitment Centre page powered by persisted safe SQLite data. Milestone 1.9.1 hardens role names, output-profile selection, branding and preview labels. Milestone 2.1 adds safe mini visuals for scanning imported players.
+Milestone 1.9 adds the first Recruitment Centre page powered by persisted safe SQLite data. Milestone 1.9.1 hardens role names, output-profile selection, branding and preview labels. Milestone 2.1 adds safe mini visuals for scanning imported players. Milestone 2.2 adds add-to-shortlist workflow actions.
 
 ## Flow
 
@@ -11,6 +11,7 @@ Milestone 1.9 adds the first Recruitment Centre page powered by persisted safe S
 5. Open Recruitment Centre.
 6. Refresh/search/filter persisted players.
 7. Open the full safe Player Profile report.
+8. Add persisted safe players to the Main Recruitment List.
 
 Recruitment Centre does not parse CSV files directly. It reads only the masked SQLite rows created by the safe import pipeline. Its `Open Profile` action now reuses the same `PlayerProfileQueryService` and `PlayerProfileReportViewModel` pipeline as the Player Profile page.
 
@@ -26,6 +27,8 @@ Recruitment Centre uses:
 - blocked-field audit counts
 
 It does not use `PlayerRawSnapshot`, raw provider entities, hidden FM26 values or raw blocked values. Blocked fields appear only as counts or safe warnings. No player images, badges or provider flags are displayed.
+
+Shortlist actions pass `StatlynPlayerId` and safe row labels only. They do not pass raw player objects, hidden FM26 fields or raw blocked values.
 
 `RoleScore.RoleName` is persisted and reloaded. When a score exists but an old row has no role name, the UI shows `Unknown role`; when no score exists, it shows `Not scored`. Hidden-value-looking role labels are not surfaced.
 
@@ -57,6 +60,8 @@ Mini visuals include:
 - no-live-FM26 label
 
 `Open Profile` renders the Player Profile v1 report below the Recruitment Centre results using persisted safe data only.
+
+Milestone 2.2 adds a `Add to Main Recruitment List` button and a `Shortlisted` badge when the player belongs to an active shortlist. Double-adds are idempotent and refresh safe workflow labels instead of duplicating rows.
 
 ## Current Limits
 

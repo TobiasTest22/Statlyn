@@ -16,8 +16,15 @@ namespace Statlyn.Data
         {
             using (var connection = _connectionFactory.OpenConnection())
             {
+                var deferredShortlistIndexes = new System.Collections.Generic.List<string>();
                 foreach (var statement in StatlynDatabaseSchema.CreateStatements)
                 {
+                    if (IsShortlistIndex(statement))
+                    {
+                        deferredShortlistIndexes.Add(statement);
+                        continue;
+                    }
+
                     using (var command = connection.CreateCommand())
                     {
                         command.CommandText = statement;
@@ -29,6 +36,25 @@ namespace Statlyn.Data
                 EnsureColumn(connection, "RoleScore", "RoleName", "TEXT NOT NULL DEFAULT ''");
                 EnsureColumn(connection, "PlayerStat", "SampleMinutesMissing", "INTEGER NOT NULL DEFAULT 1");
                 EnsureColumn(connection, "PlayerStat", "MinutesSource", "TEXT NOT NULL DEFAULT 'missing'");
+                EnsureColumn(connection, "Shortlist", "UpdatedAtUtc", "TEXT NOT NULL DEFAULT ''");
+                EnsureColumn(connection, "Shortlist", "IsArchived", "INTEGER NOT NULL DEFAULT 0");
+                EnsureColumn(connection, "ShortlistPlayer", "StatlynPlayerId", "TEXT NOT NULL DEFAULT ''");
+                EnsureColumn(connection, "ShortlistPlayer", "Priority", "TEXT NOT NULL DEFAULT 'Medium'");
+                EnsureColumn(connection, "ShortlistPlayer", "FollowUpAction", "TEXT NOT NULL DEFAULT 'None'");
+                EnsureColumn(connection, "ShortlistPlayer", "RoleName", "TEXT NOT NULL DEFAULT ''");
+                EnsureColumn(connection, "ShortlistPlayer", "Recommendation", "TEXT NOT NULL DEFAULT ''");
+                EnsureColumn(connection, "ShortlistPlayer", "AddedReason", "TEXT NOT NULL DEFAULT ''");
+                EnsureColumn(connection, "ShortlistPlayer", "UserNote", "TEXT NOT NULL DEFAULT ''");
+                EnsureColumn(connection, "ShortlistPlayer", "UpdatedAtUtc", "TEXT NOT NULL DEFAULT ''");
+
+                foreach (var statement in deferredShortlistIndexes)
+                {
+                    using (var command = connection.CreateCommand())
+                    {
+                        command.CommandText = statement;
+                        command.ExecuteNonQuery();
+                    }
+                }
 
                 using (var command = connection.CreateCommand())
                 {
@@ -64,6 +90,12 @@ namespace Statlyn.Data
                 command.CommandText = "ALTER TABLE " + tableName + " ADD COLUMN " + columnName + " " + declaration + ";";
                 command.ExecuteNonQuery();
             }
+        }
+
+        private static bool IsShortlistIndex(string statement)
+        {
+            return statement.IndexOf("IX_Shortlist", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   statement.IndexOf("UX_ShortlistPlayer", StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
         private static bool HasColumn(SqliteConnection connection, string tableName, string columnName)

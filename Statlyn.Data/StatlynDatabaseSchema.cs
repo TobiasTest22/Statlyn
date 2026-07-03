@@ -248,14 +248,24 @@ namespace Statlyn.Data
                         Id INTEGER PRIMARY KEY,
                         Name TEXT NOT NULL,
                         Description TEXT NULL,
-                        CreatedAtUtc TEXT NOT NULL
+                        CreatedAtUtc TEXT NOT NULL,
+                        UpdatedAtUtc TEXT NOT NULL,
+                        IsArchived INTEGER NOT NULL DEFAULT 0
                     );",
                     @"CREATE TABLE IF NOT EXISTS ShortlistPlayer (
                         Id INTEGER PRIMARY KEY,
                         ShortlistId INTEGER NOT NULL,
                         PlayerId INTEGER NOT NULL,
+                        StatlynPlayerId TEXT NOT NULL,
                         Status TEXT NOT NULL,
+                        Priority TEXT NOT NULL,
+                        FollowUpAction TEXT NOT NULL,
+                        RoleName TEXT NOT NULL,
+                        Recommendation TEXT NOT NULL,
+                        AddedReason TEXT NOT NULL,
+                        UserNote TEXT NOT NULL DEFAULT '',
                         AddedAtUtc TEXT NOT NULL,
+                        UpdatedAtUtc TEXT NOT NULL,
                         FOREIGN KEY(ShortlistId) REFERENCES Shortlist(Id),
                         FOREIGN KEY(PlayerId) REFERENCES Player(Id)
                     );",
@@ -372,7 +382,15 @@ namespace Statlyn.Data
                     @"CREATE INDEX IF NOT EXISTS IX_RoleScore_Player_RoleModel_CreatedAt
                         ON RoleScore (PlayerId, RoleModelId, CreatedAtUtc);",
                     @"CREATE UNIQUE INDEX IF NOT EXISTS UX_BlockedFieldAudit_Entity_Field
-                        ON BlockedFieldAudit (SourceEntityId, FieldKey, FieldName);"
+                        ON BlockedFieldAudit (SourceEntityId, FieldKey, FieldName);",
+                    @"CREATE INDEX IF NOT EXISTS IX_Shortlist_Name
+                        ON Shortlist (Name);",
+                    @"CREATE INDEX IF NOT EXISTS IX_ShortlistPlayer_ShortlistId
+                        ON ShortlistPlayer (ShortlistId);",
+                    @"CREATE INDEX IF NOT EXISTS IX_ShortlistPlayer_StatlynPlayerId
+                        ON ShortlistPlayer (StatlynPlayerId);",
+                    @"CREATE UNIQUE INDEX IF NOT EXISTS UX_ShortlistPlayer_Shortlist_StatlynPlayer
+                        ON ShortlistPlayer (ShortlistId, StatlynPlayerId);"
                 };
             }
         }

@@ -36,6 +36,11 @@ This copies the managed Statlyn assemblies, SQLite managed dependencies, Windows
 - `Run Safe Import` shows accepted/rejected rows and database counts when SQLite dependencies load successfully.
 - Safe import shows blocked-field and unknown-field counts.
 - Forbidden fields are shown by safe name/category only.
+- Recruitment navigation opens the Recruitment Centre page.
+- Imported players appear after a safe CSV import.
+- Search/source/position/minimum filters refresh the player cards.
+- Player cards show source confidence, completeness, role fit, confidence, recommendation, risk, output metrics, blocked-field count and missing-data count.
+- `Open Profile` shows a persisted safe profile preview or a safe error card.
 - No fake live FM26 data is shown.
 - No real player images, club badges or unlicensed flags are shown.
 - Empty/unsupported states remain honest.

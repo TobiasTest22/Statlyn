@@ -101,6 +101,18 @@ Milestone 1.8.1 adds tests for:
 - Safe import still persisting idempotent masked data.
 - Runtime/workflow diagnostics excluding hidden values and fake FM26 statuses.
 
+Milestone 1.9 adds tests for:
+
+- Recruitment Centre query service over persisted safe imports.
+- Search, source, position and blocked-field filters.
+- Safe role score, confidence, tactical-fit unknown and blocked-count display.
+- Output-first summaries by position group.
+- Missing core metrics appearing as missing rather than zero.
+- Generic metrics remaining FM26-unverified.
+- UI-safe Recruitment Centre view models.
+- Persisted safe profile preview loading.
+- Empty database state and double-import row stability.
+
 Future tests should cover broader persistence migrations, real provider imports, Unity UI state transitions and native connector status parsing.
 
 Unity editor validation remains manual. Run `.\tools\copy-managed-to-unity.ps1` before opening the project so the Unity assembly definition can resolve the shared managed Statlyn DLLs and SQLite dependencies, then use the Data Sources runtime check inside Unity.

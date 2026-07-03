@@ -40,3 +40,5 @@ The quick-fill button checks the repository development fixture path, `Assets/Fi
 Preview shows column names, mapping status and counts only. It does not store data. Import stores only masked, permitted fields after the scouting firewall. Forbidden fields appear by safe field name/category and reason only; raw blocked values and hidden numeric values are not displayed or stored.
 
 SQLite behavior is verified by managed tests. SQLite dependency loading inside the Unity Editor remains a manual validation step until the Unity Editor is opened and the runtime check is run successfully.
+
+After a safe import, open Recruitment Centre to query the persisted players. Recruitment Centre does not read CSV files directly; it reads only the masked SQLite rows created by this workflow.

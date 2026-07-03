@@ -27,3 +27,13 @@ Midfielders should vary based on build-up, ball-winning, carrying, creativity an
 Missing performance data lowers confidence. It must not be filled with fake zero values.
 
 Attributes are supporting evidence, not the majority of a role-output profile.
+
+Recruitment Centre v1 uses these profiles for output-first row summaries:
+
+- wide attackers prefer creative/carrying/threat output such as xA, progressive carries and xG when available
+- centre-backs prefer defensive/aerial/build-up output
+- goalkeepers prefer goalkeeper output and are not judged by winger metrics
+- strikers prefer xG, shots and goals
+- central midfielders prefer progression, chance creation and defensive contribution
+
+Missing core metrics are displayed as missing warnings, not zeroes.

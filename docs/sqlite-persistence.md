@@ -73,6 +73,8 @@ SQLite visible fields
 
 FM26 remains unsupported until validated memory maps exist. No fake live data is stored or generated.
 
+Recruitment Centre queries the same persisted safe tables. It reads `Player`, latest `RoleScore`, `PlayerStat`, `PhysicalMetric`, source metadata and blocked-field audit counts. It does not reconstruct raw provider snapshots or expose blocked raw values.
+
 ## Runtime Path
 
 `StatlynDatabasePathResolver` resolves a default `Statlyn/statlyn.db` path under local app data, or under a caller-provided application data root. Tests use in-memory SQLite through `RuntimeDatabaseFactory.CreateInMemory()`. Unity uses `Application.persistentDataPath/statlyn.db` for the first Data Sources workflow path. Runtime self-checks use a temporary database under Unity's temporary cache path and clean it up after initialization.

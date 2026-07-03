@@ -75,3 +75,7 @@ DataSourceImportRequest
 Preview is allowed before import and stores nothing. Import is CSV-only, local-file-only and still uses the same masking, scoring and SQLite transaction path. Unlicensed or incomplete source metadata produces warnings; licensed external fields, player images, provider flags and club badges remain blocked unless source permissions allow them.
 
 The workflow result exposes counts, warnings and safe column names/categories for UI display. It does not expose `PlayerRawSnapshot`, raw blocked values or hidden numeric values.
+
+## Recruitment Centre Consumption
+
+Recruitment Centre is downstream of the import pipeline. Users import a local CSV through Data Sources, then Recruitment Centre reads persisted masked SQLite data. It does not parse CSV files itself and does not use live FM26 data. Re-import duplicate prevention keeps Recruitment Centre rows stable when the same CSV is imported twice.

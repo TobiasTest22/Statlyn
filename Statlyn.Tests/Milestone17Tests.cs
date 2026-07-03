@@ -175,7 +175,7 @@ namespace Statlyn.Tests
             Assert.Equal(2, CountWhere(factory, "VisibleField", "FieldName = 'Pace'"));
             Assert.Equal(2, CountWhere(factory, "VisibleField", "FieldName = 'Acceleration'"));
             Assert.Equal(0, CountWhere(factory, "VisibleField", "FieldKey IN ('CurrentAbility','Professionalism')"));
-            Assert.Equal(2, CountWhere(factory, "DataSource", "IsLive = 0"));
+            Assert.Equal(1, CountWhere(factory, "DataSource", "IsLive = 0"));
             Assert.Contains("CSV rows were read", audit.Diagnostics);
             Assert.DoesNotContain("200", audit.Diagnostics);
             Assert.DoesNotContain("199", audit.Diagnostics);

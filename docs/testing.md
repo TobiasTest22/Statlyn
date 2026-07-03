@@ -91,6 +91,16 @@ Milestone 1.8 adds tests for:
 - UI-safe preview/import view models excluding raw provider objects and hidden values.
 - Default database path resolution, in-memory test mode and file database initialization.
 
+Milestone 1.8.1 adds tests for:
+
+- Unity runtime-check result safe formatting and hidden-value redaction.
+- Temporary SQLite database initialization through the runtime dependency check.
+- Runtime check independence from FM26.
+- Synthetic fixture path fallback logic for repository and StreamingAssets paths.
+- Preview still not storing data after UX hardening.
+- Safe import still persisting idempotent masked data.
+- Runtime/workflow diagnostics excluding hidden values and fake FM26 statuses.
+
 Future tests should cover broader persistence migrations, real provider imports, Unity UI state transitions and native connector status parsing.
 
-Unity editor validation remains manual. Run `.\tools\copy-managed-to-unity.ps1` before opening the project so the Unity assembly definition can resolve the shared managed Statlyn DLLs.
+Unity editor validation remains manual. Run `.\tools\copy-managed-to-unity.ps1` before opening the project so the Unity assembly definition can resolve the shared managed Statlyn DLLs and SQLite dependencies, then use the Data Sources runtime check inside Unity.

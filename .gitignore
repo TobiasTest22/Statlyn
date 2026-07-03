@@ -29,3 +29,5 @@ Statlyn.UnityApp/Temp/
 Statlyn.UnityApp/UserSettings/
 Statlyn.UnityApp/Assets/Plugins/Managed/Statlyn/*.dll
 Statlyn.UnityApp/Assets/Plugins/Managed/Statlyn/runtimes/
+Statlyn.UnityApp/Assets/Plugins/x86_64/
+Statlyn.UnityApp/Assets/StreamingAssets/Statlyn/Fixtures/

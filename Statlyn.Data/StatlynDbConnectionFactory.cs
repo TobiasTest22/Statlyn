@@ -42,7 +42,7 @@ namespace Statlyn.Data
                 Directory.CreateDirectory(directory);
             }
 
-            return new StatlynDbConnectionFactory("Data Source=" + fullPath, fullPath, keepAlive: false);
+            return new StatlynDbConnectionFactory("Data Source=" + fullPath + ";Pooling=False", fullPath, keepAlive: false);
         }
 
         public SqliteConnection OpenConnection()

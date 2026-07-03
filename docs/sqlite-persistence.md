@@ -13,7 +13,7 @@ Milestone 1.7 adds a local SQLite foundation in `Statlyn.Data`.
 - Import transaction boundary.
 - Re-import duplicate prevention.
 
-The Unity Data Sources page now calls the SQLite-backed workflow service when the required assemblies and SQLite dependencies are copied. Managed tests verify SQLite behavior. Unity Editor runtime loading of SQLite dependencies still requires manual validation.
+The Unity Data Sources page now calls the SQLite-backed workflow service when the required assemblies and SQLite dependencies are copied. Managed tests verify SQLite behavior. Unity Editor runtime loading of SQLite dependencies still requires manual validation, assisted by the Data Sources `Run Runtime Check` button.
 
 ## Safety Boundary
 
@@ -75,4 +75,6 @@ FM26 remains unsupported until validated memory maps exist. No fake live data is
 
 ## Runtime Path
 
-`StatlynDatabasePathResolver` resolves a default `Statlyn/statlyn.db` path under local app data, or under a caller-provided application data root. Tests use in-memory SQLite through `RuntimeDatabaseFactory.CreateInMemory()`. Unity uses `Application.persistentDataPath/statlyn.db` for the first Data Sources workflow path.
+`StatlynDatabasePathResolver` resolves a default `Statlyn/statlyn.db` path under local app data, or under a caller-provided application data root. Tests use in-memory SQLite through `RuntimeDatabaseFactory.CreateInMemory()`. Unity uses `Application.persistentDataPath/statlyn.db` for the first Data Sources workflow path. Runtime self-checks use a temporary database under Unity's temporary cache path and clean it up after initialization.
+
+File-backed SQLite connections use pooling disabled so temporary runtime-check databases can be cleaned up reliably and Unity file paths are easier to reason about.

@@ -70,7 +70,11 @@ namespace Statlyn.Data
 
         public string ToSafeSummary()
         {
-            return "Database=" + DatabasePath +
+            var safeDatabasePath = DatabasePath.StartsWith("in-memory:", StringComparison.OrdinalIgnoreCase)
+                ? "in-memory"
+                : DatabasePath;
+
+            return "Database=" + safeDatabasePath +
                    "; SchemaVersion=" + SchemaVersion.ToString(CultureInfo.InvariantCulture) +
                    "; DataSources=" + DataSourcesCount.ToString(CultureInfo.InvariantCulture) +
                    "; Players=" + PlayersCount.ToString(CultureInfo.InvariantCulture) +

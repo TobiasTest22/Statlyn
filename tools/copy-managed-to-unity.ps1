@@ -6,6 +6,8 @@ $ErrorActionPreference = "Stop"
 
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..")
 $targetDir = Join-Path $repoRoot "Statlyn.UnityApp\Assets\Plugins\Managed\Statlyn"
+$nativePluginDir = Join-Path $repoRoot "Statlyn.UnityApp\Assets\Plugins\x86_64"
+$fixtureTargetDir = Join-Path $repoRoot "Statlyn.UnityApp\Assets\StreamingAssets\Statlyn\Fixtures"
 $projects = @(
     "Statlyn.Core",
     "Statlyn.DataProviders",
@@ -19,6 +21,9 @@ dotnet build (Join-Path $repoRoot "Statlyn.sln") -c $Configuration
 
 New-Item -ItemType Directory -Force -Path $targetDir | Out-Null
 
+$copied = New-Object System.Collections.Generic.List[string]
+$warnings = New-Object System.Collections.Generic.List[string]
+
 foreach ($project in $projects) {
     $source = Join-Path $repoRoot "$project\bin\$Configuration\netstandard2.1\$project.dll"
     if (-not (Test-Path $source)) {
@@ -26,6 +31,7 @@ foreach ($project in $projects) {
     }
 
     Copy-Item -LiteralPath $source -Destination $targetDir -Force
+    $copied.Add((Join-Path $targetDir "$project.dll"))
 }
 
 $packagesRoot = Join-Path $env:USERPROFILE ".nuget\packages"
@@ -56,6 +62,7 @@ function Copy-Dependency {
     }
 
     Copy-Item -LiteralPath $source -Destination $targetDir -Force
+    $copied.Add((Join-Path $targetDir (Split-Path $source -Leaf)))
 }
 
 Copy-Dependency "microsoft.data.sqlite.core" "lib\netstandard2.0\Microsoft.Data.Sqlite.dll"
@@ -65,13 +72,66 @@ Copy-Dependency "sqlitepclraw.provider.e_sqlite3" "lib\netstandard2.0\SQLitePCLR
 
 $nativeDir = Join-Path $targetDir "runtimes\win-x64\native"
 New-Item -ItemType Directory -Force -Path $nativeDir | Out-Null
+New-Item -ItemType Directory -Force -Path $nativePluginDir | Out-Null
 $nativePackage = Get-LatestPackageVersionPath "sqlitepclraw.lib.e_sqlite3"
 $nativeSource = Join-Path $nativePackage "runtimes\win-x64\native\e_sqlite3.dll"
 if (Test-Path $nativeSource) {
-    Copy-Item -LiteralPath $nativeSource -Destination $nativeDir -Force
+    $runtimeNative = Join-Path $nativeDir "e_sqlite3.dll"
+    $unityNative = Join-Path $nativePluginDir "e_sqlite3.dll"
+    Copy-Item -LiteralPath $nativeSource -Destination $runtimeNative -Force
+    Copy-Item -LiteralPath $nativeSource -Destination $unityNative -Force
+    $copied.Add($runtimeNative)
+    $copied.Add($unityNative)
 }
 else {
-    Write-Warning "SQLite native dependency was not found for win-x64: $nativeSource"
+    $warnings.Add("SQLite native dependency was not found for win-x64: $nativeSource")
 }
 
-Write-Host "Copied Statlyn managed assemblies to $targetDir"
+$fixtureSource = Join-Path $repoRoot "Statlyn.Tests\Fixtures\players.sample.csv"
+if (Test-Path $fixtureSource) {
+    New-Item -ItemType Directory -Force -Path $fixtureTargetDir | Out-Null
+    $fixtureTarget = Join-Path $fixtureTargetDir "players.sample.csv"
+    Copy-Item -LiteralPath $fixtureSource -Destination $fixtureTarget -Force
+    $copied.Add($fixtureTarget)
+}
+else {
+    $warnings.Add("Synthetic fixture CSV was not found: $fixtureSource")
+}
+
+$requiredFiles = @(
+    "Statlyn.Core.dll",
+    "Statlyn.DataProviders.dll",
+    "Statlyn.Scouting.dll",
+    "Statlyn.Analytics.dll",
+    "Statlyn.Data.dll",
+    "Statlyn.UI.dll",
+    "Microsoft.Data.Sqlite.dll",
+    "SQLitePCLRaw.core.dll",
+    "SQLitePCLRaw.batteries_v2.dll",
+    "SQLitePCLRaw.provider.e_sqlite3.dll"
+)
+
+foreach ($file in $requiredFiles) {
+    $path = Join-Path $targetDir $file
+    if (-not (Test-Path $path)) {
+        throw "Required Unity managed dependency was not copied: $path"
+    }
+}
+
+$nativePlugin = Join-Path $nativePluginDir "e_sqlite3.dll"
+if (-not (Test-Path $nativePlugin)) {
+    $warnings.Add("Windows x64 SQLite native plugin was not copied. Unity SQLite runtime may fail until this is resolved: $nativePlugin")
+}
+
+Write-Host "Statlyn Unity copy summary"
+Write-Host "Managed plugin folder: $targetDir"
+Write-Host "Native plugin folder: $nativePluginDir"
+Write-Host "Fixture folder: $fixtureTargetDir"
+Write-Host ("Files copied: " + $copied.Count)
+foreach ($item in $copied) {
+    Write-Host " - $item"
+}
+
+foreach ($warning in $warnings) {
+    Write-Warning $warning
+}

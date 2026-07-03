@@ -169,6 +169,15 @@ namespace Statlyn.UnityApp
             status.AddToClassList("status-pill");
             header.Add(status);
 
+            var safety = new VisualElement();
+            safety.AddToClassList("dashboard-grid");
+            main.Add(safety);
+            safety.Add(MakeCard("CSV Local Import Only", new[] { "Manual local path", "No network sources" }));
+            safety.Add(MakeCard("No Live FM26 Data", new[] { "FM26 remains unsupported", "No fake live player rows" }));
+            safety.Add(MakeCard("No Scraping Or APIs", new[] { "No FotMob scraping", "No external API calls" }));
+            safety.Add(MakeCard("Preview Safety", new[] { "Preview does not store data", "No row values shown" }));
+            safety.Add(MakeCard("Import Safety", new[] { "Stores masked fields only", "Forbidden values stay blocked" }));
+
             var form = new VisualElement();
             form.AddToClassList("data-source-form");
             main.Add(form);
@@ -221,8 +230,11 @@ namespace Statlyn.UnityApp
 
             var useFixture = new Button();
             useFixture.text = "Use synthetic fixture CSV";
-            useFixture.clicked += () => csvPath.value = ResolveSyntheticFixtureCsvPath();
             actions.Add(useFixture);
+
+            var runtimeCheck = new Button();
+            runtimeCheck.text = "Run Runtime Check";
+            actions.Add(runtimeCheck);
 
             var preview = new Button();
             preview.text = "Preview CSV";
@@ -239,24 +251,71 @@ namespace Statlyn.UnityApp
             var results = new VisualElement();
             results.AddToClassList("data-source-results");
             main.Add(results);
+
+            var runtimeDiagnostics = new VisualElement();
+            runtimeDiagnostics.AddToClassList("data-source-results");
+            main.Add(runtimeDiagnostics);
+
+            UnityRuntimeCheckResult lastRuntimeCheck = null;
+            var lastPreviewResult = "Not run";
+            var lastImportResult = "Not run";
+            var lastRuntimeException = "None";
+
             RenderDataSourcePlaceholder(results, databasePath);
+            RenderRuntimeDiagnosticsPanel(runtimeDiagnostics, databasePath, lastRuntimeCheck, lastPreviewResult, lastImportResult, lastRuntimeException);
+
+            useFixture.clicked += () =>
+            {
+                var fixture = ResolveSyntheticFixtureCsvPath();
+                if (fixture.Success)
+                {
+                    csvPath.value = fixture.FilePath;
+                    lastRuntimeException = "None";
+                    lastPreviewResult = "Synthetic fixture path selected.";
+                }
+                else
+                {
+                    lastRuntimeException = fixture.Message;
+                    lastPreviewResult = "Synthetic fixture path was not found.";
+                    RenderFixtureResolutionFailure(results, fixture);
+                }
+
+                RenderRuntimeDiagnosticsPanel(runtimeDiagnostics, databasePath, lastRuntimeCheck, lastPreviewResult, lastImportResult, lastRuntimeException);
+            };
+
+            runtimeCheck.clicked += () =>
+            {
+                lastRuntimeCheck = RunRuntimeCheck(databasePath);
+                lastRuntimeException = lastRuntimeCheck.Errors.Count == 0 ? "None" : string.Join(" | ", lastRuntimeCheck.Errors);
+                RenderRuntimeDiagnosticsPanel(runtimeDiagnostics, databasePath, lastRuntimeCheck, lastPreviewResult, lastImportResult, lastRuntimeException);
+            };
 
             preview.clicked += () =>
             {
                 var request = BuildRequest(csvPath, sourceName, licenceStatus, allowedUsage, confidence, isLicensed, permitsImages, permitsFlags, safeFlags, permitsBadges, allowsExport);
-                RunPreview(databasePath, request, results, status);
+                var result = RunPreview(databasePath, request, results, status, out var runtimeException);
+                lastPreviewResult = result == null ? "Preview failed before result was created." : result.SafeMessage;
+                lastRuntimeException = runtimeException;
+                RenderRuntimeDiagnosticsPanel(runtimeDiagnostics, databasePath, lastRuntimeCheck, lastPreviewResult, lastImportResult, lastRuntimeException);
             };
 
             import.clicked += () =>
             {
                 var request = BuildRequest(csvPath, sourceName, licenceStatus, allowedUsage, confidence, isLicensed, permitsImages, permitsFlags, safeFlags, permitsBadges, allowsExport);
-                RunImport(databasePath, request, results, status);
+                var result = RunImport(databasePath, request, results, status, out var runtimeException);
+                lastImportResult = result == null ? "Import failed before result was created." : result.SafeMessage;
+                lastRuntimeException = runtimeException;
+                RenderRuntimeDiagnosticsPanel(runtimeDiagnostics, databasePath, lastRuntimeCheck, lastPreviewResult, lastImportResult, lastRuntimeException);
             };
 
             clear.clicked += () =>
             {
                 csvPath.value = string.Empty;
+                lastPreviewResult = "Not run";
+                lastImportResult = "Not run";
+                lastRuntimeException = "None";
                 RenderDataSourcePlaceholder(results, databasePath);
+                RenderRuntimeDiagnosticsPanel(runtimeDiagnostics, databasePath, lastRuntimeCheck, lastPreviewResult, lastImportResult, lastRuntimeException);
             };
         }
 
@@ -303,8 +362,9 @@ namespace Statlyn.UnityApp
             };
         }
 
-        private static void RunPreview(string databasePath, DataSourceImportRequest request, VisualElement results, Label status)
+        private static DataSourceImportWorkflowResult RunPreview(string databasePath, DataSourceImportRequest request, VisualElement results, Label status, out string runtimeException)
         {
+            runtimeException = "None";
             try
             {
                 using (var factory = RuntimeDatabaseFactory.CreateFile(databasePath))
@@ -315,16 +375,20 @@ namespace Statlyn.UnityApp
                         ? "Active database: " + databasePath
                         : "Active database: " + result.DatabaseDiagnostics.DatabasePath;
                     RenderPreviewResult(results, result);
+                    return result;
                 }
             }
             catch (Exception ex)
             {
+                runtimeException = ex.GetType().Name + ": " + ex.Message;
                 RenderRuntimeError(results, databasePath, ex);
+                return null;
             }
         }
 
-        private static void RunImport(string databasePath, DataSourceImportRequest request, VisualElement results, Label status)
+        private static DataSourceImportWorkflowResult RunImport(string databasePath, DataSourceImportRequest request, VisualElement results, Label status, out string runtimeException)
         {
+            runtimeException = "None";
             try
             {
                 using (var factory = RuntimeDatabaseFactory.CreateFile(databasePath))
@@ -335,11 +399,37 @@ namespace Statlyn.UnityApp
                         ? "Active database: " + databasePath
                         : "Active database: " + result.DatabaseDiagnostics.DatabasePath;
                     RenderImportResult(results, result);
+                    return result;
                 }
             }
             catch (Exception ex)
             {
+                runtimeException = ex.GetType().Name + ": " + ex.Message;
                 RenderRuntimeError(results, databasePath, ex);
+                return null;
+            }
+        }
+
+        private static UnityRuntimeCheckResult RunRuntimeCheck(string databasePath)
+        {
+            try
+            {
+                return new UnityRuntimeDependencyCheck().Run(Application.temporaryCachePath, databasePath);
+            }
+            catch (Exception ex)
+            {
+                return new UnityRuntimeCheckResult(
+                    false,
+                    DateTimeOffset.UtcNow,
+                    databasePath,
+                    false,
+                    false,
+                    false,
+                    false,
+                    false,
+                    new[] { "Runtime check failed before dependency results could be collected." },
+                    new[] { "Review copied Unity dependencies and SQLite runtime files." },
+                    new[] { ex.GetType().Name + ": " + ex.Message });
             }
         }
 
@@ -353,6 +443,37 @@ namespace Statlyn.UnityApp
             cards.Add(MakeCard("Import Scope", new[] { "Source type: CSV only", "Network sources: disabled", "FM26 live data: unsupported" }));
             cards.Add(MakeCard("Preview", new[] { "File readable: not checked", "Columns detected: 0", "Rows detected: 0" }));
             cards.Add(MakeCard("Import Result", new[] { "No safe import has been run", "Stored data: masked fields only" }));
+        }
+
+        private static void RenderRuntimeDiagnosticsPanel(
+            VisualElement diagnostics,
+            string databasePath,
+            UnityRuntimeCheckResult result,
+            string lastPreviewResult,
+            string lastImportResult,
+            string lastRuntimeException)
+        {
+            diagnostics.Clear();
+            var cards = new VisualElement();
+            cards.AddToClassList("dashboard-grid");
+            diagnostics.Add(cards);
+
+            cards.Add(MakeCard("Managed Assemblies", new[] { result == null ? "Not checked" : BoolText(result.AssembliesOk) }));
+            cards.Add(MakeCard("SQLite Managed", new[] { result == null ? "Not checked" : BoolText(result.SqliteManagedOk) }));
+            cards.Add(MakeCard("SQLite Native", new[] { result == null ? "Not checked" : BoolText(result.SqliteNativeOk) }));
+            cards.Add(MakeCard("Database Init", new[] { result == null ? "Not checked" : BoolText(result.DatabaseInitOk) }));
+            cards.Add(MakeCard("Database Path", new[] { databasePath }));
+            cards.Add(MakeCard("Last Self-Check", new[] { result == null ? "Not run" : result.Success ? "Passed" : "Failed", result == null ? string.Empty : result.CheckedAtUtc.ToString("u", CultureInfo.InvariantCulture) }));
+            cards.Add(MakeCard("Last Preview Result", new[] { string.IsNullOrWhiteSpace(lastPreviewResult) ? "Not run" : lastPreviewResult }));
+            cards.Add(MakeCard("Last Import Result", new[] { string.IsNullOrWhiteSpace(lastImportResult) ? "Not run" : lastImportResult }));
+            cards.Add(MakeCard("Last Runtime Exception", new[] { string.IsNullOrWhiteSpace(lastRuntimeException) ? "None" : lastRuntimeException }));
+
+            if (result != null)
+            {
+                diagnostics.Add(MakeMessages("Runtime Check Messages", result.Messages));
+                diagnostics.Add(MakeMessages("Runtime Check Warnings", result.Warnings));
+                diagnostics.Add(MakeMessages("Runtime Check Errors", result.Errors));
+            }
         }
 
         private static void RenderPreviewResult(VisualElement results, DataSourceImportWorkflowResult result)
@@ -404,6 +525,11 @@ namespace Statlyn.UnityApp
                     import.Success ? "Completed" : "Completed with warnings",
                     "Rows accepted: " + import.RowsAccepted.ToString(CultureInfo.InvariantCulture),
                     "Rows rejected: " + import.RowsRejected.ToString(CultureInfo.InvariantCulture),
+                    "Fields stored: " + import.FieldsStored.ToString(CultureInfo.InvariantCulture),
+                    "Player stats stored: " + import.PlayerStatsStored.ToString(CultureInfo.InvariantCulture),
+                    "Physical metrics stored: " + import.PhysicalMetricsStored.ToString(CultureInfo.InvariantCulture),
+                    "Blocked fields: " + import.BlockedFields.ToString(CultureInfo.InvariantCulture),
+                    "Unknown fields: " + import.UnknownFields.ToString(CultureInfo.InvariantCulture),
                     "Players in database: " + import.DatabasePlayersCount.ToString(CultureInfo.InvariantCulture),
                     "Stats in database: " + import.DatabaseStatsCount.ToString(CultureInfo.InvariantCulture)
                 }));
@@ -447,10 +573,21 @@ namespace Statlyn.UnityApp
 
             foreach (var row in rows)
             {
-                panel.Add(MakeDiagnosticRow(row.SourceColumn, row.Status + " - " + (string.IsNullOrWhiteSpace(row.MappedTo) ? row.Category : row.MappedTo)));
+                panel.Add(MakeDiagnosticRow(row.SourceColumn, row.Status + " - " + (string.IsNullOrWhiteSpace(row.MappedTo) ? row.Category : row.MappedTo) + " - " + row.Reason));
             }
 
             return panel;
+        }
+
+        private static void RenderFixtureResolutionFailure(VisualElement results, FixtureCsvPathResolutionResult fixture)
+        {
+            results.Clear();
+            var cards = new VisualElement();
+            cards.AddToClassList("dashboard-grid");
+            results.Add(cards);
+            cards.Add(MakeCard("Synthetic Fixture CSV", new[] { "Not found", fixture.Message }));
+            cards.Add(MakeCard("Import Scope", new[] { "Fixture remains synthetic only", "No live FM26 data" }));
+            results.Add(MakeMessages("Fixture Paths Checked", fixture.CandidatePaths));
         }
 
         private static void RenderRuntimeError(VisualElement results, string databasePath, Exception ex)
@@ -464,15 +601,14 @@ namespace Statlyn.UnityApp
             cards.Add(MakeCard("Last Error", new[] { ex.GetType().Name + ": " + ex.Message }));
         }
 
-        private static string ResolveSyntheticFixtureCsvPath()
+        private static FixtureCsvPathResolutionResult ResolveSyntheticFixtureCsvPath()
         {
-            var repoFixture = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "Statlyn.Tests", "Fixtures", "players.sample.csv"));
-            if (File.Exists(repoFixture))
-            {
-                return repoFixture;
-            }
+            return new UnityFixtureCsvPathResolver().Resolve(Application.dataPath, Application.streamingAssetsPath);
+        }
 
-            return Path.GetFullPath(Path.Combine(Application.dataPath, "Fixtures", "players.sample.csv"));
+        private static string BoolText(bool value)
+        {
+            return value ? "OK" : "Failed";
         }
 
         private static string[] ToArray(IReadOnlyList<string> values)

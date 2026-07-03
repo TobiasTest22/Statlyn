@@ -8,7 +8,7 @@ Before opening Unity, run:
 .\tools\copy-managed-to-unity.ps1
 ```
 
-This copies the managed Statlyn assemblies and SQLite managed/native dependencies used by the Player Profile and Data Sources bridge into `Assets/Plugins/Managed/Statlyn`.
+This copies the managed Statlyn assemblies, SQLite managed dependencies, Windows x64 SQLite native plugin and the synthetic fixture CSV used by the Player Profile and Data Sources bridge.
 
 ## Checklist
 
@@ -27,16 +27,19 @@ This copies the managed Statlyn assemblies and SQLite managed/native dependencie
 - Diagnostics panel loads.
 - Data Sources navigation opens a CSV-only page.
 - Data Sources page shows the active local SQLite path.
+- `Run Runtime Check` reports managed assembly, SQLite managed, SQLite native, database init and workflow service status.
+- Runtime check uses a temporary database and does not write to the main `statlyn.db`.
 - Manual CSV path entry works.
-- `Use synthetic fixture CSV` fills a local fixture path when the repository layout is available.
+- `Use synthetic fixture CSV` fills a local fixture path from the repository or StreamingAssets copy.
 - `Preview CSV` shows file readability, column count, row count, mapped fields, unknown fields and forbidden fields.
 - Preview does not create players, stats or visible fields in SQLite.
 - `Run Safe Import` shows accepted/rejected rows and database counts when SQLite dependencies load successfully.
+- Safe import shows blocked-field and unknown-field counts.
 - Forbidden fields are shown by safe name/category only.
 - No fake live FM26 data is shown.
 - No real player images, club badges or unlicensed flags are shown.
 - Empty/unsupported states remain honest.
 
-If the Unity Editor cannot load SQLite native dependencies, record the error and keep managed `dotnet test` as the source of truth until Unity packaging is adjusted.
+If the Unity Editor cannot load SQLite native dependencies, record the runtime-check error, verify `Assets/Plugins/x86_64/e_sqlite3.dll`, rerun `tools/copy-managed-to-unity.ps1`, and keep managed `dotnet test` as the source of truth until Unity packaging is adjusted.
 
 Record the Unity version and screenshots when validating a release candidate.

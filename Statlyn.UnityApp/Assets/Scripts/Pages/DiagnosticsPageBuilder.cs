@@ -2,6 +2,7 @@ using System;
 using System.Globalization;
 using Statlyn.Data;
 using Statlyn.Data.Workflow;
+using Statlyn.UI;
 using Statlyn.UnityApp.Components;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -18,18 +19,17 @@ namespace Statlyn.UnityApp.Pages
             var smokeDatabasePath = resolver.ResolveSmokeTestPath(Application.temporaryCachePath);
             var fixture = new UnityFixtureCsvPathResolver().Resolve(Application.dataPath, Application.streamingAssetsPath);
 
-            main.Add(StatlynUiFactory.MakePageHeader(
+            main.Add(StatlynUiFactory.MakeCommandPageHeader(
                 "Diagnostics",
                 "Runtime check and full local smoke test - no FM26 required",
-                "CSV-only validation"));
+                "CSV-only validation",
+                CommandStatusCategory.Info));
 
             var actions = new VisualElement();
-            actions.AddToClassList("action-row");
-            main.Add(actions);
             var runtimeCheckButton = new Button { text = "Run Runtime Check" };
             var smokeTestButton = new Button { text = "Run Full Smoke Test" };
-            actions.Add(runtimeCheckButton);
-            actions.Add(smokeTestButton);
+            actions = StatlynUiFactory.MakeCommandActionButtonRow(runtimeCheckButton, smokeTestButton);
+            main.Add(actions);
 
             var summary = new VisualElement();
             summary.AddToClassList("data-source-results");
@@ -102,11 +102,12 @@ namespace Statlyn.UnityApp.Pages
             target.Clear();
             var grid = new VisualElement();
             grid.AddToClassList("dashboard-grid");
+            grid.AddToClassList("command-kpi-row");
             target.Add(grid);
-            grid.Add(StatlynUiFactory.MakeCard("Main Database", new[] { mainDatabasePath, "Mode: RuntimeMain" }));
-            grid.Add(StatlynUiFactory.MakeCard("Smoke Test Database", new[] { smokeDatabasePath, "Mode: RuntimeSmokeTest", "Cleared before full smoke test" }));
-            grid.Add(StatlynUiFactory.MakeCard("Synthetic Fixture", new[] { fixture.Success ? "Found" : "Missing", fixture.Success ? fixture.FilePath : fixture.Message }));
-            grid.Add(StatlynUiFactory.MakeSafetyBanner("No FM26 required", "No network or scraping", "No fake live data", "Synthetic fixture only"));
+            grid.Add(StatlynUiFactory.MakeCommandKpiCard("Main Database", "RuntimeMain", mainDatabasePath, CommandStatusCategory.Info));
+            grid.Add(StatlynUiFactory.MakeCommandKpiCard("Smoke Test Database", "RuntimeSmokeTest", smokeDatabasePath, CommandStatusCategory.Info));
+            grid.Add(StatlynUiFactory.MakeCommandKpiCard("Synthetic Fixture", fixture.Success ? "Found" : "Missing", fixture.Success ? fixture.FilePath : fixture.Message, fixture.Success ? CommandStatusCategory.Success : CommandStatusCategory.Warning));
+            grid.Add(StatlynUiFactory.MakeSafetyBanner("No FM26 required", "No network or scraping", "No live FM26 data", "Synthetic fixture only"));
         }
 
         private static void RenderRuntime(VisualElement target, UnityRuntimeCheckResult result)
@@ -115,6 +116,7 @@ namespace Statlyn.UnityApp.Pages
             target.Add(StatlynUiFactory.MakeSectionTitle("Runtime Check"));
             var grid = new VisualElement();
             grid.AddToClassList("dashboard-grid");
+            grid.AddToClassList("command-kpi-row");
             target.Add(grid);
             grid.Add(StatlynUiFactory.MakeRuntimeStatusCard("Managed Assemblies", result == null ? (bool?)null : result.AssembliesOk, result == null ? "Not checked" : result.CheckedAtUtc.ToString("u", CultureInfo.InvariantCulture)));
             grid.Add(StatlynUiFactory.MakeRuntimeStatusCard("SQLite Managed", result == null ? (bool?)null : result.SqliteManagedOk, result == null ? "Not checked" : result.DatabasePath));
@@ -142,25 +144,39 @@ namespace Statlyn.UnityApp.Pages
 
             var grid = new VisualElement();
             grid.AddToClassList("dashboard-grid");
+            grid.AddToClassList("command-kpi-row");
             target.Add(grid);
             grid.Add(StatlynUiFactory.MakeRuntimeStatusCard("Smoke Test Result", result.Success, result.SafeSummary));
-            grid.Add(StatlynUiFactory.MakeCard("Smoke Test Database", new[] { result.DatabasePath }));
-            grid.Add(StatlynUiFactory.MakeCard("Synthetic Fixture", new[] { string.IsNullOrWhiteSpace(result.FixturePath) ? "Unavailable" : result.FixturePath }));
-            grid.Add(StatlynUiFactory.MakeCard("Completed", new[] { result.CompletedAtUtc.ToString("u", CultureInfo.InvariantCulture) }));
+            grid.Add(StatlynUiFactory.MakeCommandKpiCard("Smoke Test Database", "RuntimeSmokeTest", result.DatabasePath, CommandStatusCategory.Info));
+            grid.Add(StatlynUiFactory.MakeCommandKpiCard("Synthetic Fixture", string.IsNullOrWhiteSpace(result.FixturePath) ? "Unavailable" : "Resolved", string.IsNullOrWhiteSpace(result.FixturePath) ? "Fixture path unavailable" : result.FixturePath, string.IsNullOrWhiteSpace(result.FixturePath) ? CommandStatusCategory.Warning : CommandStatusCategory.Success));
+            grid.Add(StatlynUiFactory.MakeCommandKpiCard("Completed", result.CompletedAtUtc.ToString("u", CultureInfo.InvariantCulture), "Local smoke-test database only", CommandStatusCategory.Info));
 
             foreach (var step in result.Steps)
             {
-                grid.Add(StatlynUiFactory.MakeCard(step.StepName, new[]
+                grid.Add(StatlynUiFactory.MakeCommandDataQualityPanel(step.StepName, new[]
                 {
                     "Status: " + step.Status,
                     step.SafeMessage,
                     string.IsNullOrWhiteSpace(step.TechnicalDetail) ? "No technical detail." : step.TechnicalDetail,
                     "Duration: " + step.DurationMs.ToString(CultureInfo.InvariantCulture) + " ms"
-                }));
+                }, StepStatusCategory(step.Status)));
             }
 
             target.Add(StatlynUiFactory.MakeMessages("Smoke Test Warnings", result.Warnings));
             target.Add(StatlynUiFactory.MakeMessages("Smoke Test Errors", result.Errors));
+        }
+
+        private static CommandStatusCategory StepStatusCategory(UnitySmokeTestStepStatus status)
+        {
+            switch (status)
+            {
+                case UnitySmokeTestStepStatus.Passed:
+                    return CommandStatusCategory.Success;
+                case UnitySmokeTestStepStatus.Failed:
+                    return CommandStatusCategory.Danger;
+                default:
+                    return CommandStatusCategory.Muted;
+            }
         }
     }
 }

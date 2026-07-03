@@ -6,7 +6,7 @@ Statlyn is a desktop football recruitment intelligence platform for Football Man
 
 - A recruitment analysis workspace for squad planning, player comparison, scouting workflows and role-fit decisions.
 - A provider-agnostic platform intended to support FM26 live memory, CSV imports, manual club datasets and licensed APIs.
-- A white, glassy desktop UI foundation for a serious recruitment department style product.
+- A dark command-center desktop UI foundation for a serious recruitment department style product.
 
 ## What Statlyn Is Not
 
@@ -34,15 +34,16 @@ Statlyn is a desktop football recruitment intelligence platform for Football Man
 - Role Lab v1: editable phase-aware role templates, role pairs, output metric requirements, scout questions and red flags; generic/import-safe until FM26 validation exists.
 - Benchmark Foundation v1: generic/import benchmark definitions, aggregate-only benchmark runs and nullable percentiles from persisted safe SQLite comparison groups.
 - Unity runtime validation v1: Diagnostics page, Runtime Check and Full Smoke Test covering the CSV-only workflow against a separate smoke-test database.
+- UI Command-Center Theme Baseline: dark Unity shell, command-center status/KPI helpers, safe local dashboard overview counts and consistent command headers across built and placeholder pages.
 - Branding: official Statlyn logo assets are copied into Unity `Resources/Branding` and used by the shell/sidebar.
 - Field policy registry: deny-by-default masking for display, scoring and storage.
 - Field instance keys: grouped values such as `TechnicalAttribute:Finishing` and `PlayerStat:xG` are preserved without overwriting.
-- Player Profile: fixture preview still exists on the dashboard, and Player Profile v1 loads persisted safe imported data through `PlayerProfileQueryService`, `PlayerProfileReportViewModel` and safe `StatlynVisualAnalytics*` models.
+- Dashboard: local SQLite overview cards show real safe counts or `Awaiting local data.`; Player Profile v1 loads persisted safe imported data through `PlayerProfileQueryService`, `PlayerProfileReportViewModel` and safe `StatlynVisualAnalytics*` models.
 - Performance output foundation: generic/import-ready metric definitions and role-output expectation templates are seeded for future role-specific scoring.
 
 When FM26 is detected but no validated memory map exists, Statlyn must show an unsupported or partial state and return no fake player data.
 
-CSV and JSON import support is local-file skeleton work only. The Data Sources workflow is CSV-only for now: preview reads headers/counts without storing data, then safe import runs through the provider, scouting firewall and SQLite transaction path. It does not scrape, call FotMob, use unofficial endpoints or assume unlicensed images are available. Fixture data is synthetic development/test data only. The Player Profile slice is generated from a synthetic raw fixture that passes through the scouting firewall, role scoring and masked profile view model. It is not live FM26 data.
+CSV and JSON import support is local-file skeleton work only. The Data Sources workflow is CSV-only for now: preview reads headers/counts without storing data, then safe import runs through the provider, scouting firewall and SQLite transaction path. It does not scrape, call FotMob, use unofficial endpoints or assume unlicensed images are available. Fixture data is synthetic development/test data only and is used by tests and explicit fixture helpers, not as fake live dashboard data.
 
 Recruitment Centre, Player Profile, Shortlists, Scout Desk, Role Lab and Benchmarks use persisted safe SQLite data only. They do not query live FM26, external APIs or raw provider snapshots. Latest role-score names are persisted and reloaded from SQLite; missing scores display `Not scored`. Role/output summaries prefer selected Role Lab roles or persisted role-output expectation profiles when available and fall back to generic/import-ready profiles only when needed. Attributes are supporting evidence rather than the whole recruitment model. Recruitment Centre cards now use safe mini visuals for role fit, confidence, completeness, risk, output, benchmark status, missing-data and blocked-field badges. Shortlists store workflow labels such as status, priority and follow-up action; they are not FM hidden values. Scout reports store qualitative human observations and redact hidden-value-looking numeric assignments such as exact CA, PA or hidden personality values before persistence.
 
@@ -50,7 +51,7 @@ The SQLite persistence layer is local-only foundation work. It stores masked pla
 
 Performance metric definitions are generic/import-ready contracts, not official FM26 stat declarations. A metric can only be marked FM26-supported after later validation from visible FM26 data, exported data or a validated memory map. Generic role-output expectation profiles and benchmark definitions are foundation templates, not final FM26 role templates. Goalkeepers, centre-backs, midfielders, wide attackers and strikers intentionally use different output expectations. No fake benchmark percentiles are generated; if no comparison group exists, Player Profile v1 and Recruitment Centre rows say no benchmark yet.
 
-Official logo usage is documented in `docs/branding.md`. Visual analytics components are documented in `docs/visual-analytics-components.md`. Benchmarks are documented in `docs/benchmarks.md`. Shortlists are documented in `docs/shortlists.md`. Scout Desk is documented in `docs/scout-desk.md` and report safety in `docs/scout-report-safety.md`. Role Lab is documented in `docs/role-lab.md` and the phase-role model in `docs/fm26-phase-role-model.md`. The currently available repo assets are `StatLyn_Logo.png`, `StatLyn_Logo_Reversed.png`, `Statlyn_Logo_Black-text.png` and `Statlyn_Logo_White-text.png`.
+Official logo usage is documented in `docs/branding.md`. Command-center UI guidance is documented in `docs/command-center-ui.md`. Visual analytics components are documented in `docs/visual-analytics-components.md`. Benchmarks are documented in `docs/benchmarks.md`. Shortlists are documented in `docs/shortlists.md`. Scout Desk is documented in `docs/scout-desk.md` and report safety in `docs/scout-report-safety.md`. Role Lab is documented in `docs/role-lab.md` and the phase-role model in `docs/fm26-phase-role-model.md`. The currently available repo assets are `StatLyn_Logo.png`, `StatLyn_Logo_Reversed.png`, `Statlyn_Logo_Black-text.png` and `Statlyn_Logo_White-text.png`.
 
 ## Repository Layout
 

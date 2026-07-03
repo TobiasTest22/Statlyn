@@ -10,11 +10,13 @@ namespace Statlyn.UI
 
     public enum CommandStatusCategory
     {
-        Neutral,
+        Muted,
+        Info,
         Accent,
         Success,
         Warning,
-        Danger
+        Danger,
+        Neutral
     }
 
     public sealed class ThemeToken
@@ -128,23 +130,38 @@ namespace Statlyn.UI
         {
             if (string.IsNullOrWhiteSpace(label))
             {
-                return CommandStatusCategory.Neutral;
+                return CommandStatusCategory.Muted;
             }
 
             var value = label.Trim();
-            if (Contains(value, "no live fm26") || Contains(value, "csv-only") || Contains(value, "csv only") || Contains(value, "local"))
-            {
-                return CommandStatusCategory.Accent;
-            }
-
             if (Contains(value, "failed") || Contains(value, "error") || Contains(value, "rejected"))
             {
                 return CommandStatusCategory.Danger;
             }
 
-            if (Contains(value, "warning") || Contains(value, "unsupported") || Contains(value, "not checked") || Contains(value, "missing") || Contains(value, "pending") || Contains(value, "awaiting") || Contains(value, "no benchmark"))
+            if (Contains(value, "available benchmark") || Contains(value, "smoke test passed"))
             {
+                return CommandStatusCategory.Success;
+            }
+
+            if (Contains(value, "warning") || Contains(value, "unsupported") || Contains(value, "not checked") || Contains(value, "missing") || Contains(value, "pending") || Contains(value, "awaiting") || Contains(value, "insufficient") || Contains(value, "no benchmark"))
+            {
+                if (Contains(value, "no benchmark"))
+                {
+                    return CommandStatusCategory.Muted;
+                }
+
                 return CommandStatusCategory.Warning;
+            }
+
+            if (Contains(value, "not built yet"))
+            {
+                return CommandStatusCategory.Muted;
+            }
+
+            if (Contains(value, "no live fm26") || Contains(value, "csv-only") || Contains(value, "csv only") || Contains(value, "safe local") || Contains(value, "generic/import") || Contains(value, "local"))
+            {
+                return CommandStatusCategory.Info;
             }
 
             if (Contains(value, "passed") || Contains(value, "ok") || Contains(value, "complete") || Contains(value, "ready") || Contains(value, "active"))
@@ -152,13 +169,15 @@ namespace Statlyn.UI
                 return CommandStatusCategory.Success;
             }
 
-            return CommandStatusCategory.Neutral;
+            return CommandStatusCategory.Muted;
         }
 
         public static string StatusClassFor(CommandStatusCategory category)
         {
             switch (category)
             {
+                case CommandStatusCategory.Info:
+                    return "status-info";
                 case CommandStatusCategory.Accent:
                     return "status-accent";
                 case CommandStatusCategory.Success:
@@ -167,9 +186,37 @@ namespace Statlyn.UI
                     return "status-warning";
                 case CommandStatusCategory.Danger:
                     return "status-danger";
+                case CommandStatusCategory.Muted:
+                case CommandStatusCategory.Neutral:
+                    return "status-muted";
                 default:
-                    return "status-neutral";
+                    return "status-muted";
             }
+        }
+
+        public static CommandStatusCategory BenchmarkStatus(string safeMessage)
+        {
+            if (Contains(safeMessage ?? string.Empty, "available"))
+            {
+                return CommandStatusCategory.Success;
+            }
+
+            if (Contains(safeMessage ?? string.Empty, "insufficient"))
+            {
+                return CommandStatusCategory.Warning;
+            }
+
+            if (Contains(safeMessage ?? string.Empty, "no benchmark"))
+            {
+                return CommandStatusCategory.Muted;
+            }
+
+            return ResolveStatusCategory(safeMessage ?? string.Empty);
+        }
+
+        public static CommandStatusCategory Fm26Status(bool isSupported)
+        {
+            return isSupported ? CommandStatusCategory.Success : CommandStatusCategory.Warning;
         }
 
         public static string GlobalSafetyLabel(bool hasLiveFm26Data)

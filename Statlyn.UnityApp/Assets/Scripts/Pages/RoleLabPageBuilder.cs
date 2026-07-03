@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using Statlyn.Data;
 using Statlyn.Data.RoleLab;
+using Statlyn.UI;
 using Statlyn.UnityApp.Components;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -18,17 +19,21 @@ namespace Statlyn.UnityApp.Pages
             main.Clear();
             var databasePath = new StatlynDatabasePathResolver().ResolvePath(Application.persistentDataPath, StatlynDatabasePathMode.RuntimeMain);
             BuildHeader(main);
+            main.Add(StatlynUiFactory.MakeCommandWarningBanner("Role Lab Guardrail", new[]
+            {
+                "Generic/import role templates only.",
+                "Not official FM26 mappings.",
+                "No old duty logic or hidden values."
+            }));
 
             var message = new Label(string.Empty);
             message.AddToClassList("card-row");
 
             var actions = new VisualElement();
-            actions.AddToClassList("action-row");
-            main.Add(actions);
             var seed = new Button { text = "Seed Roles" };
             var refresh = new Button { text = "Refresh" };
-            actions.Add(seed);
-            actions.Add(refresh);
+            actions = StatlynUiFactory.MakeCommandActionButtonRow(seed, refresh);
+            main.Add(actions);
             main.Add(message);
 
             var roleForm = MakeRoleForm(databasePath, message);
@@ -70,32 +75,11 @@ namespace Statlyn.UnityApp.Pages
 
         private static void BuildHeader(VisualElement main)
         {
-            var header = new VisualElement();
-            header.AddToClassList("header");
-            main.Add(header);
-
-            var headerBrand = new VisualElement();
-            headerBrand.AddToClassList("header-brand");
-            header.Add(headerBrand);
-            var logo = StatlynUiFactory.MakeLogoImage(StatlynUiFactory.LightLogoResourceKey, "header-logo");
-            if (logo != null)
-            {
-                headerBrand.Add(logo);
-            }
-
-            var titleStack = new VisualElement();
-            titleStack.AddToClassList("title-stack");
-            headerBrand.Add(titleStack);
-            var title = new Label("Role Lab");
-            title.AddToClassList("screen-title");
-            titleStack.Add(title);
-            var subtitle = new Label("FM26-style phase roles - not official FM26 mappings yet");
-            subtitle.AddToClassList("screen-subtitle");
-            titleStack.Add(subtitle);
-
-            var status = new Label("Phase-aware templates");
-            status.AddToClassList("status-pill");
-            header.Add(status);
+            main.Add(StatlynUiFactory.MakeCommandPageHeader(
+                "Role Lab",
+                "Phase-aware generic/import role templates; not official FM26 mappings",
+                "Generic/import metric",
+                CommandStatusCategory.Info));
         }
 
         private static VisualElement MakeRoleForm(string databasePath, Label message)
@@ -185,7 +169,7 @@ namespace Statlyn.UnityApp.Pages
             }
             catch (Exception ex)
             {
-                roleList.Add(StatlynUiFactory.MakeCard("Role Lab", new[] { "Could not load Role Lab safely.", ex.GetType().Name + ": " + ex.Message }));
+                roleList.Add(StatlynUiFactory.MakeErrorCard("Role Lab", "Could not load Role Lab safely.", ex.GetType().Name + ": " + ex.Message));
             }
         }
 
@@ -259,11 +243,12 @@ namespace Statlyn.UnityApp.Pages
         {
             var grid = new VisualElement();
             grid.AddToClassList("dashboard-grid");
+            grid.AddToClassList("command-kpi-row");
             roleList.Add(grid);
 
             if (page.Roles.Count == 0)
             {
-                grid.Add(StatlynUiFactory.MakeCard("No Roles", new[] { "Seed generic/import templates or create a user role.", "No official FM26 mapping is claimed." }));
+                grid.Add(StatlynUiFactory.MakeCommandEmptyState("No Roles", "Seed generic/import templates or create a user role.", "No official FM26 mapping is claimed."));
                 return;
             }
 
@@ -271,6 +256,7 @@ namespace Statlyn.UnityApp.Pages
             {
                 var card = new VisualElement();
                 card.AddToClassList("glass-card");
+                card.AddToClassList("command-panel");
                 card.Add(StatlynUiFactory.MakeSectionTitle(role.RoleName));
                 card.Add(new Label(role.Phase + " | " + role.Family));
                 card.Add(new Label("Source: " + role.Source));
@@ -309,7 +295,7 @@ namespace Statlyn.UnityApp.Pages
             detail.Clear();
             if (detailModel == null)
             {
-                detail.Add(StatlynUiFactory.MakeCard("Role Detail", new[] { "Select or create a role." }));
+                detail.Add(StatlynUiFactory.MakeCommandEmptyState("Role Detail", "Select or create a role."));
                 return;
             }
 
@@ -327,13 +313,13 @@ namespace Statlyn.UnityApp.Pages
             panel.Add(new Label("Transition: " + detailModel.TransitionBehaviour));
             detail.Add(panel);
 
-            detail.Add(StatlynUiFactory.MakeCard("Metric Requirements", detailModel.MetricRequirements.Count == 0
+            detail.Add(StatlynUiFactory.MakeCommandDataQualityPanel("Metric Requirements", detailModel.MetricRequirements.Count == 0
                 ? new[] { "No metric requirements yet." }
-                : detailModel.MetricRequirements.Select(item => item.FieldName + " | " + item.Importance + " | " + item.Direction)));
-            detail.Add(StatlynUiFactory.MakeCard("Scout Questions", detailModel.ScoutQuestions.Count == 0
+                : detailModel.MetricRequirements.Select(item => item.FieldName + " | " + item.Importance + " | " + item.Direction), detailModel.MetricRequirements.Count == 0 ? CommandStatusCategory.Muted : CommandStatusCategory.Info));
+            detail.Add(StatlynUiFactory.MakeCommandPanel("Scout Questions", detailModel.ScoutQuestions.Count == 0
                 ? new[] { "No scout questions yet." }
                 : detailModel.ScoutQuestions.Select(item => item.Category + ": " + item.Question)));
-            detail.Add(StatlynUiFactory.MakeCard("Red Flags", detailModel.RedFlags.Count == 0
+            detail.Add(StatlynUiFactory.MakeCommandWarningBanner("Red Flags", detailModel.RedFlags.Count == 0
                 ? new[] { "No red flags yet." }
                 : detailModel.RedFlags.Select(item => item.FieldName + " " + item.Operator + " " + item.Threshold + " | " + item.Message)));
         }

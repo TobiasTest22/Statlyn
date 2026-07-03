@@ -48,25 +48,29 @@ namespace Statlyn.UnityApp.Components
         {
             var card = new VisualElement();
             card.AddToClassList("glass-card");
+            card.AddToClassList("command-panel");
 
             var label = new Label(heading);
             label.AddToClassList("card-title");
+            label.AddToClassList("command-panel-title");
             card.Add(label);
 
             foreach (var row in rows)
             {
                 var rowLabel = new Label(row);
                 rowLabel.AddToClassList("card-row");
+                rowLabel.AddToClassList("command-panel-row");
                 card.Add(rowLabel);
             }
 
             return card;
         }
 
-        public static VisualElement MakePageHeader(string title, string subtitle, string statusText, string logoResourceKey = LightLogoResourceKey)
+        public static VisualElement MakePageHeader(string title, string subtitle, string statusText, string logoResourceKey = DarkLogoResourceKey)
         {
             var header = new VisualElement();
             header.AddToClassList("header");
+            header.AddToClassList("command-page-header");
 
             var headerBrand = new VisualElement();
             headerBrand.AddToClassList("header-brand");
@@ -92,6 +96,8 @@ namespace Statlyn.UnityApp.Components
 
             var status = new Label(statusText ?? string.Empty);
             status.AddToClassList("status-pill");
+            status.AddToClassList("command-status-pill");
+            status.AddToClassList(ThemeTokens.StatusClassFor(ThemeTokens.ResolveStatusCategory(statusText)));
             header.Add(status);
 
             return header;
@@ -281,29 +287,33 @@ namespace Statlyn.UnityApp.Components
 
         public static VisualElement MakeSafetyBanner(params string[] rows)
         {
-            return MakeCard("Safety", rows == null || rows.Length == 0 ? new[] { "Persisted safe data only", "No live FM26 data" } : rows);
+            return MakeCommandWarningBanner("Safety", rows == null || rows.Length == 0 ? new[] { "Persisted safe data only", "No live FM26 data" } : rows);
         }
 
         public static VisualElement MakeEmptyState(string title, params string[] rows)
         {
-            return MakeCard(title, rows == null || rows.Length == 0 ? new[] { "No data is shown." } : rows);
+            return MakeCommandEmptyState(title, rows == null || rows.Length == 0 ? new[] { "No data is shown." } : rows);
         }
 
         public static VisualElement MakeErrorCard(string title, params string[] rows)
         {
-            return MakeCard(title, rows == null || rows.Length == 0 ? new[] { "A safe error occurred." } : rows);
+            var card = MakeCommandPanel(title, rows == null || rows.Length == 0 ? new[] { ThemeTokens.ErrorStateMessage(title) } : rows);
+            card.AddToClassList("status-danger");
+            return card;
         }
 
         public static VisualElement MakeRuntimeStatusCard(string title, bool? status, string detail)
         {
             var label = status.HasValue ? status.Value ? "Passed" : "Failed" : "Not run";
-            return MakeCard(title, new[] { label, detail ?? string.Empty });
+            var category = status.HasValue ? status.Value ? CommandStatusCategory.Success : CommandStatusCategory.Danger : CommandStatusCategory.Muted;
+            return MakeCommandKpiCard(title, label, detail ?? string.Empty, category);
         }
 
         public static Label MakeSectionTitle(string title)
         {
             var label = new Label(title);
             label.AddToClassList("card-title");
+            label.AddToClassList("command-panel-title");
             return label;
         }
 
@@ -311,6 +321,7 @@ namespace Statlyn.UnityApp.Components
         {
             var card = new VisualElement();
             card.AddToClassList("metric-card");
+            card.AddToClassList("command-kpi-card");
             var titleLabel = new Label(title);
             titleLabel.AddToClassList("metric-title");
             card.Add(titleLabel);
@@ -343,6 +354,7 @@ namespace Statlyn.UnityApp.Components
         {
             var panel = new VisualElement();
             panel.AddToClassList("diagnostics-panel");
+            panel.AddToClassList("command-panel");
             panel.Add(MakeSectionTitle(title));
             if (messages == null || messages.Count == 0)
             {

@@ -103,7 +103,7 @@ namespace Statlyn.UnityApp
         {
             var status = new VisualElement();
             status.AddToClassList("command-shell-status");
-            status.Add(StatlynUiFactory.MakeCommandStatusPill(ThemeTokens.GlobalSafetyLabel(false), CommandStatusCategory.Accent));
+            status.Add(StatlynUiFactory.MakeCommandStatusPill(ThemeTokens.GlobalSafetyLabel(false), CommandStatusCategory.Info));
 
             var runtime = new Label("CSV-only runtime | SQLite local database");
             runtime.AddToClassList("command-shell-status-line");

@@ -5,6 +5,7 @@ using System.IO;
 using Statlyn.Data;
 using Statlyn.Data.Scouting;
 using Statlyn.Data.Shortlists;
+using Statlyn.UI;
 using Statlyn.UnityApp.Components;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -18,6 +19,12 @@ namespace Statlyn.UnityApp.Pages
             main.Clear();
             var databasePath = new StatlynDatabasePathResolver().ResolvePath(Application.persistentDataPath, StatlynDatabasePathMode.RuntimeMain);
             BuildHeader(main);
+            main.Add(StatlynUiFactory.MakeCommandWarningBanner("Shortlist Safety", new[]
+            {
+                "Recruitment decisions are persisted local workflow labels only.",
+                "No hidden values, fee certainty or automatic signing decisions are implied.",
+                "No live FM26 data."
+            }));
 
             var form = new VisualElement();
             form.AddToClassList("data-source-form");
@@ -30,12 +37,10 @@ namespace Statlyn.UnityApp.Pages
             form.Add(description);
 
             var actions = new VisualElement();
-            actions.AddToClassList("action-row");
-            form.Add(actions);
             var create = new Button { text = "Create Shortlist" };
             var refresh = new Button { text = "Refresh" };
-            actions.Add(create);
-            actions.Add(refresh);
+            actions = StatlynUiFactory.MakeCommandActionButtonRow(create, refresh);
+            form.Add(actions);
 
             var message = new Label(string.Empty);
             message.AddToClassList("card-row");
@@ -72,32 +77,11 @@ namespace Statlyn.UnityApp.Pages
 
         private static void BuildHeader(VisualElement main)
         {
-            var header = new VisualElement();
-            header.AddToClassList("header");
-            main.Add(header);
-
-            var headerBrand = new VisualElement();
-            headerBrand.AddToClassList("header-brand");
-            header.Add(headerBrand);
-            var logo = StatlynUiFactory.MakeLogoImage(StatlynUiFactory.LightLogoResourceKey, "header-logo");
-            if (logo != null)
-            {
-                headerBrand.Add(logo);
-            }
-
-            var titleStack = new VisualElement();
-            titleStack.AddToClassList("title-stack");
-            headerBrand.Add(titleStack);
-            var title = new Label("Shortlists");
-            title.AddToClassList("screen-title");
-            titleStack.Add(title);
-            var subtitle = new Label("Persisted safe recruitment decisions - no hidden data");
-            subtitle.AddToClassList("screen-subtitle");
-            titleStack.Add(subtitle);
-
-            var status = new Label("Decision workflow");
-            status.AddToClassList("status-pill");
-            header.Add(status);
+            main.Add(StatlynUiFactory.MakeCommandPageHeader(
+                "Shortlists",
+                "Persisted safe recruitment decisions and follow-up tracking",
+                "Decision workflow",
+                CommandStatusCategory.Info));
         }
 
         private static void RenderShortlists(string databasePath, VisualElement overview, VisualElement detail, Label message, long selectedShortlistId)
@@ -114,7 +98,7 @@ namespace Statlyn.UnityApp.Pages
                     RenderOverview(databasePath, page, overview, detail, message, selectedShortlistId);
                     if (page.Shortlists.Count == 0)
                     {
-                        detail.Add(StatlynUiFactory.MakeCard("No shortlists yet", new[] { "Add players from Recruitment Centre or Player Profile.", "No fake players are shown." }));
+                        detail.Add(StatlynUiFactory.MakeCommandEmptyState("No shortlists yet", "Add players from Recruitment Centre or Player Profile.", "No fake players are shown."));
                         return;
                     }
 
@@ -124,7 +108,7 @@ namespace Statlyn.UnityApp.Pages
             }
             catch (Exception ex)
             {
-                overview.Add(StatlynUiFactory.MakeCard("Shortlists", new[] { "Could not load persisted shortlists safely.", ex.GetType().Name + ": " + ex.Message }));
+                overview.Add(StatlynUiFactory.MakeErrorCard("Shortlists", "Could not load persisted shortlists safely.", ex.GetType().Name + ": " + ex.Message));
             }
         }
 
@@ -132,11 +116,12 @@ namespace Statlyn.UnityApp.Pages
         {
             var grid = new VisualElement();
             grid.AddToClassList("dashboard-grid");
+            grid.AddToClassList("command-kpi-row");
             overview.Add(grid);
 
             if (page.Shortlists.Count == 0)
             {
-                grid.Add(StatlynUiFactory.MakeCard("Empty State", new[] { "No shortlists yet. Add players from Recruitment Centre or Player Profile." }));
+                grid.Add(StatlynUiFactory.MakeCommandEmptyState("Empty State", "No shortlists yet. Add players from Recruitment Centre or Player Profile."));
                 return;
             }
 
@@ -144,6 +129,7 @@ namespace Statlyn.UnityApp.Pages
             {
                 var card = new VisualElement();
                 card.AddToClassList("glass-card");
+                card.AddToClassList("command-panel");
                 card.Add(StatlynUiFactory.MakeSectionTitle(shortlist.Name));
                 card.Add(new Label(shortlist.Description));
                 card.Add(new Label("Players: " + shortlist.PlayerCount));
@@ -168,7 +154,7 @@ namespace Statlyn.UnityApp.Pages
             detail.Clear();
             if (detailModel == null || detailModel.ShortlistId == 0)
             {
-                detail.Add(StatlynUiFactory.MakeCard("Shortlist Detail", new[] { "Select or create a shortlist." }));
+                detail.Add(StatlynUiFactory.MakeCommandEmptyState("Shortlist Detail", "Select or create a shortlist."));
                 return;
             }
 
@@ -181,7 +167,7 @@ namespace Statlyn.UnityApp.Pages
 
             if (detailModel.Players.Count == 0)
             {
-                detail.Add(StatlynUiFactory.MakeCard("No Players", new[] { "Add players from Recruitment Centre or Player Profile.", "No fake shortlist rows are shown." }));
+                detail.Add(StatlynUiFactory.MakeCommandEmptyState("No Players", "Add players from Recruitment Centre or Player Profile.", "No fake shortlist rows are shown."));
                 return;
             }
 
@@ -198,6 +184,7 @@ namespace Statlyn.UnityApp.Pages
         {
             var card = new VisualElement();
             card.AddToClassList("glass-card");
+            card.AddToClassList("command-panel");
             card.Add(StatlynUiFactory.MakeSectionTitle(player.PlayerName));
             card.Add(new Label(player.Age + " | " + player.Nationality + " | " + player.Position));
             card.Add(new Label("Source: " + player.SourceName));
@@ -208,7 +195,7 @@ namespace Statlyn.UnityApp.Pages
             card.Add(new Label("Follow-up: " + player.FollowUpAction));
             card.Add(new Label("Output: " + (player.KeyOutputMetrics.Count == 0 ? "Output metrics missing" : string.Join(", ", player.KeyOutputMetrics))));
             card.Add(new Label("Missing data: " + player.MissingDataCount.ToString(CultureInfo.InvariantCulture) + " | Blocked fields: " + player.BlockedFieldCount.ToString(CultureInfo.InvariantCulture)));
-            card.Add(new Label(player.IsLiveFm26Data ? "Live FM26 data" : "No live FM26 data"));
+            card.Add(new Label(player.IsLiveFm26Data ? "Live FM26 data unavailable" : "No live FM26 data"));
             card.Add(new Label("Scout report: " + LoadScoutReportLabel(databasePath, player.StatlynPlayerId)));
 
             var status = new DropdownField("Status", EnumNames<ShortlistStatus>(), SafeIndex(EnumNames<ShortlistStatus>(), player.Status));
@@ -222,14 +209,11 @@ namespace Statlyn.UnityApp.Pages
             card.Add(note);
 
             var actions = new VisualElement();
-            actions.AddToClassList("action-row");
-            card.Add(actions);
             var scout = new Button { text = "Create Scout Assignment" };
             var save = new Button { text = "Update" };
             var remove = new Button { text = "Remove" };
-            actions.Add(scout);
-            actions.Add(save);
-            actions.Add(remove);
+            actions = StatlynUiFactory.MakeCommandActionButtonRow(scout, save, remove);
+            card.Add(actions);
 
             scout.clicked += () =>
             {

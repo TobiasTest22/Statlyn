@@ -18,14 +18,13 @@ This copies the managed Statlyn assemblies, SQLite managed dependencies, Windows
 - Main shell loads.
 - Navigation is visible.
 - Sidebar shows the official Statlyn logo asset from `Assets/Resources/Branding`.
+- Dark command-center theme appears with readable text and restrained teal/cyan accents.
+- Active navigation state is visible.
 - Dashboard header shows a small official Statlyn logo mark.
-- Player Profile slice loads.
-- Player Profile slice renders from `MaskedPlayerProfileViewModel` or `UnityProfileRenderModel` built only from it.
-- Profile slice clearly shows fixture mode.
-- Profile slice clearly shows no live FM26 data.
-- Profile slice keeps FM26 memory maps marked unsupported until validated maps exist.
-- Profile slice shows source confidence, data completeness, role fit, confidence, risk, masked evidence, benchmark-unavailable status, evidence cards and missing/blocked-data warnings.
-- Blocked-data notice does not show raw hidden values.
+- Dashboard shows local SQLite overview cards.
+- Empty dashboard counts show `Awaiting local data.` rather than fake players, alerts or live sync.
+- Dashboard clearly shows `No live FM26 data`.
+- Dashboard keeps FM26 memory maps marked unsupported until validated maps exist.
 - Player Profile navigation opens the Player Profile v1 page.
 - Player Profile page shows persisted-safe/no-live-FM26 header copy and the official Statlyn logo mark.
 - `Load First Imported Player` loads a profile after a safe CSV import.
@@ -88,6 +87,11 @@ This copies the managed Statlyn assemblies, SQLite managed dependencies, Windows
 - Create role pair saves IP/OOP role links and different slots.
 - Role detail shows behaviours, metric requirements, scout questions and red flags.
 - Role Lab does not show fake official FM26 mappings, old duties, CA/PA or hidden personality values.
+- Benchmarks navigation opens the Benchmarks page.
+- Benchmarks distinguishes no benchmark, insufficient sample and available benchmark states with text and status color.
+- Diagnostics navigation opens the Diagnostics page.
+- Runtime Check and Full Smoke Test buttons are still visible.
+- Not-built pages use the command-center header and say `This page is not built yet.`
 - No fake live FM26 data is shown.
 - No real player images, club badges or unlicensed flags are shown.
 - Empty/unsupported states remain honest.

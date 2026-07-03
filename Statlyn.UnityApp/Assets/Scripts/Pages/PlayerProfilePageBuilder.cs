@@ -21,6 +21,12 @@ namespace Statlyn.UnityApp.Pages
             main.Clear();
             var databasePath = new StatlynDatabasePathResolver().ResolvePath(Application.persistentDataPath, StatlynDatabasePathMode.RuntimeMain);
             BuildHeader(main);
+            main.Add(StatlynUiFactory.MakeCommandWarningBanner("Profile Safety", new[]
+            {
+                "Persisted safe data only.",
+                "No raw blocked values or hidden FM26 values.",
+                "No live FM26 data is claimed."
+            }));
 
             var form = new VisualElement();
             form.AddToClassList("data-source-form");
@@ -37,12 +43,10 @@ namespace Statlyn.UnityApp.Pages
             form.Add(roleLabSelection);
 
             var actions = new VisualElement();
-            actions.AddToClassList("action-row");
-            form.Add(actions);
             var load = new Button { text = "Load Profile" };
             var loadFirst = new Button { text = "Load First Imported Player" };
-            actions.Add(load);
-            actions.Add(loadFirst);
+            actions = StatlynUiFactory.MakeCommandActionButtonRow(load, loadFirst);
+            form.Add(actions);
 
             var results = new VisualElement();
             results.AddToClassList("data-source-results");
@@ -74,7 +78,7 @@ namespace Statlyn.UnityApp.Pages
                     var result = new PlayerProfileQueryService(factory).Query(new PlayerProfileQuery { StatlynPlayerId = statlynPlayerId, OptionalRoleOutputProfileName = roleLabSelection ?? string.Empty });
                     if (!result.Success)
                     {
-                        target.Add(StatlynUiFactory.MakeCard("Player Profile", new[] { result.SafeMessage, "No fake player is shown." }));
+                        target.Add(StatlynUiFactory.MakeCommandEmptyState("Player Profile", result.SafeMessage, "No fake player is shown."));
                         return;
                     }
 
@@ -83,38 +87,17 @@ namespace Statlyn.UnityApp.Pages
             }
             catch (Exception ex)
             {
-                target.Add(StatlynUiFactory.MakeCard("Player Profile", new[] { "Could not load persisted profile safely.", ex.GetType().Name + ": " + ex.Message }));
+                target.Add(StatlynUiFactory.MakeErrorCard("Player Profile", "Could not load persisted profile safely.", ex.GetType().Name + ": " + ex.Message));
             }
         }
 
         private static void BuildHeader(VisualElement main)
         {
-            var header = new VisualElement();
-            header.AddToClassList("header");
-            main.Add(header);
-
-            var headerBrand = new VisualElement();
-            headerBrand.AddToClassList("header-brand");
-            header.Add(headerBrand);
-            var logo = StatlynUiFactory.MakeLogoImage(StatlynUiFactory.LightLogoResourceKey, "header-logo");
-            if (logo != null)
-            {
-                headerBrand.Add(logo);
-            }
-
-            var titleStack = new VisualElement();
-            titleStack.AddToClassList("title-stack");
-            headerBrand.Add(titleStack);
-            var title = new Label("Player Profile");
-            title.AddToClassList("screen-title");
-            titleStack.Add(title);
-            var subtitle = new Label("Persisted safe data only - no live FM26 data");
-            subtitle.AddToClassList("screen-subtitle");
-            titleStack.Add(subtitle);
-
-            var status = new Label("Output-first report");
-            status.AddToClassList("status-pill");
-            header.Add(status);
+            main.Add(StatlynUiFactory.MakeCommandPageHeader(
+                "Player Profile",
+                "Output-first persisted profile with benchmark and scouting context",
+                "Output-first report",
+                CommandStatusCategory.Info));
         }
 
         private static void RenderEmpty(VisualElement target)
@@ -122,9 +105,10 @@ namespace Statlyn.UnityApp.Pages
             target.Clear();
             var cards = new VisualElement();
             cards.AddToClassList("dashboard-grid");
+            cards.AddToClassList("command-kpi-row");
             target.Add(cards);
-            cards.Add(StatlynUiFactory.MakeCard("No Profile Loaded", new[] { "Import a CSV in Data Sources or open a player from Recruitment Centre." }));
-            cards.Add(StatlynUiFactory.MakeCard("Safety", new[] { "Persisted safe data only", "No raw blocked values", "No fake live FM26 data" }));
+            cards.Add(StatlynUiFactory.MakeCommandKpiCard("No Profile Loaded", "Awaiting", "Import a CSV in Data Sources or open a player from Recruitment Centre.", CommandStatusCategory.Muted));
+            cards.Add(StatlynUiFactory.MakeCommandKpiCard("Safety", "Guarded", "Persisted safe data only; no raw blocked values", CommandStatusCategory.Warning));
         }
 
         private static void RenderReport(string databasePath, PlayerProfileReportViewModel report, VisualElement target)
@@ -133,19 +117,14 @@ namespace Statlyn.UnityApp.Pages
 
             var identity = new VisualElement();
             identity.AddToClassList("dashboard-grid");
+            identity.AddToClassList("command-kpi-row");
             target.Add(identity);
-            identity.Add(StatlynUiFactory.MakeCard(report.PlayerName, new[]
+            identity.Add(StatlynUiFactory.MakeCommandKpiCard(report.PlayerName, report.PrimaryPosition, report.Age + " | " + report.Nationality + " | Statlyn ID: " + report.StatlynPlayerId, CommandStatusCategory.Info));
+            identity.Add(StatlynUiFactory.MakeCommandKpiCard("Source", report.SourceName, "Confidence: " + report.SourceConfidence + " | " + (report.IsFixtureMode ? "Fixture/import mode" : "Persisted source"), CommandStatusCategory.Info));
+            identity.Add(StatlynUiFactory.MakeCommandKpiCard("FM26 Data", report.IsLiveFm26Data ? "Live unavailable" : "No live FM26 data", report.IsLiveFm26Data ? "FM26 remains unsupported until validated memory maps exist." : "Local/persisted source only.", report.IsLiveFm26Data ? CommandStatusCategory.Warning : CommandStatusCategory.Info));
+            identity.Add(StatlynUiFactory.MakeCommandPanel("Profile Context", new[]
             {
-                report.Age + " | " + report.Nationality + " | " + report.PrimaryPosition,
-                "Statlyn ID: " + report.StatlynPlayerId,
                 "Position group: " + report.PositionGroup
-            }));
-            identity.Add(StatlynUiFactory.MakeCard("Source", new[]
-            {
-                report.SourceName,
-                "Confidence: " + report.SourceConfidence,
-                report.IsFixtureMode ? "Fixture/import mode" : "Persisted source",
-                report.IsLiveFm26Data ? "Live FM26 data" : "No live FM26 data"
             }));
 
             target.Add(MakeShortlistPanel(databasePath, report));

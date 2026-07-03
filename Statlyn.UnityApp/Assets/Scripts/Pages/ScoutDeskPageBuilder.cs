@@ -5,6 +5,7 @@ using System.IO;
 using Statlyn.Data;
 using Statlyn.Data.Scouting;
 using Statlyn.Data.Shortlists;
+using Statlyn.UI;
 using Statlyn.UnityApp.Components;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -18,6 +19,12 @@ namespace Statlyn.UnityApp.Pages
             main.Clear();
             var databasePath = new StatlynDatabasePathResolver().ResolvePath(Application.persistentDataPath, StatlynDatabasePathMode.RuntimeMain);
             BuildHeader(main);
+            main.Add(StatlynUiFactory.MakeCommandWarningBanner("Scout Report Safety", new[]
+            {
+                "Scout reports are qualitative local observations.",
+                "Do not enter exact hidden-looking values.",
+                "No live FM26 data."
+            }));
 
             var form = new VisualElement();
             form.AddToClassList("data-source-form");
@@ -33,14 +40,11 @@ namespace Statlyn.UnityApp.Pages
             form.Add(priority);
 
             var actions = new VisualElement();
-            actions.AddToClassList("action-row");
-            form.Add(actions);
             var create = new Button { text = "Create Assignment" };
             var createFirstShortlisted = new Button { text = "Create For First Shortlisted" };
             var refresh = new Button { text = "Refresh" };
-            actions.Add(create);
-            actions.Add(createFirstShortlisted);
-            actions.Add(refresh);
+            actions = StatlynUiFactory.MakeCommandActionButtonRow(create, createFirstShortlisted, refresh);
+            form.Add(actions);
 
             var message = new Label(string.Empty);
             message.AddToClassList("card-row");
@@ -107,32 +111,11 @@ namespace Statlyn.UnityApp.Pages
 
         private static void BuildHeader(VisualElement main)
         {
-            var header = new VisualElement();
-            header.AddToClassList("header");
-            main.Add(header);
-
-            var headerBrand = new VisualElement();
-            headerBrand.AddToClassList("header-brand");
-            header.Add(headerBrand);
-            var logo = StatlynUiFactory.MakeLogoImage(StatlynUiFactory.LightLogoResourceKey, "header-logo");
-            if (logo != null)
-            {
-                headerBrand.Add(logo);
-            }
-
-            var titleStack = new VisualElement();
-            titleStack.AddToClassList("title-stack");
-            headerBrand.Add(titleStack);
-            var title = new Label("Scout Desk");
-            title.AddToClassList("screen-title");
-            titleStack.Add(title);
-            var subtitle = new Label("Human scouting workflow - qualitative observations only");
-            subtitle.AddToClassList("screen-subtitle");
-            titleStack.Add(subtitle);
-
-            var status = new Label("Local reports");
-            status.AddToClassList("status-pill");
-            header.Add(status);
+            main.Add(StatlynUiFactory.MakeCommandPageHeader(
+                "Scout Desk",
+                "Human scouting workflow with qualitative observations only",
+                "Local reports",
+                CommandStatusCategory.Info));
         }
 
         private static void RenderScoutDesk(string databasePath, VisualElement assignments, VisualElement detail, Label message, long selectedAssignmentId)
@@ -152,7 +135,7 @@ namespace Statlyn.UnityApp.Pages
                         : page.Assignments.Count == 0 ? 0 : page.Assignments[0].AssignmentId;
                     if (selectedId == 0)
                     {
-                        detail.Add(StatlynUiFactory.MakeCard("Scout Assignment", new[] { "Create an assignment from a shortlist or persisted player ID.", "No fake scout rows are shown." }));
+                        detail.Add(StatlynUiFactory.MakeCommandEmptyState("Scout Assignment", "Create an assignment from a shortlist or persisted player ID.", "No fake scout rows are shown."));
                         return;
                     }
 
@@ -161,7 +144,7 @@ namespace Statlyn.UnityApp.Pages
             }
             catch (Exception ex)
             {
-                assignments.Add(StatlynUiFactory.MakeCard("Scout Desk", new[] { "Could not load Scout Desk safely.", ex.GetType().Name + ": " + ex.Message }));
+                assignments.Add(StatlynUiFactory.MakeErrorCard("Scout Desk", "Could not load Scout Desk safely.", ex.GetType().Name + ": " + ex.Message));
             }
         }
 
@@ -169,11 +152,12 @@ namespace Statlyn.UnityApp.Pages
         {
             var grid = new VisualElement();
             grid.AddToClassList("dashboard-grid");
+            grid.AddToClassList("command-kpi-row");
             assignments.Add(grid);
 
             if (page.Assignments.Count == 0)
             {
-                grid.Add(StatlynUiFactory.MakeCard("No Assignments", new[] { "Create a scout assignment from Shortlists or a persisted player ID.", "No live FM26 data." }));
+                grid.Add(StatlynUiFactory.MakeCommandEmptyState("No Assignments", "Create a scout assignment from Shortlists or a persisted player ID.", "No live FM26 data."));
                 return;
             }
 
@@ -181,6 +165,7 @@ namespace Statlyn.UnityApp.Pages
             {
                 var card = new VisualElement();
                 card.AddToClassList("glass-card");
+                card.AddToClassList("command-panel");
                 card.Add(StatlynUiFactory.MakeSectionTitle(assignment.PlayerName));
                 card.Add(new Label(assignment.Position + " | " + assignment.Source));
                 card.Add(new Label("Role: " + assignment.Role));
@@ -209,7 +194,7 @@ namespace Statlyn.UnityApp.Pages
             detail.Clear();
             if (detailModel == null || detailModel.Assignment == null || detailModel.Assignment.AssignmentId == 0)
             {
-                detail.Add(StatlynUiFactory.MakeCard("Scout Assignment", new[] { "Select or create a scout assignment." }));
+                detail.Add(StatlynUiFactory.MakeCommandEmptyState("Scout Assignment", "Select or create a scout assignment."));
                 return;
             }
 

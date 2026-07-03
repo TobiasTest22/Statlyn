@@ -1,6 +1,6 @@
 # Unity Smoke Test
 
-Milestone 2.6 adds a full local smoke test for the Unity runtime path. It does not require FM26, network access, scraping, external APIs or real player data.
+Milestone 2.6 adds a full local smoke test for the Unity runtime path. Milestone 2.7 keeps the same smoke-test workflow while moving the UI toward the dark command-center baseline. It does not require FM26, network access, scraping, external APIs or real player data.
 
 ## Before Opening Unity
 
@@ -56,5 +56,7 @@ The smoke test uses `RuntimeSmokeTest` and lives under `Application.temporaryCac
 ## Expected Limitations
 
 FM26 remains unsupported until validated memory maps exist. CSV local import is the only user-facing data source workflow. Benchmarks are generic/import only and not official FM26. Percentiles are shown only when a real comparison group is available.
+
+The Home dashboard reads local SQLite counts and may show `Awaiting local data.` before Data Sources import or the smoke test has created data. That is expected and should not be replaced with fake counts.
 
 If SQLite fails in Unity, rerun `tools/copy-managed-to-unity.ps1`, confirm `Microsoft.Data.Sqlite.dll`, `SQLitePCLRaw.*.dll` and `Assets\Plugins\x86_64\e_sqlite3.dll` exist, then run the Runtime Check again.

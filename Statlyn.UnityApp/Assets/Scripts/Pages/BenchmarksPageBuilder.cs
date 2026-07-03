@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using Statlyn.Data;
 using Statlyn.Data.Benchmarks;
+using Statlyn.UI;
 using Statlyn.UnityApp.Components;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -17,19 +18,22 @@ namespace Statlyn.UnityApp.Pages
             main.Clear();
             var databasePath = new StatlynDatabasePathResolver().ResolvePath(Application.persistentDataPath, StatlynDatabasePathMode.RuntimeMain);
             BuildHeader(main);
+            main.Add(StatlynUiFactory.MakeCommandWarningBanner("Benchmark Guardrail", new[]
+            {
+                "Generic/import benchmark definitions only.",
+                "No fake percentiles or official FM26 verification.",
+                "Available, insufficient sample and no benchmark states stay textual."
+            }));
 
             var message = new Label(string.Empty);
             message.AddToClassList("card-row");
 
             var actions = new VisualElement();
-            actions.AddToClassList("action-row");
-            main.Add(actions);
             var seed = new Button { text = "Seed Benchmark Definitions" };
             var run = new Button { text = "Run Benchmark Definitions" };
             var refresh = new Button { text = "Refresh" };
-            actions.Add(seed);
-            actions.Add(run);
-            actions.Add(refresh);
+            actions = StatlynUiFactory.MakeCommandActionButtonRow(seed, run, refresh);
+            main.Add(actions);
             main.Add(message);
 
             var list = new VisualElement();
@@ -78,32 +82,11 @@ namespace Statlyn.UnityApp.Pages
 
         private static void BuildHeader(VisualElement main)
         {
-            var header = new VisualElement();
-            header.AddToClassList("header");
-            main.Add(header);
-
-            var headerBrand = new VisualElement();
-            headerBrand.AddToClassList("header-brand");
-            header.Add(headerBrand);
-            var logo = StatlynUiFactory.MakeLogoImage(StatlynUiFactory.LightLogoResourceKey, "header-logo");
-            if (logo != null)
-            {
-                headerBrand.Add(logo);
-            }
-
-            var titleStack = new VisualElement();
-            titleStack.AddToClassList("title-stack");
-            headerBrand.Add(titleStack);
-            var title = new Label("Benchmarks");
-            title.AddToClassList("screen-title");
-            titleStack.Add(title);
-            var subtitle = new Label("Generic/import benchmarks - no fake FM26 verification");
-            subtitle.AddToClassList("screen-subtitle");
-            titleStack.Add(subtitle);
-
-            var status = new Label("Aggregate snapshots only");
-            status.AddToClassList("status-pill");
-            header.Add(status);
+            main.Add(StatlynUiFactory.MakeCommandPageHeader(
+                "Benchmarks",
+                "Generic/import aggregate snapshots with honest sample states",
+                "Aggregate snapshots only",
+                CommandStatusCategory.Info));
         }
 
         private static void RenderBenchmarks(string databasePath, VisualElement list, Label message)
@@ -117,12 +100,13 @@ namespace Statlyn.UnityApp.Pages
                     message.text = string.IsNullOrWhiteSpace(message.text) ? page.SafeMessage : message.text;
                     if (page.Definitions.Count == 0)
                     {
-                        list.Add(StatlynUiFactory.MakeCard("No benchmark definitions yet.", new[] { "Seed definitions to create generic/import benchmark templates.", "No fake results are shown." }));
+                        list.Add(StatlynUiFactory.MakeCommandEmptyState("No benchmark definitions yet.", "Seed definitions to create generic/import benchmark templates.", "No fake results are shown."));
                         return;
                     }
 
                     var grid = new VisualElement();
                     grid.AddToClassList("dashboard-grid");
+                    grid.AddToClassList("command-kpi-row");
                     list.Add(grid);
                     foreach (var definition in page.Definitions)
                     {
@@ -132,7 +116,7 @@ namespace Statlyn.UnityApp.Pages
             }
             catch (Exception ex)
             {
-                list.Add(StatlynUiFactory.MakeCard("Benchmarks", new[] { "Could not load benchmarks safely.", ex.GetType().Name + ": " + ex.Message }));
+                list.Add(StatlynUiFactory.MakeErrorCard("Benchmarks", "Could not load benchmarks safely.", ex.GetType().Name + ": " + ex.Message));
             }
         }
 
@@ -165,7 +149,8 @@ namespace Statlyn.UnityApp.Pages
                 rows.Add(snapshot.ComparisonGroup + " | " + snapshot.VerificationLabel);
             }
 
-            return StatlynUiFactory.MakeCard(definition.BenchmarkName, rows.ToArray());
+            var card = StatlynUiFactory.MakeCommandDataQualityPanel(definition.BenchmarkName, rows.ToArray(), definition.LatestRun == null ? CommandStatusCategory.Muted : ThemeTokens.BenchmarkStatus(definition.LatestRun.SafeMessage));
+            return card;
         }
     }
 }

@@ -4,7 +4,7 @@ Statlyn now defaults to a dark command-center desktop interface for Unity. The p
 
 Official logo assets are documented in `docs/branding.md`. The Unity shell uses the official Statlyn logo from `Assets/Resources/Branding`; do not create placeholder logos or pull external branding assets.
 
-The active direction is a premium sports analytics command center: dark navy/charcoal base, teal/cyan active accents, dense readable cards, KPI panels and professional club-operations hierarchy. Milestone 2.7 establishes the theme baseline for the Unity shell and first applies it to Home and Data Sources.
+The active direction is a premium sports analytics command center: dark navy/charcoal base, teal/cyan active accents, dense readable cards, KPI panels and professional club-operations hierarchy. Milestone 2.7 establishes the theme baseline for the Unity shell and applies it incrementally across the built and placeholder pages.
 
 ## Direction
 
@@ -22,19 +22,18 @@ The active direction is a premium sports analytics command center: dark navy/cha
 The current Unity shell creates:
 
 - Left navigation.
-- Home dashboard state panels.
-- Scouting firewall status.
-- Advanced diagnostics panel.
+- Home dashboard local status overview.
+- Scouting firewall and no-live-FM26 status.
+- Diagnostics page with Runtime Check and Full Smoke Test.
 - Empty and unsupported states for FM26 data.
-- First Player Profile slice in clearly marked fixture mode.
 
-The first shell intentionally does not show fake live players. The Player Profile slice may show one synthetic development fixture, clearly labelled as fixture mode.
+The first shell intentionally does not show fake live players. Home reads real safe local counts where available and shows `Awaiting local data.` when the runtime database is empty.
 
 Milestone 2.7 adds a reusable command-center helper layer for Unity UI Toolkit: command page headers, status pills, KPI cards, panels, metric rows, action rows, warning banners, data-quality panels, safe empty states and section tabs. These helpers are presentation-only and must not invent values, live FM26 availability, fake benchmarks or external API status.
 
-The Player Profile slice uses synthetic fixture-mode copy to preview dashboard layout only. The Player Profile v1 page/report loads persisted safe imported data. Neither surface claims live FM26 connectivity, real player images, club badges or unlicensed flags. Dashboard preview visuals should be labelled as masked evidence and benchmark-unavailable status, not radar, percentile or trend claims.
+See `docs/command-center-ui.md` for the compact design-system contract, status categories and page pattern.
 
-The slice is generated from `MaskedPlayerProfileViewModel` through `UnityProfileRenderModel`, not from raw provider snapshots or hardcoded Unity-only profile data.
+The Player Profile v1 page/report loads persisted safe imported data. It does not claim live FM26 connectivity, real player images, club badges or unlicensed flags.
 
 ## Player Profile Direction
 
@@ -46,7 +45,7 @@ Visual copy should stay honest when data is incomplete. Unknown tactical fit sho
 
 The first Data Sources screen is wired into the Unity shell for local CSV imports. It should stay functional and honest: manual CSV path entry, source metadata, permission toggles, read-only preview, safe import counts and database diagnostics. It must not show network sources, fake live FM26 data, unlicensed player images, club badges or provider flags.
 
-Recruitment Centre v1 shows persisted imported players as white/glassy cards with source confidence, completeness, persisted role name, role fit, tactical-fit status, recommendation, risk, output metrics, blocked-field count and missing-data count. Milestone 2.1 adds compact mini visuals for role fit, confidence, completeness, risk, output, missing-data badges and blocked-field badges. It should feel analytical rather than spreadsheet-only, but it remains deliberately simple.
+Recruitment Centre v1 shows persisted imported players as command-center cards with source confidence, completeness, persisted role name, role fit, tactical-fit status, recommendation, risk, output metrics, blocked-field count and missing-data count. Milestone 2.1 adds compact mini visuals for role fit, confidence, completeness, risk, output, missing-data badges and blocked-field badges. It should feel analytical rather than spreadsheet-only, but it remains deliberately simple.
 
 Recruitment Centre screens should show local import status, source permissions, safe audit counts, player stat counts, physical metric counts, reset/default filters and role-output evidence without exposing raw provider snapshots or blocked raw values.
 
@@ -104,4 +103,6 @@ Milestone 2.6 keeps the existing white/glassy UI and adds consistency helpers fo
 
 Navigation items should never silently fall back to Home. Built pages open directly; unfinished pages show a clear `This page is not built yet` placeholder with no fake data. The Diagnostics page owns Runtime Check and Full Smoke Test controls.
 
-Milestone 2.7 changes the default root class to `theme-dark-command-center` and keeps `LightGlass` documented as a legacy/fallback theme. The shell now shows a global `No live FM26 data` status, a local SQLite runtime note, active navigation state and command-center styling for Home and Data Sources. Diagnostics, Runtime Check and Full Smoke Test remain available and unchanged in scope.
+Milestone 2.7 changes the default root class to `theme-dark-command-center` and keeps `LightGlass` documented as a legacy/fallback theme. The shell now shows a global `No live FM26 data` status, a local SQLite runtime note, active navigation state and command-center styling across the Unity pages.
+
+Home now acts as a local command-center overview. It reads safe SQLite counts through `DashboardStatusService` and shows `Awaiting local data.` for an empty database rather than fake player, alert or sync counts. Diagnostics, Runtime Check and Full Smoke Test remain available and unchanged in scope.

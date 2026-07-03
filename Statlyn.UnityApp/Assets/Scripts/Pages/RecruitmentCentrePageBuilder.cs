@@ -22,10 +22,11 @@ namespace Statlyn.UnityApp.Pages
 
             var safety = new VisualElement();
             safety.AddToClassList("dashboard-grid");
+            safety.AddToClassList("command-kpi-row");
             main.Add(safety);
-            safety.Add(StatlynUiFactory.MakeCard("Recruitment Safety", new[] { "Persisted safe data only", "No raw provider snapshots", "No blocked raw values" }));
-            safety.Add(StatlynUiFactory.MakeCard("FM26 Status", new[] { "No live FM26 data", "Unsupported until validated memory maps exist" }));
-            safety.Add(StatlynUiFactory.MakeCard("Database Status", new[] { "Path: " + databasePath, "SQLite initialized on demand" }));
+            safety.Add(StatlynUiFactory.MakeCommandKpiCard("Recruitment Safety", "Safe local data", "No raw provider snapshots or blocked raw values", CommandStatusCategory.Info));
+            safety.Add(StatlynUiFactory.MakeCommandKpiCard("FM26 Status", "Unsupported", "No live FM26 data", CommandStatusCategory.Warning));
+            safety.Add(StatlynUiFactory.MakeCommandKpiCard("Database", "Runtime main", databasePath, CommandStatusCategory.Info));
 
             var filters = new VisualElement();
             filters.AddToClassList("data-source-form");
@@ -75,21 +76,11 @@ namespace Statlyn.UnityApp.Pages
 
         private static void BuildHeader(VisualElement main, string databasePath)
         {
-            var header = new VisualElement();
-            header.AddToClassList("header");
-            main.Add(header);
-            var titleStack = new VisualElement();
-            titleStack.AddToClassList("title-stack");
-            header.Add(titleStack);
-            var title = new Label("Recruitment Centre");
-            title.AddToClassList("screen-title");
-            titleStack.Add(title);
-            var subtitle = new Label("Persisted safe data only - no live FM26 data");
-            subtitle.AddToClassList("screen-subtitle");
-            titleStack.Add(subtitle);
-            var status = new Label("No live FM26 data");
-            status.AddToClassList("status-pill");
-            header.Add(status);
+            main.Add(StatlynUiFactory.MakeCommandPageHeader(
+                "Recruitment Centre",
+                "Search, filter and shortlist persisted safe players",
+                "No live FM26 data",
+                CommandStatusCategory.Info));
         }
 
         private static RecruitmentCentreQuery BuildQuery(TextField search, TextField source, TextField position, TextField minConfidence, TextField minRoleFit, DropdownField sort)
@@ -125,8 +116,8 @@ namespace Statlyn.UnityApp.Pages
                 var cards = new VisualElement();
                 cards.AddToClassList("dashboard-grid");
                 results.Add(cards);
-                cards.Add(StatlynUiFactory.MakeCard("Recruitment Centre", new[] { "Could not load persisted players." }));
-                cards.Add(StatlynUiFactory.MakeCard("Runtime Error", new[] { ex.GetType().Name + ": " + ex.Message, "Run Data Sources runtime check if SQLite fails." }));
+                cards.Add(StatlynUiFactory.MakeErrorCard("Recruitment Centre", "Could not load persisted players safely."));
+                cards.Add(StatlynUiFactory.MakeErrorCard("Runtime Error", ex.GetType().Name + ": " + ex.Message, "Run Data Sources runtime check if SQLite fails."));
             }
         }
 
@@ -134,15 +125,16 @@ namespace Statlyn.UnityApp.Pages
         {
             var summary = new VisualElement();
             summary.AddToClassList("dashboard-grid");
+            summary.AddToClassList("command-kpi-row");
             results.Add(summary);
-            summary.Add(StatlynUiFactory.MakeCard("Player Count", new[] { viewModel.TotalCount.ToString(CultureInfo.InvariantCulture) + " matched", viewModel.Players.Count.ToString(CultureInfo.InvariantCulture) + " shown" }));
-            summary.Add(StatlynUiFactory.MakeCard("Database", new[] { "Path: " + viewModel.Diagnostics.DatabasePath, "Status: readable persisted store" }));
-            summary.Add(StatlynUiFactory.MakeCard("Safety", new[] { "Persisted safe data only", "No raw blocked values", "No live FM26 data" }));
-            summary.Add(StatlynUiFactory.MakeCard("Source List", viewModel.Sources.Count == 0 ? new[] { "None" } : StatlynUiFactory.ToArray(viewModel.Sources)));
+            summary.Add(StatlynUiFactory.MakeCommandKpiCard("Matched Players", viewModel.TotalCount.ToString(CultureInfo.InvariantCulture), viewModel.Players.Count.ToString(CultureInfo.InvariantCulture) + " shown", viewModel.TotalCount == 0 ? CommandStatusCategory.Muted : CommandStatusCategory.Success));
+            summary.Add(StatlynUiFactory.MakeCommandKpiCard("Database", "Readable", viewModel.Diagnostics.DatabasePath, CommandStatusCategory.Info));
+            summary.Add(StatlynUiFactory.MakeCommandKpiCard("Safety", "Guarded", "Persisted safe data only; no raw blocked values", CommandStatusCategory.Warning));
+            summary.Add(StatlynUiFactory.MakeCommandPanel("Source List", viewModel.Sources.Count == 0 ? new[] { "None" } : StatlynUiFactory.ToArray(viewModel.Sources)));
 
             if (viewModel.Players.Count == 0)
             {
-                results.Add(StatlynUiFactory.MakeCard("Empty State", new[] { "No imported players yet.", "Go to Data Sources and import a local CSV.", "No fake players are shown." }));
+                results.Add(StatlynUiFactory.MakeCommandEmptyState("Recruitment Centre", "No imported players yet.", "Go to Data Sources and import a local CSV.", "No fake players are shown."));
                 return;
             }
 
@@ -160,6 +152,7 @@ namespace Statlyn.UnityApp.Pages
             var visuals = RecruitmentCentreMiniVisualBuilder.Build(row);
             var card = new VisualElement();
             card.AddToClassList("glass-card");
+            card.AddToClassList("command-panel");
             card.Add(StatlynUiFactory.MakeSectionTitle(row.Name));
             card.Add(new Label(row.Age + " | " + row.Nationality + " | " + row.Position));
             card.Add(new Label("Source: " + row.Source + " (" + row.SourceConfidence + " confidence)"));

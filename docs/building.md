@@ -12,6 +12,8 @@ dotnet build Statlyn.sln
 dotnet test Statlyn.sln
 ```
 
+The test suite uses in-memory SQLite for persistence tests and the synthetic CSV fixture for safe import/reload coverage.
+
 ## Native Connector
 
 Requires CMake and a Windows C++ compiler.
@@ -32,5 +34,7 @@ Copy the shared managed assemblies before opening the project:
 ```
 
 Open `Statlyn.UnityApp` in Unity 6 or newer. The shell is intentionally limited to unsupported states and synthetic fixture preview data until a validated provider is connected.
+
+SQLite persistence is currently verified in managed tests, not bound into Unity UI.
 
 Use `docs/unity-validation.md` for the current manual Unity checklist.

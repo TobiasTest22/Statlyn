@@ -50,3 +50,21 @@ CSV imports use `FootballFieldCatalog` plus optional explicit mappings. The cata
 Diagnostics report file readability, licence state, row count, players imported, mapped field count, unknown/forbidden field counts, image permission, flag permission and completeness. Diagnostics may include field names and counts, but not raw hidden values.
 
 CSV and JSON remain local import skeletons. They do not create live FM26 data and do not assume image URLs, badge URLs or provider flags are licensed.
+
+## Import Pipeline
+
+The current safe import pipeline is:
+
+```text
+IDataProvider.ValidateAccess
+-> ReadSourceMetadata
+-> ReadPlayers
+-> ScoutingKnowledgeFirewall.Mask
+-> RoleScoringEngine.ScorePlayer
+-> SQLite repositories
+-> ImportAudit
+```
+
+Only masked, permitted and source-tagged data is stored. Blocked fields create audit rows with source name, entity id, field key, field name and reason only. Raw blocked values are not stored.
+
+Player stats such as xG and xA are persisted as `PlayerStat` output records. Physical outputs such as TopSpeed and SprintDistance are persisted as `PhysicalMetric` records. This keeps performance output separate from attributes for future role-specific scoring.

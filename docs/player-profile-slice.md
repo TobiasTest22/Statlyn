@@ -48,6 +48,8 @@ The synthetic raw fixture is created privately by `FixtureProfileFactory`. It in
 
 Unity consumes `UnityProfileRenderModel`, a thin render adapter built only from `MaskedPlayerProfileViewModel`. Raw player data must not bind to Unity UI.
 
+Milestone 1.7 also proves that an imported synthetic CSV player can be persisted as safe SQLite data, reloaded as a masked player and used to build `MaskedPlayerProfileViewModel`. Unity still renders the fixture factory profile for now; persistence binding is a later UI task.
+
 ## Visual Intelligence
 
 Milestone 1.6 adds UI-ready visual model contracts for radar metrics, percentile bars, role fit, confidence, risk, evidence cards, trend placeholders, comparison cards, missing data warnings and blocked data notices. These are placeholders for future chart rendering, not decorative chart output.
@@ -62,3 +64,4 @@ Milestone 1.6 adds UI-ready visual model contracts for radar metrics, percentile
 - Player images use initials or a silhouette unless a source explicitly permits player images.
 - Provider flags require permission; otherwise only bundled safe placeholder flags may be shown.
 - Club badges remain hidden unless permission exists.
+- Persisted profiles must be rebuilt from safe stored masked data, not original raw provider snapshots.

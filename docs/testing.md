@@ -55,6 +55,19 @@ Milestone 1.6.1 adds tests for:
 - Split data-source permission columns for player images, provider flags, bundled safe flags, club badges and export.
 - Blocked-field audit and visible-field schema safety.
 
-Future tests should cover SQLite persistence, real provider imports, Unity UI state transitions and native connector status parsing.
+Milestone 1.7 adds tests for:
+
+- In-memory and file SQLite initialization.
+- Idempotent schema creation and schema version tracking.
+- Safe repository guardrails rejecting raw provider entities.
+- Source metadata split permissions, nullable tactical fit and field instance persistence.
+- Synthetic CSV import through firewall, scoring, SQLite persistence and import audit.
+- Player stats and physical metrics persisting without overwriting one another.
+- Generic performance metric definitions staying FM26-unverified by default.
+- Position-specific role-output expectation profiles.
+- Safe reload into `MaskedPlayer` and `MaskedPlayerProfileViewModel`.
+- Database diagnostics counts without hidden or blocked raw values.
+
+Future tests should cover broader persistence migrations, real provider imports, Unity UI state transitions and native connector status parsing.
 
 Unity editor validation remains manual. Run `.\tools\copy-managed-to-unity.ps1` before opening the project so the Unity assembly definition can resolve the shared managed Statlyn DLLs.

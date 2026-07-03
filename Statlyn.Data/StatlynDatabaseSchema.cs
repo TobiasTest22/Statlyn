@@ -10,6 +10,10 @@ namespace Statlyn.Data
             {
                 return new[]
                 {
+                    @"CREATE TABLE IF NOT EXISTS SchemaVersion (
+                        SchemaVersion INTEGER NOT NULL,
+                        AppliedAtUtc TEXT NOT NULL
+                    );",
                     @"CREATE TABLE IF NOT EXISTS DataSource (
                         Id INTEGER PRIMARY KEY,
                         SourceName TEXT NOT NULL,
@@ -259,6 +263,11 @@ namespace Statlyn.Data
                         RowsRead INTEGER NOT NULL,
                         RowsAccepted INTEGER NOT NULL,
                         RowsRejected INTEGER NOT NULL,
+                        FieldsStored INTEGER NOT NULL DEFAULT 0,
+                        PlayerStatsStored INTEGER NOT NULL DEFAULT 0,
+                        PhysicalMetricsStored INTEGER NOT NULL DEFAULT 0,
+                        BlockedFields INTEGER NOT NULL DEFAULT 0,
+                        UnknownFields INTEGER NOT NULL DEFAULT 0,
                         Diagnostics TEXT NOT NULL
                     );",
                     @"CREATE TABLE IF NOT EXISTS BlockedFieldAudit (
@@ -277,6 +286,76 @@ namespace Statlyn.Data
                         Message TEXT NOT NULL,
                         TechnicalDetail TEXT NULL,
                         CreatedAtUtc TEXT NOT NULL
+                    );",
+                    @"CREATE TABLE IF NOT EXISTS PerformanceMetricDefinition (
+                        Id INTEGER PRIMARY KEY,
+                        MetricKey TEXT NOT NULL UNIQUE,
+                        DisplayName TEXT NOT NULL,
+                        Description TEXT NOT NULL,
+                        FieldKey TEXT NOT NULL,
+                        FieldName TEXT NOT NULL,
+                        ProviderType TEXT NOT NULL,
+                        IsGenericFootballMetric INTEGER NOT NULL,
+                        IsVerifiedFm26Metric INTEGER NOT NULL,
+                        IsPer90Capable INTEGER NOT NULL,
+                        DefaultUnit TEXT NOT NULL,
+                        HigherIsBetter INTEGER NOT NULL,
+                        LowerIsBetter INTEGER NOT NULL,
+                        RequiresMinutes INTEGER NOT NULL,
+                        MinimumMinutesRecommended INTEGER NOT NULL,
+                        PositionGroups TEXT NOT NULL,
+                        RoleFamilies TEXT NOT NULL,
+                        SourceConfidenceRequired INTEGER NOT NULL,
+                        CanScore INTEGER NOT NULL,
+                        CanStore INTEGER NOT NULL,
+                        Notes TEXT NOT NULL
+                    );",
+                    @"CREATE TABLE IF NOT EXISTS PerformanceMetricAlias (
+                        Id INTEGER PRIMARY KEY,
+                        MetricKey TEXT NOT NULL,
+                        ProviderType TEXT NOT NULL,
+                        AliasName TEXT NOT NULL,
+                        IsVerifiedFm26Alias INTEGER NOT NULL DEFAULT 0,
+                        Notes TEXT NOT NULL,
+                        FOREIGN KEY(MetricKey) REFERENCES PerformanceMetricDefinition(MetricKey)
+                    );",
+                    @"CREATE TABLE IF NOT EXISTS ProviderMetricMapping (
+                        Id INTEGER PRIMARY KEY,
+                        MetricKey TEXT NOT NULL,
+                        ProviderType TEXT NOT NULL,
+                        ProviderFieldName TEXT NOT NULL,
+                        IsVerifiedFm26Mapping INTEGER NOT NULL DEFAULT 0,
+                        Notes TEXT NOT NULL,
+                        FOREIGN KEY(MetricKey) REFERENCES PerformanceMetricDefinition(MetricKey)
+                    );",
+                    @"CREATE TABLE IF NOT EXISTS RoleOutputExpectationProfile (
+                        Id INTEGER PRIMARY KEY,
+                        ProfileName TEXT NOT NULL UNIQUE,
+                        PositionGroup TEXT NOT NULL,
+                        RoleFamily TEXT NOT NULL,
+                        TacticalPhase TEXT NULL,
+                        IsFm26Specific INTEGER NOT NULL,
+                        IsGenericTemplate INTEGER NOT NULL,
+                        AttributeSupportWeights TEXT NOT NULL,
+                        ScoutQuestionPrompts TEXT NOT NULL,
+                        RedFlagRules TEXT NOT NULL,
+                        MinimumSampleRules TEXT NOT NULL,
+                        Notes TEXT NOT NULL
+                    );",
+                    @"CREATE TABLE IF NOT EXISTS RoleOutputMetricExpectation (
+                        Id INTEGER PRIMARY KEY,
+                        ProfileName TEXT NOT NULL,
+                        MetricKey TEXT NOT NULL,
+                        FieldName TEXT NOT NULL,
+                        Weight REAL NOT NULL,
+                        Importance TEXT NOT NULL,
+                        Direction TEXT NOT NULL,
+                        MinimumSampleMinutes INTEGER NOT NULL,
+                        Per90Required INTEGER NOT NULL,
+                        NormalizationHint TEXT NOT NULL,
+                        EvidenceTemplate TEXT NOT NULL,
+                        MissingDataImpact TEXT NOT NULL,
+                        FOREIGN KEY(ProfileName) REFERENCES RoleOutputExpectationProfile(ProfileName)
                     );"
                 };
             }

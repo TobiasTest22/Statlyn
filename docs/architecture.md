@@ -12,7 +12,7 @@ Data provider
 -> masked Statlyn entities
 -> analytics and scoring
 -> masked profile view models and visual intelligence models
--> local database
+-> local SQLite database
 -> Unity UI
 ```
 
@@ -32,6 +32,8 @@ For FM26, the data provider is the native connector reading the active process w
 ## Non-Negotiable Boundary
 
 Raw provider entities are allowed only in provider and firewall code. UI and scoring receive `MaskedPlayer` instances only.
+
+SQLite persistence follows the same boundary. Repositories accept `MaskedPlayer`, `VisiblePlayerField`, `RoleScore`, `SourceMetadata`, `DataCompletenessReport`, blocked-field notices and safe audit models. They reject raw provider entities and skip unknown, blocked or non-storable fields.
 
 The Unity Player Profile fixture uses the same managed boundary as tests:
 
@@ -56,3 +58,9 @@ Grouped fields use `FieldInstanceKey` so values like `TechnicalAttribute:Finishi
 ## Current Build Support
 
 No FM26 build is validated yet. The app and provider therefore return unsupported diagnostics and empty player snapshots rather than fixture data. The Unity fixture preview is synthetic development data and must remain clearly labelled as no live FM26 data.
+
+## Performance Output Direction
+
+The persistence layer now includes generic performance metric definitions and role-output expectation profiles. These prepare Statlyn for role-specific output evaluation without claiming FM26 support. Seeded metrics such as xG, xA, progressive passes, tackles, save percentage and physical outputs are generic import/testing definitions until later validated against supported FM26-visible data, exports or memory maps.
+
+Role-output profiles are position-specific: goalkeeper, centre-back, wide attacker, striker and central midfielder templates do not share one universal metric set. Attributes remain supporting evidence rather than the whole recruitment model.

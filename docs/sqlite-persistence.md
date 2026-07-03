@@ -191,3 +191,14 @@ Milestone 2.6 separates database path intent:
 - `UnitTestInMemory` keeps normal test databases in memory.
 
 The full smoke test clears and recreates the smoke-test database by default. It should not modify the main runtime database unless a user deliberately runs normal Data Sources import.
+
+## Local Database Maintenance
+
+Milestone 2.8 adds a local maintenance service for release-candidate safety:
+
+- main database status reports whether the local SQLite file exists and where it lives
+- main database backup creates a timestamped copy of the SQLite file only
+- smoke-test reset clears the temporary smoke-test database, WAL and SHM files
+- main runtime reset remains explicit and separate from smoke-test reset
+
+Maintenance messages are sanitized before display. Backup and reset actions should be run from Diagnostics so the user can see the safe summary and path context.

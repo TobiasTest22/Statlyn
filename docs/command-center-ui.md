@@ -45,3 +45,9 @@ Home reads local SQLite counts through `DashboardStatusService`. Empty databases
 ## Validation
 
 Managed tests verify theme tokens, status mapping, safe navigation metadata, dashboard overview counts and smoke-test compatibility. Unity Editor validation remains manual unless a release note says it was opened and checked locally. SQLite-in-Unity must be validated through the Diagnostics page runtime check before runtime import is trusted in the Editor.
+
+## Release Readiness Panels
+
+Milestone 2.8 extends Diagnostics with release-candidate controls for local product readiness, main database backup and smoke-test database reset. These panels should use the command-center status language and should show warning/skipped states when local data is absent.
+
+Home may show `Local Readiness` as `Not checked.` until Diagnostics runs the readiness check. It must not claim release readiness before the check has been run.

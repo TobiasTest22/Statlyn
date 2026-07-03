@@ -219,3 +219,17 @@ Milestone 2.6 adds `Milestone26Tests` for the Unity-facing smoke-test service. T
 - seed and run benchmarks
 
 The tests also verify path separation, fixture missing-state messaging, navigation metadata, no FM26 requirement and no hidden raw values in smoke-test output.
+
+## Local CSV Release Candidate Tests
+
+Milestone 2.8 adds `Milestone28Tests` for local CSV product hardening. These tests cover:
+
+- release-readiness checks for empty and imported local databases
+- honest skipped/warning states when optional local data is absent
+- CSV preview and import hardening messages for rows, unknown columns, forbidden fields, missing metrics and replacement imports
+- idempotent re-import behavior so repeated CSV imports replace the safe snapshot rather than duplicating rows
+- timestamped main database backups and smoke-test database reset safety
+- safe report snapshots for readiness, Player Profile, shortlists, Scout Desk reports and benchmarks
+- navigation and smoke-test compatibility after the release-candidate diagnostics changes
+
+The release-candidate tests remain local-only. They do not require Unity, FM26, network access, external APIs or real player data.

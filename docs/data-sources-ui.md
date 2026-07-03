@@ -45,3 +45,17 @@ Preview shows column names, mapping status and counts only. It does not store da
 SQLite behavior is verified by managed tests. SQLite dependency loading inside the Unity Editor remains a manual validation step until the Unity Editor is opened and the runtime check is run successfully.
 
 After a safe import, open Recruitment Centre to query the persisted players. Recruitment Centre does not read CSV files directly; it reads only the masked SQLite rows created by this workflow.
+
+## Local CSV Hardening
+
+Milestone 2.8 adds release-candidate CSV hardening messages to preview and import results. The UI should make these points visible:
+
+- rows detected
+- unknown columns detected
+- forbidden columns detected
+- unknown columns are not stored unless mapped safely
+- forbidden or hidden-looking fields are blocked
+- missing metrics are not treated as zero
+- re-import replaces the current safe snapshot rather than duplicating rows
+
+Import audit display rows should show accepted, rejected and stored counts with the same safety language. The UI must not print raw forbidden values or hidden-looking numeric attributes.

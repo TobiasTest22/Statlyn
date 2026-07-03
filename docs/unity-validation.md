@@ -151,3 +151,15 @@ Safety:
 - Generic/import metrics are clearly labelled as not FM26-verified.
 
 If Unity Editor is not opened, report that clearly. If SQLite-in-Unity is not manually verified, report that clearly.
+
+## Release-Candidate Diagnostics
+
+Milestone 2.8 adds a local product-readiness section to Diagnostics. For a release-candidate pass, run:
+
+- `Run Product Readiness Check`
+- `Backup Main Database`
+- `Reset Smoke-Test Database`
+
+The readiness check summarizes local SQLite initialization, CSV fixture availability, import workflow construction, Recruitment Centre, Player Profile, shortlists, Scout Desk, Role Lab, Benchmarks and smoke-test service availability. Empty optional areas should be shown as skipped or warning states, not fake success.
+
+The backup action copies only the main local SQLite database file to a timestamped backup under Unity persistent data. The smoke-test reset clears only the temporary smoke-test database path. It must not touch the main runtime database.

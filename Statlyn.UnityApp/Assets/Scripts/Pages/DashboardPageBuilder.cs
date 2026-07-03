@@ -35,6 +35,7 @@ namespace Statlyn.UnityApp.Pages
             dashboard.Add(StatlynUiFactory.MakeCommandKpiCard("Scout Assignments", CountValue(overview.ScoutAssignmentCount), overview.ScoutAssignmentsStatus, overview.ScoutAssignmentCount == 0 ? CommandStatusCategory.Muted : CommandStatusCategory.Info));
             dashboard.Add(StatlynUiFactory.MakeCommandKpiCard("Role Lab", CountValue(overview.RoleLabTemplateCount), overview.RoleLabStatus, overview.RoleLabTemplateCount == 0 ? CommandStatusCategory.Muted : CommandStatusCategory.Info));
             dashboard.Add(StatlynUiFactory.MakeCommandKpiCard("Benchmarks", CountValue(overview.BenchmarkDefinitionCount), overview.BenchmarkStatus, overview.BenchmarkDefinitionCount == 0 ? CommandStatusCategory.Muted : CommandStatusCategory.Info));
+            dashboard.Add(StatlynUiFactory.MakeCommandKpiCard("Local Readiness", "Not checked", overview.LocalReadinessStatus, CommandStatusCategory.Muted));
             dashboard.Add(StatlynUiFactory.MakeCommandKpiCard("FM26 Status", "Unsupported", overview.Fm26Status, CommandStatusCategory.Warning));
             dashboard.Add(StatlynUiFactory.MakeCommandKpiCard("Smoke Test", "Not run", overview.SmokeTestStatus, CommandStatusCategory.Muted));
 

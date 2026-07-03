@@ -179,7 +179,27 @@ namespace Statlyn.Data.Workflow
                 warnings.Add("Allowed usage is unspecified; enter the permitted usage before relying on imported data.");
             }
 
+            if (request.SourceConfidence < 60)
+            {
+                warnings.Add("Source confidence is low; treat imported analysis as directional.");
+            }
+
+            if (Contains(request.SourceName, "synthetic") || Contains(request.SourceName, "fixture") || Contains(request.LicenceStatus, "synthetic") || Contains(request.AllowedUsage, "fixture"))
+            {
+                warnings.Add("Fixture/import mode warning: synthetic fixture data is for local validation only and is not live FM26 data.");
+            }
+
+            warnings.Add("Unknown columns are not stored unless mapped safely.");
+            warnings.Add("Forbidden/hidden-looking fields are blocked.");
+            warnings.Add("Missing metrics are not treated as zero.");
+            warnings.Add("Re-import replaces current safe snapshot, not duplicate rows.");
+
             return warnings;
+        }
+
+        private static bool Contains(string value, string expected)
+        {
+            return !string.IsNullOrWhiteSpace(value) && value.IndexOf(expected, StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
         private static List<string> ValidateRequest(DataSourceImportRequest request, bool requireReadableFile)

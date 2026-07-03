@@ -60,3 +60,9 @@ FM26 remains unsupported until validated memory maps exist. CSV local import is 
 The Home dashboard reads local SQLite counts and may show `Awaiting local data.` before Data Sources import or the smoke test has created data. That is expected and should not be replaced with fake counts.
 
 If SQLite fails in Unity, rerun `tools/copy-managed-to-unity.ps1`, confirm `Microsoft.Data.Sqlite.dll`, `SQLitePCLRaw.*.dll` and `Assets\Plugins\x86_64\e_sqlite3.dll` exist, then run the Runtime Check again.
+
+## Release Readiness
+
+Milestone 2.8 keeps the full smoke test as the end-to-end workflow proof and adds a separate product-readiness check in Diagnostics. The readiness check is broader but read-only for normal app data: it verifies that pages and services can load local state, and reports optional missing areas honestly.
+
+Use `Reset Smoke-Test Database` before repeating smoke-test validation when you want a clean temporary smoke database. Use `Backup Main Database` before manual testing that could change the persistent main local database.

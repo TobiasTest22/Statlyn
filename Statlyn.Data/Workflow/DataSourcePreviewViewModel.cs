@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Globalization;
 using Statlyn.DataProviders.Import;
 
 namespace Statlyn.Data.Workflow
@@ -14,6 +15,7 @@ namespace Statlyn.Data.Workflow
             int forbiddenCount,
             IReadOnlyList<ColumnPreviewViewModel> columnRows,
             string safeMessage,
+            IReadOnlyList<string> hardeningMessages,
             IReadOnlyList<string> warnings,
             IReadOnlyList<string> errors)
         {
@@ -25,6 +27,7 @@ namespace Statlyn.Data.Workflow
             ForbiddenCount = forbiddenCount;
             ColumnRows = columnRows ?? new List<ColumnPreviewViewModel>();
             SafeMessage = safeMessage ?? string.Empty;
+            HardeningMessages = hardeningMessages ?? new List<string>();
             Warnings = warnings ?? new List<string>();
             Errors = errors ?? new List<string>();
         }
@@ -44,6 +47,8 @@ namespace Statlyn.Data.Workflow
         public IReadOnlyList<ColumnPreviewViewModel> ColumnRows { get; }
 
         public string SafeMessage { get; }
+
+        public IReadOnlyList<string> HardeningMessages { get; }
 
         public IReadOnlyList<string> Warnings { get; }
 
@@ -70,6 +75,7 @@ namespace Statlyn.Data.Workflow
                 preview.ForbiddenCount,
                 rows,
                 message,
+                BuildHardeningMessages(preview.RowsDetected, preview.UnknownCount, preview.ForbiddenCount),
                 warnings,
                 errors);
         }
@@ -85,8 +91,23 @@ namespace Statlyn.Data.Workflow
                 0,
                 new List<ColumnPreviewViewModel>(),
                 "No CSV preview has been run.",
+                BuildHardeningMessages(0, 0, 0),
                 warnings,
                 errors);
+        }
+
+        private static IReadOnlyList<string> BuildHardeningMessages(int rowsDetected, int unknownCount, int forbiddenCount)
+        {
+            return new[]
+            {
+                "Rows detected: " + rowsDetected.ToString(CultureInfo.InvariantCulture) + ".",
+                "Unknown columns detected: " + unknownCount.ToString(CultureInfo.InvariantCulture) + ".",
+                "Forbidden columns detected: " + forbiddenCount.ToString(CultureInfo.InvariantCulture) + ".",
+                "Unknown columns are not stored unless mapped safely.",
+                "Forbidden/hidden-looking fields are blocked.",
+                "Missing metrics are not treated as zero.",
+                "Re-import replaces current safe snapshot, not duplicate rows."
+            };
         }
     }
 }

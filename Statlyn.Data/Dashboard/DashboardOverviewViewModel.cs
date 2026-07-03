@@ -81,6 +81,11 @@ namespace Statlyn.Data.Dashboard
             get { return "Not run in this session."; }
         }
 
+        public string LocalReadinessStatus
+        {
+            get { return "Not checked."; }
+        }
+
         public bool HasLiveFm26Data
         {
             get { return false; }
@@ -105,6 +110,7 @@ namespace Statlyn.Data.Dashboard
                     "Scout assignments: " + ScoutAssignmentsStatus,
                     "Role Lab: " + RoleLabStatus,
                     "Benchmarks: " + BenchmarkStatus,
+                    "Readiness: " + LocalReadinessStatus,
                     "FM26: " + Fm26Status,
                     "Smoke test: " + SmokeTestStatus,
                     "No live FM26 data"

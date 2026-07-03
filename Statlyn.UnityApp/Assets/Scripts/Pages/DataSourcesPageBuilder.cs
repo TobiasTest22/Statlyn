@@ -310,6 +310,7 @@ namespace Statlyn.UnityApp.Pages
             cards.Add(StatlynUiFactory.MakeCard("Forbidden Fields", new[] { preview.ForbiddenCount.ToString(CultureInfo.InvariantCulture) }));
             cards.Add(StatlynUiFactory.MakeCard("Import Result", new[] { "Preview only", "No data stored" }));
             cards.Add(StatlynUiFactory.MakeCard("Last Error", preview.Errors.Count == 0 ? new[] { "None" } : StatlynUiFactory.ToArray(preview.Errors)));
+            results.Add(StatlynUiFactory.MakeMessages("CSV Safety Messages", preview.HardeningMessages));
             results.Add(StatlynUiFactory.MakeMessages("Warnings", preview.Warnings));
             results.Add(MakeColumnPreviewList(preview.ColumnRows));
         }
@@ -335,6 +336,7 @@ namespace Statlyn.UnityApp.Pages
             {
                 cards.Add(StatlynUiFactory.MakeCard("Import Result", new[] { import.Success ? "Completed" : "Completed with warnings", "Rows accepted: " + import.RowsAccepted.ToString(CultureInfo.InvariantCulture), "Rows rejected: " + import.RowsRejected.ToString(CultureInfo.InvariantCulture), "Fields stored: " + import.FieldsStored.ToString(CultureInfo.InvariantCulture), "Player stats stored: " + import.PlayerStatsStored.ToString(CultureInfo.InvariantCulture), "Physical metrics stored: " + import.PhysicalMetricsStored.ToString(CultureInfo.InvariantCulture), "Blocked fields: " + import.BlockedFields.ToString(CultureInfo.InvariantCulture), "Unknown fields: " + import.UnknownFields.ToString(CultureInfo.InvariantCulture), "Players in database: " + import.DatabasePlayersCount.ToString(CultureInfo.InvariantCulture), "Stats in database: " + import.DatabaseStatsCount.ToString(CultureInfo.InvariantCulture) }));
                 cards.Add(StatlynUiFactory.MakeCard("Last Error", import.Errors.Count == 0 ? new[] { "None" } : StatlynUiFactory.ToArray(import.Errors)));
+                results.Add(StatlynUiFactory.MakeMessages("Import Audit Display", import.AuditDisplayRows));
             }
 
             results.Add(StatlynUiFactory.MakeMessages("Warnings", result.WarningMessages));

@@ -35,6 +35,7 @@ Statlyn is a desktop football recruitment intelligence platform for Football Man
 - Benchmark Foundation v1: generic/import benchmark definitions, aggregate-only benchmark runs and nullable percentiles from persisted safe SQLite comparison groups.
 - Unity runtime validation v1: Diagnostics page, Runtime Check and Full Smoke Test covering the CSV-only workflow against a separate smoke-test database.
 - UI Command-Center Theme Baseline: dark Unity shell, command-center status/KPI helpers, safe local dashboard overview counts and consistent command headers across built and placeholder pages.
+- Local CSV release-candidate hardening: product readiness checks, CSV hardening messages, safe database backup/smoke reset foundation and safe snapshot text outputs.
 - Branding: official Statlyn logo assets are copied into Unity `Resources/Branding` and used by the shell/sidebar.
 - Field policy registry: deny-by-default masking for display, scoring and storage.
 - Field instance keys: grouped values such as `TechnicalAttribute:Finishing` and `PlayerStat:xG` are preserved without overwriting.
@@ -51,7 +52,7 @@ The SQLite persistence layer is local-only foundation work. It stores masked pla
 
 Performance metric definitions are generic/import-ready contracts, not official FM26 stat declarations. A metric can only be marked FM26-supported after later validation from visible FM26 data, exported data or a validated memory map. Generic role-output expectation profiles and benchmark definitions are foundation templates, not final FM26 role templates. Goalkeepers, centre-backs, midfielders, wide attackers and strikers intentionally use different output expectations. No fake benchmark percentiles are generated; if no comparison group exists, Player Profile v1 and Recruitment Centre rows say no benchmark yet.
 
-Official logo usage is documented in `docs/branding.md`. Command-center UI guidance is documented in `docs/command-center-ui.md`. Visual analytics components are documented in `docs/visual-analytics-components.md`. Benchmarks are documented in `docs/benchmarks.md`. Shortlists are documented in `docs/shortlists.md`. Scout Desk is documented in `docs/scout-desk.md` and report safety in `docs/scout-report-safety.md`. Role Lab is documented in `docs/role-lab.md` and the phase-role model in `docs/fm26-phase-role-model.md`. The currently available repo assets are `StatLyn_Logo.png`, `StatLyn_Logo_Reversed.png`, `Statlyn_Logo_Black-text.png` and `Statlyn_Logo_White-text.png`.
+Official logo usage is documented in `docs/branding.md`. Command-center UI guidance is documented in `docs/command-center-ui.md`. Local CSV release-candidate flow is documented in `docs/local-csv-release-candidate.md`, and database maintenance safety is documented in `docs/database-maintenance.md`. Visual analytics components are documented in `docs/visual-analytics-components.md`. Benchmarks are documented in `docs/benchmarks.md`. Shortlists are documented in `docs/shortlists.md`. Scout Desk is documented in `docs/scout-desk.md` and report safety in `docs/scout-report-safety.md`. Role Lab is documented in `docs/role-lab.md` and the phase-role model in `docs/fm26-phase-role-model.md`. The currently available repo assets are `StatLyn_Logo.png`, `StatLyn_Logo_Reversed.png`, `Statlyn_Logo_Black-text.png` and `Statlyn_Logo_White-text.png`.
 
 ## Repository Layout
 
@@ -110,6 +111,8 @@ Before opening Unity, copy the shared managed assemblies, SQLite dependencies an
 ```
 
 Unity editor validation is still manual unless a release note says it was opened and checked locally. SQLite is verified by managed tests; use the Diagnostics page's `Run Runtime Check` and `Run Full Smoke Test` buttons in Unity to validate SQLite loading and the local CSV workflow in the Editor before relying on runtime import there.
+
+For a local CSV release-candidate demo, also run `Run Product Readiness Check`, use `Backup Main Database` before destructive experiments, and use `Reset Smoke-Test Database` only for the separate smoke-test database.
 
 GitHub Actions validates the managed build/tests and the native CMake build.
 

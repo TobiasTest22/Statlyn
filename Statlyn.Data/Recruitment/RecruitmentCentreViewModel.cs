@@ -39,7 +39,7 @@ namespace Statlyn.Data.Recruitment
                 result.Players.Select(RecruitmentCentrePlayerRowViewModel.From).ToList(),
                 result.TotalCount,
                 result.Sources,
-                new RecruitmentCentreFilterViewModel(query.SearchText, query.SourceName, query.PositionGroup, query.MinimumConfidence, query.MinimumRoleFit),
+                new RecruitmentCentreFilterViewModel(query.SearchText, query.SourceName, query.PositionGroup, query.MinimumConfidence, query.MinimumRoleFit, query.SortBy),
                 new RecruitmentCentreDiagnosticViewModel(databasePath, result.Diagnostics, new List<string>(), new List<string>()),
                 result.SafeMessage);
         }

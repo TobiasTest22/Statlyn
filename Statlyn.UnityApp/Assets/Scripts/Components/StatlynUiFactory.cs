@@ -1,10 +1,48 @@
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Statlyn.UnityApp.Components
 {
     public static class StatlynUiFactory
     {
+        public const string LightLogoResourceKey = "Branding/Statlyn_Logo_Black-text";
+        public const string DarkLogoResourceKey = "Branding/Statlyn_Logo_White-text";
+        public const string FullLightLogoResourceKey = "Branding/StatLyn_Logo";
+        public const string FullDarkLogoResourceKey = "Branding/StatLyn_Logo_Reversed";
+
+        public static VisualElement MakeBrandLockup()
+        {
+            var lockup = new VisualElement();
+            lockup.AddToClassList("brand-lockup");
+
+            var logo = MakeLogoImage(LightLogoResourceKey, "brand-logo");
+            if (logo != null)
+            {
+                lockup.Add(logo);
+            }
+
+            var label = new Label("Statlyn");
+            label.AddToClassList("brand-wordmark");
+            lockup.Add(label);
+            return lockup;
+        }
+
+        public static Image MakeLogoImage(string resourceKey, string className)
+        {
+            var texture = Resources.Load<Texture2D>(resourceKey);
+            if (texture == null)
+            {
+                return null;
+            }
+
+            var image = new Image();
+            image.image = texture;
+            image.scaleMode = ScaleMode.ScaleToFit;
+            image.AddToClassList(className);
+            return image;
+        }
+
         public static VisualElement MakeCard(string heading, IEnumerable<string> rows)
         {
             var card = new VisualElement();

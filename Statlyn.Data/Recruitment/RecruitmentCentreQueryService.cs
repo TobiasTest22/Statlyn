@@ -13,18 +13,21 @@ namespace Statlyn.Data.Recruitment
     {
         private readonly StatlynDbConnectionFactory _connectionFactory;
         private readonly RecruitmentOutputSummaryService _summaryService;
+        private readonly RoleOutputExpectationRepository _roleOutputExpectations;
 
         public RecruitmentCentreQueryService(StatlynDbConnectionFactory connectionFactory)
         {
             _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
             _summaryService = new RecruitmentOutputSummaryService();
+            _roleOutputExpectations = new RoleOutputExpectationRepository(connectionFactory);
         }
 
         public RecruitmentCentreResult Query(RecruitmentCentreQuery? query)
         {
             query = query ?? new RecruitmentCentreQuery();
             var diagnostics = new List<string>();
-            var rows = LoadRows();
+            var profiles = _roleOutputExpectations.LoadAll();
+            var rows = LoadRows(profiles);
             var sources = rows.Select(row => row.SourceName).Where(value => !string.IsNullOrWhiteSpace(value)).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(value => value).ToList();
 
             var filtered = ApplyFilters(rows, query).ToList();
@@ -32,6 +35,9 @@ namespace Statlyn.Data.Recruitment
             filtered = ApplySort(filtered, query).Take(SafeLimit(query.Limit)).ToList();
 
             diagnostics.Add("Recruitment Centre loaded persisted safe player rows only.");
+            diagnostics.Add(profiles.Count == 0
+                ? "Role output expectations used generic import-only fallback profiles."
+                : "Role output expectations used persisted SQLite profiles when position groups matched.");
             diagnostics.Add("No raw provider snapshots, hidden FM26 values or blocked raw values are returned.");
 
             return new RecruitmentCentreResult(
@@ -44,7 +50,7 @@ namespace Statlyn.Data.Recruitment
                     : "Recruitment Centre query returned persisted safe player rows.");
         }
 
-        private IReadOnlyList<RecruitmentCentrePlayerRow> LoadRows()
+        private IReadOnlyList<RecruitmentCentrePlayerRow> LoadRows(IReadOnlyList<RoleOutputExpectationProfile> profiles)
         {
             var rows = new List<RecruitmentCentrePlayerRow>();
             using (var connection = _connectionFactory.OpenConnection())
@@ -62,6 +68,7 @@ namespace Statlyn.Data.Recruitment
                         P.SourceConfidence,
                         P.DataCompleteness,
                         RS.RoleFit,
+                        RS.RoleName,
                         RS.TechnicalFit,
                         RS.StatisticalFit,
                         RS.PhysicalFit,
@@ -84,7 +91,7 @@ namespace Statlyn.Data.Recruitment
                 {
                     while (reader.Read())
                     {
-                        rows.Add(ReadRow(connection, reader));
+                        rows.Add(ReadRow(connection, reader, profiles));
                     }
                 }
             }
@@ -92,7 +99,7 @@ namespace Statlyn.Data.Recruitment
             return rows;
         }
 
-        private RecruitmentCentrePlayerRow ReadRow(SqliteConnection connection, SqliteDataReader reader)
+        private RecruitmentCentrePlayerRow ReadRow(SqliteConnection connection, SqliteDataReader reader, IReadOnlyList<RoleOutputExpectationProfile> profiles)
         {
             var playerId = reader.GetInt64(0);
             var statlynPlayerId = ReadString(reader, 1);
@@ -104,22 +111,26 @@ namespace Statlyn.Data.Recruitment
             var sourceConfidence = reader.GetInt32(7);
             var dataCompleteness = reader.GetInt32(8);
             var roleFit = ReadNullableInt(reader, 9);
-            var technicalFit = ReadNullableInt(reader, 10);
-            var statisticalFit = ReadNullableInt(reader, 11);
-            var physicalFit = ReadNullableInt(reader, 12);
-            var tacticalFit = ReadNullableInt(reader, 13);
-            var risk = ReadNullableInt(reader, 14);
-            var confidence = ReadNullableInt(reader, 15);
-            var recommendation = ReadRecommendation(reader, 16);
-            var missingData = SplitValues(ReadString(reader, 17)).ToList();
-            var allowedUsage = ReadString(reader, 18);
-            var providerType = ReadString(reader, 19);
-            var isLive = !reader.IsDBNull(20) && reader.GetInt32(20) != 0;
-            var blockedCount = reader.GetInt32(21);
+            var roleName = roleFit.HasValue
+                ? RoleNameSanitizer.SanitizeForDisplay(ReadString(reader, 10), "Unknown role")
+                : "Not scored";
+            var technicalFit = ReadNullableInt(reader, 11);
+            var statisticalFit = ReadNullableInt(reader, 12);
+            var physicalFit = ReadNullableInt(reader, 13);
+            var tacticalFit = ReadNullableInt(reader, 14);
+            var risk = ReadNullableInt(reader, 15);
+            var confidence = ReadNullableInt(reader, 16);
+            var recommendation = ReadRecommendation(reader, 17);
+            var missingData = SplitValues(ReadString(reader, 18)).ToList();
+            var allowedUsage = ReadString(reader, 19);
+            var providerType = ReadString(reader, 20);
+            var isLive = !reader.IsDBNull(21) && reader.GetInt32(21) != 0;
+            var blockedCount = reader.GetInt32(22);
             var positionGroup = RecruitmentOutputSummaryService.ResolvePositionGroup(primaryPosition);
             var stats = LoadPlayerStats(connection, playerId);
             var metrics = LoadPhysicalMetrics(connection, playerId);
-            var summary = _summaryService.Build(primaryPosition, stats, metrics, _summaryService.FindDefaultProfile(positionGroup), null);
+            var selectedProfile = _summaryService.SelectProfile(positionGroup, string.Empty, profiles);
+            var summary = _summaryService.Build(primaryPosition, stats, metrics, selectedProfile, null);
             var missingCount = missingData.Count + summary.MissingCoreMetrics.Count;
             var warnings = new List<string>();
 
@@ -148,7 +159,7 @@ namespace Statlyn.Data.Recruitment
                 sourceName,
                 sourceConfidence,
                 dataCompleteness,
-                roleFit.HasValue ? "Generic performance preview" : "Not scored",
+                roleName,
                 roleFit,
                 technicalFit,
                 statisticalFit,

@@ -26,6 +26,7 @@ namespace Statlyn.Data
                 }
 
                 EnsureColumn(connection, "RoleScore", "Recommendation", "TEXT NOT NULL DEFAULT 'ScoutFurther'");
+                EnsureColumn(connection, "RoleScore", "RoleName", "TEXT NOT NULL DEFAULT ''");
                 EnsureColumn(connection, "PlayerStat", "SampleMinutesMissing", "INTEGER NOT NULL DEFAULT 1");
                 EnsureColumn(connection, "PlayerStat", "MinutesSource", "TEXT NOT NULL DEFAULT 'missing'");
 

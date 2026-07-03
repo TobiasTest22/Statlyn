@@ -14,9 +14,19 @@ namespace Statlyn.UnityApp.Pages
             header.AddToClassList("header");
             main.Add(header);
 
+            var headerBrand = new VisualElement();
+            headerBrand.AddToClassList("header-brand");
+            header.Add(headerBrand);
+
+            var logo = StatlynUiFactory.MakeLogoImage(StatlynUiFactory.LightLogoResourceKey, "header-logo");
+            if (logo != null)
+            {
+                headerBrand.Add(logo);
+            }
+
             var titleStack = new VisualElement();
             titleStack.AddToClassList("title-stack");
-            header.Add(titleStack);
+            headerBrand.Add(titleStack);
 
             var title = new Label("Recruitment Intelligence");
             title.AddToClassList("screen-title");

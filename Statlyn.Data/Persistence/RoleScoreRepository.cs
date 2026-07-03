@@ -38,12 +38,13 @@ namespace Statlyn.Data.Persistence
             {
                 command.CommandText =
                     @"INSERT INTO RoleScore (
-                        PlayerId, RoleModelId, RoleFit, TechnicalFit, StatisticalFit, PhysicalFit, TacticalFit,
+                        PlayerId, RoleModelId, RoleName, RoleFit, TechnicalFit, StatisticalFit, PhysicalFit, TacticalFit,
                         RiskScore, Confidence, Recommendation, PositiveEvidence, NegativeEvidence, MissingData, BlockedDataNotice, CreatedAtUtc)
                       VALUES (
-                        $playerId, NULL, $roleFit, $technicalFit, $statisticalFit, $physicalFit, $tacticalFit,
+                        $playerId, NULL, $roleName, $roleFit, $technicalFit, $statisticalFit, $physicalFit, $tacticalFit,
                         $riskScore, $confidence, $recommendation, $positiveEvidence, $negativeEvidence, $missingData, $blockedDataNotice, $createdAtUtc);";
                 Add(command, "$playerId", playerId);
+                Add(command, "$roleName", RoleNameSanitizer.SanitizeForStorage(roleScore.RoleName));
                 Add(command, "$roleFit", roleScore.RoleFit);
                 Add(command, "$technicalFit", roleScore.TechnicalFit);
                 Add(command, "$statisticalFit", roleScore.StatisticalFit);
@@ -72,13 +73,13 @@ namespace Statlyn.Data.Persistence
             }
         }
 
-        public RoleScore? LoadLatest(long playerId, string roleName)
+        public RoleScore? LoadLatest(long playerId)
         {
             using (var connection = ConnectionFactory.OpenConnection())
             using (var command = connection.CreateCommand())
             {
                 command.CommandText =
-                    @"SELECT RoleFit, TechnicalFit, StatisticalFit, PhysicalFit, TacticalFit, RiskScore, Confidence,
+                    @"SELECT RoleName, RoleFit, TechnicalFit, StatisticalFit, PhysicalFit, TacticalFit, RiskScore, Confidence,
                              Recommendation, PositiveEvidence, NegativeEvidence, MissingData, BlockedDataNotice
                       FROM RoleScore
                       WHERE PlayerId = $playerId
@@ -92,25 +93,30 @@ namespace Statlyn.Data.Persistence
                         return null;
                     }
 
-                    var recommendation = Enum.TryParse<RecruitmentRecommendation>(reader.GetString(7), out var parsedRecommendation)
+                    var recommendation = Enum.TryParse<RecruitmentRecommendation>(reader.GetString(8), out var parsedRecommendation)
                         ? parsedRecommendation
                         : RecruitmentRecommendation.ScoutFurther;
                     return new RoleScore(
-                        roleName,
-                        reader.GetInt32(0),
+                        RoleNameSanitizer.SanitizeForDisplay(ReadString(reader, 0), "Unknown role"),
                         reader.GetInt32(1),
                         reader.GetInt32(2),
                         reader.GetInt32(3),
-                        ReadNullableInt(reader, 4),
-                        reader.GetInt32(5),
+                        reader.GetInt32(4),
+                        ReadNullableInt(reader, 5),
                         reader.GetInt32(6),
+                        reader.GetInt32(7),
                         recommendation,
-                        SplitEvidence(reader.GetString(8), true),
-                        SplitEvidence(reader.GetString(9), false),
-                        SplitValues(reader.GetString(10)),
-                        ReadString(reader, 11));
+                        SplitEvidence(reader.GetString(9), true),
+                        SplitEvidence(reader.GetString(10), false),
+                        SplitValues(reader.GetString(11)),
+                        ReadString(reader, 12));
                 }
             }
+        }
+
+        public RoleScore? LoadLatest(long playerId, string roleName)
+        {
+            return LoadLatest(playerId);
         }
 
         private static IReadOnlyList<EvidenceItem> SplitEvidence(string value, bool positive)

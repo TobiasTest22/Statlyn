@@ -117,6 +117,42 @@ namespace Statlyn.Data.Persistence
             return LoadAll().FirstOrDefault(profile => string.Equals(profile.ProfileName, profileName, StringComparison.OrdinalIgnoreCase));
         }
 
+        public RoleOutputExpectationProfile? FindBestFor(string positionGroup, string roleFamily)
+        {
+            return FindBestFor(positionGroup, roleFamily, LoadAll());
+        }
+
+        public static RoleOutputExpectationProfile? FindBestFor(string positionGroup, string roleFamily, IReadOnlyList<RoleOutputExpectationProfile> profiles)
+        {
+            profiles = profiles ?? new List<RoleOutputExpectationProfile>();
+            var position = positionGroup ?? string.Empty;
+            var family = roleFamily ?? string.Empty;
+
+            var exact = profiles.FirstOrDefault(profile =>
+                Matches(profile.PositionGroup, position) &&
+                !string.IsNullOrWhiteSpace(family) &&
+                Matches(profile.RoleFamily, family));
+            if (exact != null)
+            {
+                return exact;
+            }
+
+            var byPosition = profiles.FirstOrDefault(profile => Matches(profile.PositionGroup, position));
+            if (byPosition != null)
+            {
+                return byPosition;
+            }
+
+            return profiles.FirstOrDefault(profile =>
+                !string.IsNullOrWhiteSpace(family) &&
+                Matches(profile.RoleFamily, family));
+        }
+
+        private static bool Matches(string left, string right)
+        {
+            return string.Equals(left ?? string.Empty, right ?? string.Empty, StringComparison.OrdinalIgnoreCase);
+        }
+
         private static void SaveExpectation(SqliteConnection connection, string profileName, MetricExpectation expectation)
         {
             using (var command = connection.CreateCommand())

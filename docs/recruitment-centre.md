@@ -1,6 +1,6 @@
 # Recruitment Centre
 
-Milestone 1.9 adds the first Recruitment Centre page powered by persisted safe SQLite data.
+Milestone 1.9 adds the first Recruitment Centre page powered by persisted safe SQLite data. Milestone 1.9.1 hardens role names, output-profile selection, branding and preview labels.
 
 ## Flow
 
@@ -27,6 +27,8 @@ Recruitment Centre uses:
 
 It does not use `PlayerRawSnapshot`, raw provider entities, hidden FM26 values or raw blocked values. Blocked fields appear only as counts or safe warnings. No player images, badges or provider flags are displayed.
 
+`RoleScore.RoleName` is persisted and reloaded. When a score exists but an old row has no role name, the UI shows `Unknown role`; when no score exists, it shows `Not scored`. Hidden-value-looking role labels are not surfaced.
+
 ## Output Summaries
 
 Rows are output-first and position-specific:
@@ -38,6 +40,12 @@ Rows are output-first and position-specific:
 - central midfielders prefer progression, chance creation and defensive contribution
 
 Attributes can support interpretation, but they are not the Recruitment Centre's primary model. Missing core metrics are shown as missing warnings, not zero values.
+
+Recruitment Centre loads persisted `RoleOutputExpectationProfile` rows from SQLite and selects the best match by position group, then role family where available. If no persisted profile matches, it falls back to the generic import-only seed profiles. Those profiles are not official FM26 role templates.
+
+## Unity UX
+
+The Unity page shows a persisted-safe-data banner, no-live-FM26 label, active database path/status, player count, source list, reset filters button, sort selector, role name, tactical-fit status and clearer output/missing/blocked labels. `Open Profile` remains a preview and uses the safe `MaskedPlayerProfileViewModel` pipeline.
 
 ## Current Limits
 

@@ -14,7 +14,9 @@ namespace Statlyn.Data.Recruitment
             string source,
             string sourceConfidence,
             string dataCompleteness,
+            string roleName,
             string roleFit,
+            string tacticalFit,
             string confidence,
             string recommendation,
             string risk,
@@ -33,7 +35,9 @@ namespace Statlyn.Data.Recruitment
             Source = source ?? string.Empty;
             SourceConfidence = sourceConfidence ?? string.Empty;
             DataCompleteness = dataCompleteness ?? string.Empty;
+            RoleName = roleName ?? string.Empty;
             RoleFit = roleFit ?? string.Empty;
+            TacticalFit = tacticalFit ?? string.Empty;
             Confidence = confidence ?? string.Empty;
             Recommendation = recommendation ?? string.Empty;
             Risk = risk ?? string.Empty;
@@ -61,7 +65,11 @@ namespace Statlyn.Data.Recruitment
 
         public string DataCompleteness { get; }
 
+        public string RoleName { get; }
+
         public string RoleFit { get; }
+
+        public string TacticalFit { get; }
 
         public string Confidence { get; }
 
@@ -92,7 +100,9 @@ namespace Statlyn.Data.Recruitment
                 row.SourceName,
                 row.SourceConfidence.ToString(CultureInfo.InvariantCulture) + "%",
                 row.DataCompleteness.ToString(CultureInfo.InvariantCulture) + "%",
+                row.LatestRoleName,
                 row.RoleFit.HasValue ? row.RoleFit.Value.ToString(CultureInfo.InvariantCulture) : "Not scored",
+                row.TacticalFitDisplay,
                 row.Confidence.HasValue ? row.Confidence.Value.ToString(CultureInfo.InvariantCulture) : "Unknown",
                 row.Recommendation.HasValue ? row.Recommendation.Value.ToString() : "Not scored",
                 row.RiskScore.HasValue ? row.RiskScore.Value.ToString(CultureInfo.InvariantCulture) : "Unknown",

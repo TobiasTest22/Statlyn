@@ -14,10 +14,21 @@
   border-right-color: rgba(180, 190, 200, 0.55);
 }
 
-.brand {
+.brand-lockup {
+  min-height: 64px;
+  margin-bottom: 26px;
+  justify-content: center;
+}
+
+.brand-logo {
+  width: 168px;
+  height: 44px;
+  margin-bottom: 4px;
+}
+
+.brand-wordmark {
   font-size: 24px;
   -unity-font-style: bold;
-  margin-bottom: 26px;
   color: rgb(20, 30, 38);
 }
 
@@ -48,6 +59,17 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 22px;
+}
+
+.header-brand {
+  flex-direction: row;
+  align-items: center;
+}
+
+.header-logo {
+  width: 104px;
+  height: 28px;
+  margin-right: 14px;
 }
 
 .title-stack {

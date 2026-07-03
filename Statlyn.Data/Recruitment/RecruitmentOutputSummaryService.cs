@@ -115,6 +115,15 @@ namespace Statlyn.Data.Recruitment
                 .FirstOrDefault(profile => string.Equals(profile.PositionGroup, positionGroup, StringComparison.OrdinalIgnoreCase));
         }
 
+        public RoleOutputExpectationProfile? SelectProfile(
+            string positionGroup,
+            string roleFamily,
+            IReadOnlyList<RoleOutputExpectationProfile> persistedProfiles)
+        {
+            var persisted = RoleOutputExpectationRepository.FindBestFor(positionGroup, roleFamily, persistedProfiles);
+            return persisted ?? FindDefaultProfile(positionGroup);
+        }
+
         private static IReadOnlyList<MetricExpectation> DefaultExpectations(string positionGroup)
         {
             var profile = GenericRoleOutputExpectationSeed.Create()

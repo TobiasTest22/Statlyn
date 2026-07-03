@@ -76,7 +76,7 @@ namespace Statlyn.Data.Persistence
                 attributes,
                 facts);
 
-            var roleScore = _roleScores.LoadLatest(record.Id, roleName);
+            var roleScore = _roleScores.LoadLatest(record.Id);
             var completeness = new DataCompletenessReport(
                 record.DataCompleteness,
                 100,
@@ -90,6 +90,11 @@ namespace Statlyn.Data.Persistence
                 completeness,
                 _playerStats.LoadForPlayer(record.Id),
                 _physicalMetrics.LoadForPlayer(record.Id));
+        }
+
+        public PersistedMaskedPlayerData? LoadByStatlynPlayerId(string statlynPlayerId)
+        {
+            return LoadByStatlynPlayerId(statlynPlayerId, string.Empty);
         }
     }
 

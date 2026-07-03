@@ -1,4 +1,5 @@
 using Statlyn.UnityApp.Pages;
+using Statlyn.UnityApp.Components;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -69,9 +70,7 @@ namespace Statlyn.UnityApp
             sidebar.AddToClassList("sidebar");
             root.Add(sidebar);
 
-            var brand = new Label("Statlyn");
-            brand.AddToClassList("brand");
-            sidebar.Add(brand);
+            sidebar.Add(StatlynUiFactory.MakeBrandLockup());
 
             var main = new VisualElement();
             main.AddToClassList("main");

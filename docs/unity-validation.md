@@ -17,6 +17,8 @@ This copies the managed Statlyn assemblies, SQLite managed dependencies, Windows
 - No C# compile errors in Unity.
 - Main shell loads.
 - Navigation is visible.
+- Sidebar shows the official Statlyn logo asset from `Assets/Resources/Branding`.
+- Dashboard header shows a small official Statlyn logo mark.
 - Player Profile slice loads.
 - Player Profile slice renders from `MaskedPlayerProfileViewModel` or `UnityProfileRenderModel` built only from it.
 - Profile slice clearly shows fixture mode.
@@ -39,8 +41,11 @@ This copies the managed Statlyn assemblies, SQLite managed dependencies, Windows
 - Recruitment navigation opens the Recruitment Centre page.
 - Imported players appear after a safe CSV import.
 - Search/source/position/minimum filters refresh the player cards.
-- Player cards show source confidence, completeness, role fit, confidence, recommendation, risk, output metrics, blocked-field count and missing-data count.
+- Reset filters returns search/source/position/minimum filters to defaults.
+- Sort selector works for role fit, confidence, data completeness, source and position.
+- Player cards show source confidence, completeness, persisted role name, role fit, tactical-fit status, confidence, recommendation, risk, output metrics, blocked-field count and missing-data count.
 - `Open Profile` shows a persisted safe profile preview or a safe error card.
+- Profile preview shows selected player name, source, fixture/import mode, no live FM26 data, role name, role fit/confidence/risk, output metrics, missing-data warning and blocked-data safe notice.
 - No fake live FM26 data is shown.
 - No real player images, club badges or unlicensed flags are shown.
 - Empty/unsupported states remain honest.

@@ -203,6 +203,7 @@ namespace Statlyn.Data
                         Id INTEGER PRIMARY KEY,
                         PlayerId INTEGER NOT NULL,
                         RoleModelId INTEGER NULL,
+                        RoleName TEXT NOT NULL,
                         RoleFit INTEGER NOT NULL,
                         TechnicalFit INTEGER NOT NULL,
                         StatisticalFit INTEGER NOT NULL,

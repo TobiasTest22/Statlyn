@@ -113,6 +113,18 @@ Milestone 1.9 adds tests for:
 - Persisted safe profile preview loading.
 - Empty database state and double-import row stability.
 
+Milestone 1.9.1 adds tests for:
+
+- Role-score role name persistence, reload and hidden-value sanitization.
+- Recruitment Centre display of persisted role names and `Not scored` fallback.
+- Persisted role-output profile selection before generic fallback.
+- Goalkeeper, wide attacker and centre-back output specificity.
+- Missing output metrics remaining missing rather than zero.
+- Generic profiles remaining `IsFm26Specific=false` with attributes as supporting evidence.
+- Official logo resource copy/reference checks.
+- Safe Recruitment Centre default/reset behavior and empty state.
+- Safe profile preview labels, role name, output metrics, no-live-FM26 state and blocked-data notice.
+
 Future tests should cover broader persistence migrations, real provider imports, Unity UI state transitions and native connector status parsing.
 
-Unity editor validation remains manual. Run `.\tools\copy-managed-to-unity.ps1` before opening the project so the Unity assembly definition can resolve the shared managed Statlyn DLLs and SQLite dependencies, then use the Data Sources runtime check inside Unity.
+Unity editor validation remains manual. Run `.\tools\copy-managed-to-unity.ps1` before opening the project so the Unity assembly definition can resolve the shared managed Statlyn DLLs, SQLite dependencies and synthetic fixture CSV, then use the Data Sources runtime check inside Unity. Branding assets live directly under `Statlyn.UnityApp/Assets/Resources/Branding`.

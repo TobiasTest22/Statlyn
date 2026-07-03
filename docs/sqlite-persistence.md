@@ -26,7 +26,7 @@ Stored:
 - visible permitted fields
 - player stats such as xG and xA
 - physical metrics such as TopSpeed and SprintDistance
-- nullable tactical fit in role scores
+- persisted role name and nullable tactical fit in role scores
 - blocked-field audit metadata
 - import audit counts and safe diagnostics
 - generic performance metric definitions
@@ -52,7 +52,7 @@ Unique indexes reinforce this behavior for visible fields, player stats, physica
 
 Import audit diagnostics pass through a sanitizer before storage. Patterns such as `CurrentAbility: 200`, `Professionalism=19` and `PA 199` are redacted while field names, counts and source names remain readable.
 
-Role scores persist their `Recommendation` value. Reload does not recompute the recommendation from role fit and confidence.
+Role scores persist their `RoleName` and `Recommendation` values. Reload does not recompute the role name or recommendation from role fit and confidence. If an old score row has no role name, UI surfaces `Unknown role`; if a player has no score row, Recruitment Centre surfaces `Not scored`.
 
 ## Sample Minutes
 
@@ -73,7 +73,7 @@ SQLite visible fields
 
 FM26 remains unsupported until validated memory maps exist. No fake live data is stored or generated.
 
-Recruitment Centre queries the same persisted safe tables. It reads `Player`, latest `RoleScore`, `PlayerStat`, `PhysicalMetric`, source metadata and blocked-field audit counts. It does not reconstruct raw provider snapshots or expose blocked raw values.
+Recruitment Centre queries the same persisted safe tables. It reads `Player`, latest `RoleScore`, `PlayerStat`, `PhysicalMetric`, source metadata, role-output expectation profiles and blocked-field audit counts. It does not reconstruct raw provider snapshots or expose blocked raw values.
 
 ## Runtime Path
 

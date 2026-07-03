@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using Statlyn.Data;
@@ -19,6 +20,13 @@ namespace Statlyn.UnityApp.Pages
             var databasePath = Path.Combine(Application.persistentDataPath, "statlyn.db");
             BuildHeader(main, databasePath);
 
+            var safety = new VisualElement();
+            safety.AddToClassList("dashboard-grid");
+            main.Add(safety);
+            safety.Add(StatlynUiFactory.MakeCard("Recruitment Safety", new[] { "Persisted safe data only", "No raw provider snapshots", "No blocked raw values" }));
+            safety.Add(StatlynUiFactory.MakeCard("FM26 Status", new[] { "No live FM26 data", "Unsupported until validated memory maps exist" }));
+            safety.Add(StatlynUiFactory.MakeCard("Database Status", new[] { "Path: " + databasePath, "SQLite initialized on demand" }));
+
             var filters = new VisualElement();
             filters.AddToClassList("data-source-form");
             main.Add(filters);
@@ -33,12 +41,16 @@ namespace Statlyn.UnityApp.Pages
             filters.Add(minConfidence);
             var minRoleFit = new TextField("Minimum role fit");
             filters.Add(minRoleFit);
+            var sort = new DropdownField("Sort", new List<string> { "Role fit", "Confidence", "Data completeness", "Source", "Position" }, 0);
+            filters.Add(sort);
 
             var actions = new VisualElement();
             actions.AddToClassList("action-row");
             filters.Add(actions);
             var refresh = new Button { text = "Refresh" };
+            var reset = new Button { text = "Reset Filters" };
             actions.Add(refresh);
+            actions.Add(reset);
 
             var results = new VisualElement();
             results.AddToClassList("data-source-results");
@@ -47,8 +59,18 @@ namespace Statlyn.UnityApp.Pages
             profile.AddToClassList("data-source-results");
             main.Add(profile);
 
-            RenderRecruitmentCentre(databasePath, BuildQuery(search, source, position, minConfidence, minRoleFit), results, profile);
-            refresh.clicked += () => RenderRecruitmentCentre(databasePath, BuildQuery(search, source, position, minConfidence, minRoleFit), results, profile);
+            RenderRecruitmentCentre(databasePath, BuildQuery(search, source, position, minConfidence, minRoleFit, sort), results, profile);
+            refresh.clicked += () => RenderRecruitmentCentre(databasePath, BuildQuery(search, source, position, minConfidence, minRoleFit, sort), results, profile);
+            reset.clicked += () =>
+            {
+                search.value = string.Empty;
+                source.value = string.Empty;
+                position.value = string.Empty;
+                minConfidence.value = string.Empty;
+                minRoleFit.value = string.Empty;
+                sort.value = "Role fit";
+                RenderRecruitmentCentre(databasePath, BuildQuery(search, source, position, minConfidence, minRoleFit, sort), results, profile);
+            };
         }
 
         private static void BuildHeader(VisualElement main, string databasePath)
@@ -65,12 +87,12 @@ namespace Statlyn.UnityApp.Pages
             var subtitle = new Label("Persisted safe data only - no live FM26 data");
             subtitle.AddToClassList("screen-subtitle");
             titleStack.Add(subtitle);
-            var status = new Label("Database: " + databasePath);
+            var status = new Label("No live FM26 data");
             status.AddToClassList("status-pill");
             header.Add(status);
         }
 
-        private static RecruitmentCentreQuery BuildQuery(TextField search, TextField source, TextField position, TextField minConfidence, TextField minRoleFit)
+        private static RecruitmentCentreQuery BuildQuery(TextField search, TextField source, TextField position, TextField minConfidence, TextField minRoleFit, DropdownField sort)
         {
             return new RecruitmentCentreQuery
             {
@@ -79,8 +101,8 @@ namespace Statlyn.UnityApp.Pages
                 PrimaryPosition = position.value,
                 MinimumConfidence = ParseInt(minConfidence.value),
                 MinimumRoleFit = ParseInt(minRoleFit.value),
-                SortBy = "RoleFit",
-                SortDirection = "Descending",
+                SortBy = SortKey(sort.value),
+                SortDirection = SortDirection(sort.value),
                 Limit = 100
             };
         }
@@ -113,14 +135,14 @@ namespace Statlyn.UnityApp.Pages
             var summary = new VisualElement();
             summary.AddToClassList("dashboard-grid");
             results.Add(summary);
-            summary.Add(StatlynUiFactory.MakeCard("Players", new[] { viewModel.TotalCount.ToString(CultureInfo.InvariantCulture) + " matched", viewModel.Players.Count.ToString(CultureInfo.InvariantCulture) + " shown" }));
-            summary.Add(StatlynUiFactory.MakeCard("Database", new[] { viewModel.Diagnostics.DatabasePath }));
+            summary.Add(StatlynUiFactory.MakeCard("Player Count", new[] { viewModel.TotalCount.ToString(CultureInfo.InvariantCulture) + " matched", viewModel.Players.Count.ToString(CultureInfo.InvariantCulture) + " shown" }));
+            summary.Add(StatlynUiFactory.MakeCard("Database", new[] { "Path: " + viewModel.Diagnostics.DatabasePath, "Status: readable persisted store" }));
             summary.Add(StatlynUiFactory.MakeCard("Safety", new[] { "Persisted safe data only", "No raw blocked values", "No live FM26 data" }));
-            summary.Add(StatlynUiFactory.MakeCard("Sources", viewModel.Sources.Count == 0 ? new[] { "None" } : StatlynUiFactory.ToArray(viewModel.Sources)));
+            summary.Add(StatlynUiFactory.MakeCard("Source List", viewModel.Sources.Count == 0 ? new[] { "None" } : StatlynUiFactory.ToArray(viewModel.Sources)));
 
             if (viewModel.Players.Count == 0)
             {
-                results.Add(StatlynUiFactory.MakeCard("Empty State", new[] { "No imported players yet. Go to Data Sources and import a local CSV." }));
+                results.Add(StatlynUiFactory.MakeCard("Empty State", new[] { "No imported players yet.", "Go to Data Sources and import a local CSV.", "No fake players are shown." }));
                 return;
             }
 
@@ -141,10 +163,13 @@ namespace Statlyn.UnityApp.Pages
             card.Add(new Label(row.Age + " | " + row.Nationality + " | " + row.Position));
             card.Add(new Label("Source: " + row.Source + " (" + row.SourceConfidence + " confidence)"));
             card.Add(new Label("Completeness: " + row.DataCompleteness));
-            card.Add(new Label("Role fit: " + row.RoleFit + " | Confidence: " + row.Confidence));
+            card.Add(new Label("Role: " + row.RoleName));
+            card.Add(new Label("Role fit: " + row.RoleFit + " | Tactical fit: " + row.TacticalFit));
+            card.Add(new Label("Confidence: " + row.Confidence));
             card.Add(new Label("Recommendation: " + row.Recommendation + " | Risk: " + row.Risk));
-            card.Add(new Label("Output: " + (row.KeyOutputMetrics.Count == 0 ? "Missing core output" : string.Join(", ", row.KeyOutputMetrics))));
-            card.Add(new Label("Blocked fields: " + row.BlockedFieldCount.ToString(CultureInfo.InvariantCulture) + " | Missing data: " + row.MissingDataCount.ToString(CultureInfo.InvariantCulture)));
+            card.Add(new Label("Output metrics: " + (row.KeyOutputMetrics.Count == 0 ? "Output metrics missing" : string.Join(", ", row.KeyOutputMetrics))));
+            card.Add(new Label("Blocked field count: " + row.BlockedFieldCount.ToString(CultureInfo.InvariantCulture)));
+            card.Add(new Label("Missing data: " + row.MissingDataCount.ToString(CultureInfo.InvariantCulture)));
             if (row.Warnings.Count > 0)
             {
                 card.Add(new Label("Warning: " + row.Warnings[0]));
@@ -163,16 +188,25 @@ namespace Statlyn.UnityApp.Pages
             {
                 using (var factory = RuntimeDatabaseFactory.CreateFile(databasePath))
                 {
-                    var model = new RecruitmentCentreProfilePreviewService(factory).LoadProfile(statlynPlayerId);
-                    if (model == null)
+                    var preview = new RecruitmentCentreProfilePreviewService(factory).LoadProfilePreview(statlynPlayerId);
+                    if (preview == null)
                     {
                         profile.Add(StatlynUiFactory.MakeCard("Profile Preview", new[] { "Persisted player could not be loaded safely." }));
                         return;
                     }
 
-                    var unityModel = UnityProfileRenderModel.From(model);
-                    profile.Add(StatlynUiFactory.MakeCard("Profile Preview", new[] { unityModel.PlayerName, unityModel.DetailLine, unityModel.SourceName, unityModel.IsFixtureMode ? "Fixture/import mode" : "Persisted source", unityModel.IsLiveFm26Data ? "Live FM26 data" : "No live FM26 data" }));
-                    profile.Add(StatlynUiFactory.MakeMessages("Profile Evidence", new[] { unityModel.MissingDataMessage, unityModel.BlockedDataMessage }));
+                    var unityModel = UnityProfileRenderModel.From(preview.MaskedProfile);
+                    profile.Add(StatlynUiFactory.MakeCard("Profile Preview", new[]
+                    {
+                        preview.PlayerName,
+                        "Source: " + preview.SourceName,
+                        preview.ModeLabel,
+                        unityModel.IsLiveFm26Data ? "Live FM26 data" : "No live FM26 data",
+                        "Role: " + preview.RoleName,
+                        "Role fit: " + preview.RoleFit + " | Confidence: " + preview.Confidence + " | Risk: " + preview.Risk,
+                        "Output metrics: " + string.Join(", ", preview.OutputMetrics)
+                    }));
+                    profile.Add(StatlynUiFactory.MakeMessages("Profile Evidence", new[] { preview.MissingDataWarning, preview.BlockedDataSafeNotice }));
                 }
             }
             catch (Exception ex)
@@ -184,6 +218,31 @@ namespace Statlyn.UnityApp.Pages
         private static int? ParseInt(string value)
         {
             return int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed) ? parsed : (int?)null;
+        }
+
+        private static string SortKey(string label)
+        {
+            switch (label ?? string.Empty)
+            {
+                case "Confidence":
+                    return "Confidence";
+                case "Data completeness":
+                    return "DataCompleteness";
+                case "Source":
+                    return "Source";
+                case "Position":
+                    return "Position";
+                default:
+                    return "RoleFit";
+            }
+        }
+
+        private static string SortDirection(string label)
+        {
+            return string.Equals(label, "Source", StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(label, "Position", StringComparison.OrdinalIgnoreCase)
+                ? "Ascending"
+                : "Descending";
         }
     }
 }

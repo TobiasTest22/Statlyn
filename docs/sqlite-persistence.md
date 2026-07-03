@@ -13,7 +13,7 @@ Milestone 1.7 adds a local SQLite foundation in `Statlyn.Data`.
 - Import transaction boundary.
 - Re-import duplicate prevention.
 
-Unity is not bound to SQLite yet. The Unity Player Profile slice can keep rendering the fixture factory profile until a later UI milestone wires persistence into the app workflow.
+The Unity Data Sources page now calls the SQLite-backed workflow service when the required assemblies and SQLite dependencies are copied. Managed tests verify SQLite behavior. Unity Editor runtime loading of SQLite dependencies still requires manual validation.
 
 ## Safety Boundary
 
@@ -72,3 +72,7 @@ SQLite visible fields
 ```
 
 FM26 remains unsupported until validated memory maps exist. No fake live data is stored or generated.
+
+## Runtime Path
+
+`StatlynDatabasePathResolver` resolves a default `Statlyn/statlyn.db` path under local app data, or under a caller-provided application data root. Tests use in-memory SQLite through `RuntimeDatabaseFactory.CreateInMemory()`. Unity uses `Application.persistentDataPath/statlyn.db` for the first Data Sources workflow path.

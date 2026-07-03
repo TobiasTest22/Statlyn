@@ -33,8 +33,8 @@ Copy the shared managed assemblies before opening the project:
 .\tools\copy-managed-to-unity.ps1
 ```
 
-Open `Statlyn.UnityApp` in Unity 6 or newer. The shell is intentionally limited to unsupported states and synthetic fixture preview data until a validated provider is connected.
+The copy script now includes Statlyn managed assemblies plus Microsoft.Data.Sqlite/SQLitePCL managed dependencies and the Windows x64 `e_sqlite3.dll` native dependency under the managed plugin folder.
 
-SQLite persistence is currently verified in managed tests, not bound into Unity UI.
+Open `Statlyn.UnityApp` in Unity 6 or newer. The shell includes the first Data Sources page for local CSV preview/import. SQLite persistence is verified in managed tests; SQLite runtime loading inside Unity still needs manual Editor validation.
 
 Use `docs/unity-validation.md` for the current manual Unity checklist.

@@ -35,12 +35,18 @@ namespace Statlyn.DataProviders.Import
             Text("Name", PlayerFieldKey.DisplayName, "DisplayName");
             Number("Age", PlayerFieldKey.Age, "Age");
             Text("Nationality", PlayerFieldKey.Nationality, "Nationality");
+            Text("NationalityFlag", PlayerFieldKey.NationalityFlag, "NationalityFlag");
+            Text("Flag", PlayerFieldKey.NationalityFlag, "NationalityFlag");
             Text("PrimaryPosition", PlayerFieldKey.PrimaryPosition, "PrimaryPosition");
             Text("Position", PlayerFieldKey.PrimaryPosition, "PrimaryPosition");
             Text("PreferredFoot", PlayerFieldKey.PreferredFoot, "PreferredFoot");
             Text("Club", PlayerFieldKey.Club, "Club");
+            Text("ClubBadge", PlayerFieldKey.ClubBadge, "ClubBadge");
             Text("League", PlayerFieldKey.League, "League");
             Text("Height", PlayerFieldKey.Height, "Height");
+            Text("PlayerFaceImage", PlayerFieldKey.PlayerFaceImage, "PlayerFaceImage");
+            Text("PlayerImage", PlayerFieldKey.PlayerFaceImage, "PlayerFaceImage");
+            Text("Image", PlayerFieldKey.PlayerFaceImage, "PlayerFaceImage");
 
             foreach (var attribute in new[]
             {

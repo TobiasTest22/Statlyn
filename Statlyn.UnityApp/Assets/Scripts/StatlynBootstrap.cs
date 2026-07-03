@@ -1,4 +1,9 @@
+using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using Statlyn.Data;
+using Statlyn.Data.Workflow;
 using Statlyn.UI.ProfileFixtures;
 using Statlyn.UI.UnityBridge;
 using UnityEngine;
@@ -72,18 +77,37 @@ namespace Statlyn.UnityApp
             brand.AddToClassList("brand");
             sidebar.Add(brand);
 
-            foreach (var item in NavigationItems)
-            {
-                var button = new Button();
-                button.text = item;
-                button.AddToClassList("nav-button");
-                sidebar.Add(button);
-            }
-
             var main = new VisualElement();
             main.AddToClassList("main");
             root.Add(main);
 
+            foreach (var item in NavigationItems)
+            {
+                var navItem = item;
+                var button = new Button();
+                button.text = item;
+                button.AddToClassList("nav-button");
+                button.clicked += () => ShowPage(main, navItem);
+                sidebar.Add(button);
+            }
+
+            BuildDashboardPage(main);
+        }
+
+        private void ShowPage(VisualElement main, string pageName)
+        {
+            if (pageName == "Data Sources")
+            {
+                BuildDataSourcesPage(main);
+                return;
+            }
+
+            BuildDashboardPage(main);
+        }
+
+        private void BuildDashboardPage(VisualElement main)
+        {
+            main.Clear();
             var header = new VisualElement();
             header.AddToClassList("header");
             main.Add(header);
@@ -117,6 +141,354 @@ namespace Statlyn.UnityApp
 
             var diagnostics = MakeDiagnosticsPanel();
             main.Add(diagnostics);
+        }
+
+        private void BuildDataSourcesPage(VisualElement main)
+        {
+            main.Clear();
+
+            var databasePath = Path.Combine(Application.persistentDataPath, "statlyn.db");
+
+            var header = new VisualElement();
+            header.AddToClassList("header");
+            main.Add(header);
+
+            var titleStack = new VisualElement();
+            titleStack.AddToClassList("title-stack");
+            header.Add(titleStack);
+
+            var title = new Label("Data Sources");
+            title.AddToClassList("screen-title");
+            titleStack.Add(title);
+
+            var subtitle = new Label("CSV local import only - no scraping, APIs or live FM26 data");
+            subtitle.AddToClassList("screen-subtitle");
+            titleStack.Add(subtitle);
+
+            var status = new Label("Active database: " + databasePath);
+            status.AddToClassList("status-pill");
+            header.Add(status);
+
+            var form = new VisualElement();
+            form.AddToClassList("data-source-form");
+            main.Add(form);
+
+            var sourceType = new TextField("Source type");
+            sourceType.value = "CSV";
+            sourceType.SetEnabled(false);
+            form.Add(sourceType);
+
+            var csvPath = new TextField("CSV path");
+            csvPath.value = string.Empty;
+            form.Add(csvPath);
+
+            var sourceName = new TextField("Source name");
+            sourceName.value = "Synthetic CSV fixture";
+            form.Add(sourceName);
+
+            var licenceStatus = new TextField("Licence status");
+            licenceStatus.value = "synthetic test fixture";
+            form.Add(licenceStatus);
+
+            var allowedUsage = new TextField("Allowed usage");
+            allowedUsage.value = "development fixture only";
+            form.Add(allowedUsage);
+
+            var confidence = new TextField("Source confidence");
+            confidence.value = "80";
+            form.Add(confidence);
+
+            var toggleGrid = new VisualElement();
+            toggleGrid.AddToClassList("permission-grid");
+            form.Add(toggleGrid);
+
+            var isLicensed = MakeToggle("Is licensed / permitted", true);
+            var permitsImages = MakeToggle("Permits player images", false);
+            var permitsFlags = MakeToggle("Permits provider flags", false);
+            var safeFlags = MakeToggle("Uses bundled safe flag assets", true);
+            var permitsBadges = MakeToggle("Permits club badges", false);
+            var allowsExport = MakeToggle("Allows export", true);
+            toggleGrid.Add(isLicensed);
+            toggleGrid.Add(permitsImages);
+            toggleGrid.Add(permitsFlags);
+            toggleGrid.Add(safeFlags);
+            toggleGrid.Add(permitsBadges);
+            toggleGrid.Add(allowsExport);
+
+            var actions = new VisualElement();
+            actions.AddToClassList("action-row");
+            form.Add(actions);
+
+            var useFixture = new Button();
+            useFixture.text = "Use synthetic fixture CSV";
+            useFixture.clicked += () => csvPath.value = ResolveSyntheticFixtureCsvPath();
+            actions.Add(useFixture);
+
+            var preview = new Button();
+            preview.text = "Preview CSV";
+            actions.Add(preview);
+
+            var import = new Button();
+            import.text = "Run Safe Import";
+            actions.Add(import);
+
+            var clear = new Button();
+            clear.text = "Clear";
+            actions.Add(clear);
+
+            var results = new VisualElement();
+            results.AddToClassList("data-source-results");
+            main.Add(results);
+            RenderDataSourcePlaceholder(results, databasePath);
+
+            preview.clicked += () =>
+            {
+                var request = BuildRequest(csvPath, sourceName, licenceStatus, allowedUsage, confidence, isLicensed, permitsImages, permitsFlags, safeFlags, permitsBadges, allowsExport);
+                RunPreview(databasePath, request, results, status);
+            };
+
+            import.clicked += () =>
+            {
+                var request = BuildRequest(csvPath, sourceName, licenceStatus, allowedUsage, confidence, isLicensed, permitsImages, permitsFlags, safeFlags, permitsBadges, allowsExport);
+                RunImport(databasePath, request, results, status);
+            };
+
+            clear.clicked += () =>
+            {
+                csvPath.value = string.Empty;
+                RenderDataSourcePlaceholder(results, databasePath);
+            };
+        }
+
+        private static Toggle MakeToggle(string label, bool value)
+        {
+            var toggle = new Toggle(label);
+            toggle.value = value;
+            return toggle;
+        }
+
+        private static DataSourceImportRequest BuildRequest(
+            TextField csvPath,
+            TextField sourceName,
+            TextField licenceStatus,
+            TextField allowedUsage,
+            TextField confidence,
+            Toggle isLicensed,
+            Toggle permitsImages,
+            Toggle permitsFlags,
+            Toggle safeFlags,
+            Toggle permitsBadges,
+            Toggle allowsExport)
+        {
+            var sourceConfidence = 80;
+            int parsedConfidence;
+            if (int.TryParse(confidence.value, NumberStyles.Integer, CultureInfo.InvariantCulture, out parsedConfidence))
+            {
+                sourceConfidence = parsedConfidence;
+            }
+
+            return new DataSourceImportRequest
+            {
+                CsvPath = csvPath.value,
+                SourceName = sourceName.value,
+                LicenceStatus = licenceStatus.value,
+                AllowedUsage = allowedUsage.value,
+                IsLicensed = isLicensed.value,
+                SourceConfidence = sourceConfidence,
+                PermitsPlayerImages = permitsImages.value,
+                PermitsProviderFlags = permitsFlags.value,
+                UsesBundledSafeFlagAssets = safeFlags.value,
+                PermitsClubBadges = permitsBadges.value,
+                AllowsExport = allowsExport.value
+            };
+        }
+
+        private static void RunPreview(string databasePath, DataSourceImportRequest request, VisualElement results, Label status)
+        {
+            try
+            {
+                using (var factory = RuntimeDatabaseFactory.CreateFile(databasePath))
+                {
+                    var workflow = new DataSourceImportWorkflowService(factory);
+                    var result = workflow.Preview(request);
+                    status.text = result.DatabaseDiagnostics == null
+                        ? "Active database: " + databasePath
+                        : "Active database: " + result.DatabaseDiagnostics.DatabasePath;
+                    RenderPreviewResult(results, result);
+                }
+            }
+            catch (Exception ex)
+            {
+                RenderRuntimeError(results, databasePath, ex);
+            }
+        }
+
+        private static void RunImport(string databasePath, DataSourceImportRequest request, VisualElement results, Label status)
+        {
+            try
+            {
+                using (var factory = RuntimeDatabaseFactory.CreateFile(databasePath))
+                {
+                    var workflow = new DataSourceImportWorkflowService(factory);
+                    var result = workflow.Import(request);
+                    status.text = result.DatabaseDiagnostics == null
+                        ? "Active database: " + databasePath
+                        : "Active database: " + result.DatabaseDiagnostics.DatabasePath;
+                    RenderImportResult(results, result);
+                }
+            }
+            catch (Exception ex)
+            {
+                RenderRuntimeError(results, databasePath, ex);
+            }
+        }
+
+        private static void RenderDataSourcePlaceholder(VisualElement results, string databasePath)
+        {
+            results.Clear();
+            var cards = new VisualElement();
+            cards.AddToClassList("dashboard-grid");
+            results.Add(cards);
+            cards.Add(MakeCard("Active Database", new[] { "Status: local SQLite path selected", "Path: " + databasePath }));
+            cards.Add(MakeCard("Import Scope", new[] { "Source type: CSV only", "Network sources: disabled", "FM26 live data: unsupported" }));
+            cards.Add(MakeCard("Preview", new[] { "File readable: not checked", "Columns detected: 0", "Rows detected: 0" }));
+            cards.Add(MakeCard("Import Result", new[] { "No safe import has been run", "Stored data: masked fields only" }));
+        }
+
+        private static void RenderPreviewResult(VisualElement results, DataSourceImportWorkflowResult result)
+        {
+            results.Clear();
+            var preview = result.PreviewViewModel;
+            var cards = new VisualElement();
+            cards.AddToClassList("dashboard-grid");
+            results.Add(cards);
+
+            cards.Add(MakeCard("File Readable", new[] { result.Preview != null && result.Preview.FileReadable ? "Yes" : "No", preview.FilePath }));
+            cards.Add(MakeCard("Columns Detected", new[] { preview.ColumnRows.Count.ToString(CultureInfo.InvariantCulture) }));
+            cards.Add(MakeCard("Rows Detected", new[] { preview.RowsDetected.ToString(CultureInfo.InvariantCulture) }));
+            cards.Add(MakeCard("Mapped Fields", new[] { preview.MappedCount.ToString(CultureInfo.InvariantCulture) }));
+            cards.Add(MakeCard("Unknown Fields", new[] { preview.UnknownCount.ToString(CultureInfo.InvariantCulture) }));
+            cards.Add(MakeCard("Forbidden Fields", new[] { preview.ForbiddenCount.ToString(CultureInfo.InvariantCulture) }));
+            cards.Add(MakeCard("Import Result", new[] { "Preview only", "No data stored" }));
+            cards.Add(MakeCard("Last Error", preview.Errors.Count == 0 ? new[] { "None" } : ToArray(preview.Errors)));
+
+            results.Add(MakeMessages("Warnings", preview.Warnings));
+            results.Add(MakeColumnPreviewList(preview.ColumnRows));
+        }
+
+        private static void RenderImportResult(VisualElement results, DataSourceImportWorkflowResult result)
+        {
+            results.Clear();
+            var preview = result.PreviewViewModel;
+            var import = result.ImportResultViewModel;
+            var cards = new VisualElement();
+            cards.AddToClassList("dashboard-grid");
+            results.Add(cards);
+
+            cards.Add(MakeCard("File Readable", new[] { result.Preview != null && result.Preview.FileReadable ? "Yes" : "No", preview.FilePath }));
+            cards.Add(MakeCard("Columns Detected", new[] { preview.ColumnRows.Count.ToString(CultureInfo.InvariantCulture) }));
+            cards.Add(MakeCard("Rows Detected", new[] { preview.RowsDetected.ToString(CultureInfo.InvariantCulture) }));
+            cards.Add(MakeCard("Mapped Fields", new[] { preview.MappedCount.ToString(CultureInfo.InvariantCulture) }));
+            cards.Add(MakeCard("Unknown Fields", new[] { preview.UnknownCount.ToString(CultureInfo.InvariantCulture) }));
+            cards.Add(MakeCard("Forbidden Fields", new[] { preview.ForbiddenCount.ToString(CultureInfo.InvariantCulture) }));
+
+            if (import == null)
+            {
+                cards.Add(MakeCard("Import Result", new[] { "Not started" }));
+                cards.Add(MakeCard("Last Error", ToArray(result.ErrorMessages)));
+            }
+            else
+            {
+                cards.Add(MakeCard("Import Result", new[]
+                {
+                    import.Success ? "Completed" : "Completed with warnings",
+                    "Rows accepted: " + import.RowsAccepted.ToString(CultureInfo.InvariantCulture),
+                    "Rows rejected: " + import.RowsRejected.ToString(CultureInfo.InvariantCulture),
+                    "Players in database: " + import.DatabasePlayersCount.ToString(CultureInfo.InvariantCulture),
+                    "Stats in database: " + import.DatabaseStatsCount.ToString(CultureInfo.InvariantCulture)
+                }));
+                cards.Add(MakeCard("Last Error", import.Errors.Count == 0 ? new[] { "None" } : ToArray(import.Errors)));
+            }
+
+            results.Add(MakeMessages("Warnings", result.WarningMessages));
+            results.Add(MakeColumnPreviewList(preview.ColumnRows));
+        }
+
+        private static VisualElement MakeMessages(string title, IReadOnlyList<string> messages)
+        {
+            var panel = new VisualElement();
+            panel.AddToClassList("diagnostics-panel");
+            panel.Add(MakeSectionTitle(title));
+            if (messages == null || messages.Count == 0)
+            {
+                panel.Add(new Label("None"));
+                return panel;
+            }
+
+            foreach (var message in messages)
+            {
+                panel.Add(new Label(message));
+            }
+
+            return panel;
+        }
+
+        private static VisualElement MakeColumnPreviewList(IReadOnlyList<ColumnPreviewViewModel> rows)
+        {
+            var panel = new VisualElement();
+            panel.AddToClassList("diagnostics-panel");
+            panel.Add(MakeSectionTitle("Column Mapping"));
+
+            if (rows == null || rows.Count == 0)
+            {
+                panel.Add(new Label("No columns previewed."));
+                return panel;
+            }
+
+            foreach (var row in rows)
+            {
+                panel.Add(MakeDiagnosticRow(row.SourceColumn, row.Status + " - " + (string.IsNullOrWhiteSpace(row.MappedTo) ? row.Category : row.MappedTo)));
+            }
+
+            return panel;
+        }
+
+        private static void RenderRuntimeError(VisualElement results, string databasePath, Exception ex)
+        {
+            results.Clear();
+            var cards = new VisualElement();
+            cards.AddToClassList("dashboard-grid");
+            results.Add(cards);
+            cards.Add(MakeCard("Active Database", new[] { "Path: " + databasePath }));
+            cards.Add(MakeCard("Import Result", new[] { "Not completed" }));
+            cards.Add(MakeCard("Last Error", new[] { ex.GetType().Name + ": " + ex.Message }));
+        }
+
+        private static string ResolveSyntheticFixtureCsvPath()
+        {
+            var repoFixture = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "..", "Statlyn.Tests", "Fixtures", "players.sample.csv"));
+            if (File.Exists(repoFixture))
+            {
+                return repoFixture;
+            }
+
+            return Path.GetFullPath(Path.Combine(Application.dataPath, "Fixtures", "players.sample.csv"));
+        }
+
+        private static string[] ToArray(IReadOnlyList<string> values)
+        {
+            if (values == null || values.Count == 0)
+            {
+                return new[] { "None" };
+            }
+
+            var rows = new string[values.Count];
+            for (var index = 0; index < values.Count; index++)
+            {
+                rows[index] = values[index];
+            }
+
+            return rows;
         }
 
         private static VisualElement MakePlayerProfileSlice(UnityProfileRenderModel model)

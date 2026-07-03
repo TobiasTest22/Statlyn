@@ -11,6 +11,11 @@
     "Statlyn.DataProviders.dll",
     "Statlyn.Scouting.dll",
     "Statlyn.Analytics.dll",
+    "Statlyn.Data.dll",
+    "Microsoft.Data.Sqlite.dll",
+    "SQLitePCLRaw.core.dll",
+    "SQLitePCLRaw.batteries_v2.dll",
+    "SQLitePCLRaw.provider.e_sqlite3.dll",
     "Statlyn.UI.dll"
   ],
   "autoReferenced": true,

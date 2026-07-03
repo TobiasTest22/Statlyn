@@ -79,6 +79,18 @@ Milestone 1.7.1 adds tests for:
 - Safe Minutes sample handling for player stats.
 - Duplicate-prevention indexes in the schema.
 
+Milestone 1.8 adds tests for:
+
+- `CsvPreviewService` row, column and mapping detection.
+- Safe preview handling for Finishing, xG, TopSpeed, unknown fields and forbidden hidden fields.
+- Preview remaining read-only and not storing import data.
+- Permission-blocked image, flag, badge and licensed metric preview states.
+- `DataSourceImportWorkflowService` preview/import counts and database diagnostics.
+- Unlicensed source warnings and safe forbidden-field display.
+- Idempotent double import through the UI workflow path.
+- UI-safe preview/import view models excluding raw provider objects and hidden values.
+- Default database path resolution, in-memory test mode and file database initialization.
+
 Future tests should cover broader persistence migrations, real provider imports, Unity UI state transitions and native connector status parsing.
 
 Unity editor validation remains manual. Run `.\tools\copy-managed-to-unity.ps1` before opening the project so the Unity assembly definition can resolve the shared managed Statlyn DLLs.

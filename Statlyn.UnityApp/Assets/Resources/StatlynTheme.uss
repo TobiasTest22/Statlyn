@@ -84,6 +84,48 @@
   margin-bottom: 18px;
 }
 
+.data-source-form {
+  padding: 18px;
+  margin-bottom: 18px;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+  background-color: rgba(255, 255, 255, 0.78);
+  border-width: 1px;
+  border-color: rgba(188, 199, 209, 0.55);
+}
+
+.permission-grid {
+  flex-direction: row;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  margin-bottom: 12px;
+}
+
+.permission-grid Toggle {
+  width: 270px;
+  margin-right: 16px;
+  margin-bottom: 8px;
+}
+
+.action-row {
+  flex-direction: row;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.action-row Button {
+  min-width: 148px;
+  height: 36px;
+  margin-right: 10px;
+  margin-bottom: 8px;
+}
+
+.data-source-results {
+  margin-top: 4px;
+}
+
 .glass-card {
   width: 270px;
   min-height: 154px;

@@ -47,6 +47,8 @@ Field policies use this metadata before anything reaches scoring or UI. Player i
 
 CSV imports use `FootballFieldCatalog` plus optional explicit mappings. The catalog maps common columns such as `Finishing`, `Pace`, `xG`, `xA`, `TopSpeed` and `SprintDistance` into safe field instances.
 
+`CsvPreviewService` runs before import for the Data Sources UI. It reads only the local CSV header and row count, maps columns through the same catalog/mapping set, and reports safe, unknown, forbidden and permission-blocked columns. Preview does not store data and does not expose cell values from hidden or blocked fields.
+
 Diagnostics report file readability, licence state, row count, players imported, mapped field count, unknown/forbidden field counts, image permission, flag permission and completeness. Diagnostics may include field names and counts, but not raw hidden values.
 
 CSV and JSON remain local import skeletons. They do not create live FM26 data and do not assume image URLs, badge URLs or provider flags are licensed.

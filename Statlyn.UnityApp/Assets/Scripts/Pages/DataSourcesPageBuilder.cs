@@ -3,6 +3,7 @@ using System.Globalization;
 using System.IO;
 using Statlyn.Data;
 using Statlyn.Data.Workflow;
+using Statlyn.UI;
 using Statlyn.UnityApp.Components;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -19,12 +20,13 @@ namespace Statlyn.UnityApp.Pages
 
             var safety = new VisualElement();
             safety.AddToClassList("dashboard-grid");
+            safety.AddToClassList("command-kpi-row");
             main.Add(safety);
-            safety.Add(StatlynUiFactory.MakeCard("CSV Local Import Only", new[] { "Manual local path", "No network sources" }));
-            safety.Add(StatlynUiFactory.MakeCard("No Live FM26 Data", new[] { "FM26 remains unsupported", "No fake live player rows" }));
-            safety.Add(StatlynUiFactory.MakeCard("No Scraping Or APIs", new[] { "No FotMob scraping", "No external API calls" }));
-            safety.Add(StatlynUiFactory.MakeCard("Preview Safety", new[] { "Preview does not store data", "No row values shown" }));
-            safety.Add(StatlynUiFactory.MakeCard("Import Safety", new[] { "Stores masked fields only", "Forbidden values stay blocked" }));
+            safety.Add(StatlynUiFactory.MakeCommandKpiCard("CSV Local Import", "Manual path", "Network sources disabled", CommandStatusCategory.Accent));
+            safety.Add(StatlynUiFactory.MakeCommandKpiCard("Live FM26", "Unsupported", "No live player rows", CommandStatusCategory.Warning));
+            safety.Add(StatlynUiFactory.MakeCommandKpiCard("External Sources", "Off", "No scraping or API calls", CommandStatusCategory.Success));
+            safety.Add(StatlynUiFactory.MakeCommandKpiCard("Preview", "Read-only", "No row values stored", CommandStatusCategory.Success));
+            safety.Add(StatlynUiFactory.MakeCommandKpiCard("Import", "Masked fields", "Forbidden values stay blocked", CommandStatusCategory.Success));
 
             var form = new VisualElement();
             form.AddToClassList("data-source-form");
@@ -67,18 +69,13 @@ namespace Statlyn.UnityApp.Pages
             toggleGrid.Add(allowsExport);
 
             var actions = new VisualElement();
-            actions.AddToClassList("action-row");
-            form.Add(actions);
             var useFixture = new Button { text = "Use synthetic fixture CSV" };
             var runtimeCheck = new Button { text = "Run Runtime Check" };
             var preview = new Button { text = "Preview CSV" };
             var import = new Button { text = "Run Safe Import" };
             var clear = new Button { text = "Clear" };
-            actions.Add(useFixture);
-            actions.Add(runtimeCheck);
-            actions.Add(preview);
-            actions.Add(import);
-            actions.Add(clear);
+            actions = StatlynUiFactory.MakeCommandActionButtonRow(useFixture, runtimeCheck, preview, import, clear);
+            form.Add(actions);
 
             var results = new VisualElement();
             results.AddToClassList("data-source-results");
@@ -153,18 +150,30 @@ namespace Statlyn.UnityApp.Pages
         {
             var header = new VisualElement();
             header.AddToClassList("header");
+            header.AddToClassList("command-page-header");
             main.Add(header);
+
+            var headerBrand = new VisualElement();
+            headerBrand.AddToClassList("header-brand");
+            header.Add(headerBrand);
+
+            var logo = StatlynUiFactory.MakeLogoImage(StatlynUiFactory.DarkLogoResourceKey, "header-logo");
+            if (logo != null)
+            {
+                headerBrand.Add(logo);
+            }
+
             var titleStack = new VisualElement();
             titleStack.AddToClassList("title-stack");
-            header.Add(titleStack);
+            headerBrand.Add(titleStack);
             var title = new Label("Data Sources");
             title.AddToClassList("screen-title");
             titleStack.Add(title);
             var subtitle = new Label("CSV local import only - no scraping, APIs or live FM26 data");
             subtitle.AddToClassList("screen-subtitle");
             titleStack.Add(subtitle);
-            status = new Label("Active database: " + databasePath);
-            status.AddToClassList("status-pill");
+
+            status = StatlynUiFactory.MakeCommandStatusPill("Active database: " + databasePath, CommandStatusCategory.Accent);
             header.Add(status);
         }
 
@@ -253,11 +262,12 @@ namespace Statlyn.UnityApp.Pages
             results.Clear();
             var cards = new VisualElement();
             cards.AddToClassList("dashboard-grid");
+            cards.AddToClassList("command-kpi-row");
             results.Add(cards);
-            cards.Add(StatlynUiFactory.MakeCard("Active Database", new[] { "Status: local SQLite path selected", "Path: " + databasePath }));
-            cards.Add(StatlynUiFactory.MakeCard("Import Scope", new[] { "Source type: CSV only", "Network sources: disabled", "FM26 live data: unsupported" }));
-            cards.Add(StatlynUiFactory.MakeCard("Preview", new[] { "File readable: not checked", "Columns detected: 0", "Rows detected: 0" }));
-            cards.Add(StatlynUiFactory.MakeCard("Import Result", new[] { "No safe import has been run", "Stored data: masked fields only" }));
+            cards.Add(StatlynUiFactory.MakeCommandKpiCard("Active Database", "Local SQLite", databasePath, CommandStatusCategory.Accent));
+            cards.Add(StatlynUiFactory.MakeCommandKpiCard("Import Scope", "CSV only", "Network sources disabled; FM26 live data unsupported", CommandStatusCategory.Accent));
+            cards.Add(StatlynUiFactory.MakeCommandKpiCard("Preview", "Not checked", "No preview values have been stored", CommandStatusCategory.Warning));
+            cards.Add(StatlynUiFactory.MakeCommandKpiCard("Import Result", "Not run", "Stored data will be masked fields only", CommandStatusCategory.Warning));
         }
 
         private static void RenderRuntimeDiagnosticsPanel(VisualElement diagnostics, string databasePath, UnityRuntimeCheckResult result, string lastPreviewResult, string lastImportResult, string lastRuntimeException)
@@ -265,16 +275,17 @@ namespace Statlyn.UnityApp.Pages
             diagnostics.Clear();
             var cards = new VisualElement();
             cards.AddToClassList("dashboard-grid");
+            cards.AddToClassList("command-kpi-row");
             diagnostics.Add(cards);
-            cards.Add(StatlynUiFactory.MakeCard("Managed Assemblies", new[] { result == null ? "Not checked" : BoolText(result.AssembliesOk) }));
-            cards.Add(StatlynUiFactory.MakeCard("SQLite Managed", new[] { result == null ? "Not checked" : BoolText(result.SqliteManagedOk) }));
-            cards.Add(StatlynUiFactory.MakeCard("SQLite Native", new[] { result == null ? "Not checked" : BoolText(result.SqliteNativeOk) }));
-            cards.Add(StatlynUiFactory.MakeCard("Database Init", new[] { result == null ? "Not checked" : BoolText(result.DatabaseInitOk) }));
-            cards.Add(StatlynUiFactory.MakeCard("Database Path", new[] { databasePath }));
-            cards.Add(StatlynUiFactory.MakeCard("Last Self-Check", new[] { result == null ? "Not run" : result.Success ? "Passed" : "Failed", result == null ? string.Empty : result.CheckedAtUtc.ToString("u", CultureInfo.InvariantCulture) }));
-            cards.Add(StatlynUiFactory.MakeCard("Last Preview Result", new[] { string.IsNullOrWhiteSpace(lastPreviewResult) ? "Not run" : lastPreviewResult }));
-            cards.Add(StatlynUiFactory.MakeCard("Last Import Result", new[] { string.IsNullOrWhiteSpace(lastImportResult) ? "Not run" : lastImportResult }));
-            cards.Add(StatlynUiFactory.MakeCard("Last Runtime Exception", new[] { string.IsNullOrWhiteSpace(lastRuntimeException) ? "None" : lastRuntimeException }));
+            cards.Add(MakeRuntimeKpiCard("Managed Assemblies", result == null ? (bool?)null : result.AssembliesOk));
+            cards.Add(MakeRuntimeKpiCard("SQLite Managed", result == null ? (bool?)null : result.SqliteManagedOk));
+            cards.Add(MakeRuntimeKpiCard("SQLite Native", result == null ? (bool?)null : result.SqliteNativeOk));
+            cards.Add(MakeRuntimeKpiCard("Database Init", result == null ? (bool?)null : result.DatabaseInitOk));
+            cards.Add(StatlynUiFactory.MakeCommandKpiCard("Database Path", "Runtime main", databasePath, CommandStatusCategory.Accent));
+            cards.Add(StatlynUiFactory.MakeCommandKpiCard("Last Self-Check", result == null ? "Not run" : result.Success ? "Passed" : "Failed", result == null ? "Runtime check has not been run" : result.CheckedAtUtc.ToString("u", CultureInfo.InvariantCulture), result == null ? CommandStatusCategory.Warning : result.Success ? CommandStatusCategory.Success : CommandStatusCategory.Danger));
+            cards.Add(StatlynUiFactory.MakeCommandKpiCard("Last Preview Result", string.IsNullOrWhiteSpace(lastPreviewResult) ? "Not run" : lastPreviewResult, "Preview is read-only", ThemeTokens.ResolveStatusCategory(lastPreviewResult)));
+            cards.Add(StatlynUiFactory.MakeCommandKpiCard("Last Import Result", string.IsNullOrWhiteSpace(lastImportResult) ? "Not run" : lastImportResult, "Safe import stores masked fields", ThemeTokens.ResolveStatusCategory(lastImportResult)));
+            cards.Add(StatlynUiFactory.MakeCommandKpiCard("Last Runtime Exception", string.IsNullOrWhiteSpace(lastRuntimeException) ? "None" : lastRuntimeException, "Shown safely for troubleshooting", ThemeTokens.ResolveStatusCategory(lastRuntimeException)));
 
             if (result != null)
             {
@@ -354,10 +365,11 @@ namespace Statlyn.UnityApp.Pages
             results.Clear();
             var cards = new VisualElement();
             cards.AddToClassList("dashboard-grid");
+            cards.AddToClassList("command-kpi-row");
             results.Add(cards);
-            cards.Add(StatlynUiFactory.MakeCard("Active Database", new[] { "Path: " + databasePath }));
-            cards.Add(StatlynUiFactory.MakeCard("Import Result", new[] { "Not completed" }));
-            cards.Add(StatlynUiFactory.MakeCard("Last Error", new[] { ex.GetType().Name + ": " + ex.Message }));
+            cards.Add(StatlynUiFactory.MakeCommandKpiCard("Active Database", "Runtime main", databasePath, CommandStatusCategory.Accent));
+            cards.Add(StatlynUiFactory.MakeCommandKpiCard("Import Result", "Not completed", "No unsafe fallback was shown", CommandStatusCategory.Danger));
+            cards.Add(StatlynUiFactory.MakeCommandKpiCard("Last Error", ex.GetType().Name, ex.Message, CommandStatusCategory.Danger));
         }
 
         private static void RenderFixtureResolutionFailure(VisualElement results, FixtureCsvPathResolutionResult fixture)
@@ -365,10 +377,21 @@ namespace Statlyn.UnityApp.Pages
             results.Clear();
             var cards = new VisualElement();
             cards.AddToClassList("dashboard-grid");
+            cards.AddToClassList("command-kpi-row");
             results.Add(cards);
-            cards.Add(StatlynUiFactory.MakeCard("Synthetic Fixture CSV", new[] { "Not found", fixture.Message }));
-            cards.Add(StatlynUiFactory.MakeCard("Import Scope", new[] { "Fixture remains synthetic only", "No live FM26 data" }));
+            cards.Add(StatlynUiFactory.MakeCommandKpiCard("Synthetic Fixture CSV", "Not found", fixture.Message, CommandStatusCategory.Warning));
+            cards.Add(StatlynUiFactory.MakeCommandKpiCard("Import Scope", "Fixture only", "No live FM26 data", CommandStatusCategory.Accent));
             results.Add(StatlynUiFactory.MakeMessages("Fixture Paths Checked", fixture.CandidatePaths));
+        }
+
+        private static VisualElement MakeRuntimeKpiCard(string title, bool? value)
+        {
+            if (!value.HasValue)
+            {
+                return StatlynUiFactory.MakeCommandKpiCard(title, "Not checked", "Run Runtime Check to verify", CommandStatusCategory.Warning);
+            }
+
+            return StatlynUiFactory.MakeCommandKpiCard(title, BoolText(value.Value), value.Value ? "Dependency check passed" : "Review runtime dependency setup", value.Value ? CommandStatusCategory.Success : CommandStatusCategory.Danger);
         }
 
         private static FixtureCsvPathResolutionResult ResolveSyntheticFixtureCsvPath()

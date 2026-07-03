@@ -1,20 +1,20 @@
 # UI Design
 
-Statlyn uses a white, calm, glassy desktop-first interface.
+Statlyn now defaults to a dark command-center desktop interface for Unity. The previous white/glassy look remains as the `LightGlass` legacy fallback theme.
 
 Official logo assets are documented in `docs/branding.md`. The Unity shell uses the official Statlyn logo from `Assets/Resources/Branding`; do not create placeholder logos or pull external branding assets.
 
-Longer-term UI direction is a premium sports analytics command center: dark navy/charcoal base, teal/cyan active accents, dense readable cards, KPI panels and professional club-operations hierarchy. Milestone 2.4 does not redesign the shell, but Role Lab page structure should remain compatible with that future direction.
+The active direction is a premium sports analytics command center: dark navy/charcoal base, teal/cyan active accents, dense readable cards, KPI panels and professional club-operations hierarchy. Milestone 2.7 establishes the theme baseline for the Unity shell and first applies it to Home and Data Sources.
 
 ## Direction
 
-- Off-white background.
-- Frosted white panels.
+- Dark navy/charcoal background.
+- Compact dark panels.
 - Subtle borders.
-- Soft shadows.
+- Teal/cyan active navigation and status accents.
 - Rounded controls with an 8px card radius where practical.
-- Clear red, orange, green, blue and grey data states.
-- No dark hacker visual language.
+- Clear red, amber, green, teal and neutral data states.
+- No dark hacker visual language or excessive glow.
 - No fake live-data tables.
 
 ## First Shell
@@ -29,6 +29,8 @@ The current Unity shell creates:
 - First Player Profile slice in clearly marked fixture mode.
 
 The first shell intentionally does not show fake live players. The Player Profile slice may show one synthetic development fixture, clearly labelled as fixture mode.
+
+Milestone 2.7 adds a reusable command-center helper layer for Unity UI Toolkit: command page headers, status pills, KPI cards, panels, metric rows, action rows, warning banners, data-quality panels, safe empty states and section tabs. These helpers are presentation-only and must not invent values, live FM26 availability, fake benchmarks or external API status.
 
 The Player Profile slice uses synthetic fixture-mode copy to preview dashboard layout only. The Player Profile v1 page/report loads persisted safe imported data. Neither surface claims live FM26 connectivity, real player images, club badges or unlicensed flags. Dashboard preview visuals should be labelled as masked evidence and benchmark-unavailable status, not radar, percentile or trend claims.
 
@@ -101,3 +103,5 @@ The page must not show fake benchmark results, fake FM26 verification, hidden va
 Milestone 2.6 keeps the existing white/glassy UI and adds consistency helpers for page headers, safety banners, empty states, error cards and runtime status cards.
 
 Navigation items should never silently fall back to Home. Built pages open directly; unfinished pages show a clear `This page is not built yet` placeholder with no fake data. The Diagnostics page owns Runtime Check and Full Smoke Test controls.
+
+Milestone 2.7 changes the default root class to `theme-dark-command-center` and keeps `LightGlass` documented as a legacy/fallback theme. The shell now shows a global `No live FM26 data` status, a local SQLite runtime note, active navigation state and command-center styling for Home and Data Sources. Diagnostics, Runtime Check and Full Smoke Test remain available and unchanged in scope.

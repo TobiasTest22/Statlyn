@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Statlyn.UI;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -11,12 +12,12 @@ namespace Statlyn.UnityApp.Components
         public const string FullLightLogoResourceKey = "Branding/StatLyn_Logo";
         public const string FullDarkLogoResourceKey = "Branding/StatLyn_Logo_Reversed";
 
-        public static VisualElement MakeBrandLockup()
+        public static VisualElement MakeBrandLockup(string logoResourceKey = DarkLogoResourceKey)
         {
             var lockup = new VisualElement();
             lockup.AddToClassList("brand-lockup");
 
-            var logo = MakeLogoImage(LightLogoResourceKey, "brand-logo");
+            var logo = MakeLogoImage(logoResourceKey, "brand-logo");
             if (logo != null)
             {
                 lockup.Add(logo);
@@ -94,6 +95,188 @@ namespace Statlyn.UnityApp.Components
             header.Add(status);
 
             return header;
+        }
+
+        public static VisualElement MakeCommandPageHeader(string title, string subtitle, string statusText, CommandStatusCategory statusCategory = CommandStatusCategory.Accent)
+        {
+            var header = new VisualElement();
+            header.AddToClassList("header");
+            header.AddToClassList("command-page-header");
+
+            var headerBrand = new VisualElement();
+            headerBrand.AddToClassList("header-brand");
+            header.Add(headerBrand);
+
+            var logo = MakeLogoImage(DarkLogoResourceKey, "header-logo");
+            if (logo != null)
+            {
+                headerBrand.Add(logo);
+            }
+
+            var titleStack = new VisualElement();
+            titleStack.AddToClassList("title-stack");
+            headerBrand.Add(titleStack);
+
+            var titleLabel = new Label(title ?? string.Empty);
+            titleLabel.AddToClassList("screen-title");
+            titleStack.Add(titleLabel);
+
+            var subtitleLabel = new Label(subtitle ?? string.Empty);
+            subtitleLabel.AddToClassList("screen-subtitle");
+            titleStack.Add(subtitleLabel);
+
+            header.Add(MakeCommandStatusPill(statusText, statusCategory));
+            return header;
+        }
+
+        public static Label MakeCommandStatusPill(string text, CommandStatusCategory category)
+        {
+            var status = new Label(text ?? string.Empty);
+            status.AddToClassList("status-pill");
+            status.AddToClassList("command-status-pill");
+            status.AddToClassList(ThemeTokens.StatusClassFor(category));
+            return status;
+        }
+
+        public static VisualElement MakeCommandKpiCard(string title, string value, string caption, CommandStatusCategory category = CommandStatusCategory.Neutral)
+        {
+            var card = new VisualElement();
+            card.AddToClassList("command-kpi-card");
+            card.AddToClassList(ThemeTokens.StatusClassFor(category));
+
+            var titleLabel = new Label(title ?? string.Empty);
+            titleLabel.AddToClassList("command-kpi-title");
+            card.Add(titleLabel);
+
+            var valueLabel = new Label(value ?? string.Empty);
+            valueLabel.AddToClassList("command-kpi-value");
+            card.Add(valueLabel);
+
+            var captionLabel = new Label(caption ?? string.Empty);
+            captionLabel.AddToClassList("command-kpi-caption");
+            card.Add(captionLabel);
+            return card;
+        }
+
+        public static VisualElement MakeCommandPanel(string title, IEnumerable<string> rows)
+        {
+            var panel = new VisualElement();
+            panel.AddToClassList("command-panel");
+
+            var heading = new Label(title ?? string.Empty);
+            heading.AddToClassList("command-panel-title");
+            panel.Add(heading);
+
+            var hasRows = false;
+            if (rows != null)
+            {
+                foreach (var row in rows)
+                {
+                    hasRows = true;
+                    var rowLabel = new Label(row ?? string.Empty);
+                    rowLabel.AddToClassList("command-panel-row");
+                    panel.Add(rowLabel);
+                }
+            }
+
+            if (!hasRows)
+            {
+                var empty = new Label("No safe rows to show.");
+                empty.AddToClassList("command-panel-row");
+                panel.Add(empty);
+            }
+
+            return panel;
+        }
+
+        public static VisualElement MakeCommandMetricRow(string label, string value, string caption, CommandStatusCategory category = CommandStatusCategory.Neutral)
+        {
+            var row = new VisualElement();
+            row.AddToClassList("command-metric-row");
+            row.AddToClassList(ThemeTokens.StatusClassFor(category));
+
+            var labelStack = new VisualElement();
+            labelStack.AddToClassList("command-metric-label-stack");
+            row.Add(labelStack);
+
+            var name = new Label(label ?? string.Empty);
+            name.AddToClassList("command-metric-label");
+            labelStack.Add(name);
+
+            var detail = new Label(caption ?? string.Empty);
+            detail.AddToClassList("command-metric-caption");
+            labelStack.Add(detail);
+
+            var valueLabel = new Label(value ?? string.Empty);
+            valueLabel.AddToClassList("command-metric-value");
+            row.Add(valueLabel);
+            return row;
+        }
+
+        public static VisualElement MakeCommandActionButtonRow(params VisualElement[] actions)
+        {
+            var row = new VisualElement();
+            row.AddToClassList("action-row");
+            row.AddToClassList("command-action-row");
+            if (actions != null)
+            {
+                foreach (var action in actions)
+                {
+                    if (action != null)
+                    {
+                        row.Add(action);
+                    }
+                }
+            }
+
+            return row;
+        }
+
+        public static VisualElement MakeCommandWarningBanner(string title, IEnumerable<string> rows)
+        {
+            var banner = MakeCommandPanel(title, rows);
+            banner.AddToClassList("command-warning-banner");
+            return banner;
+        }
+
+        public static VisualElement MakeCommandDataQualityPanel(string title, IEnumerable<string> rows, CommandStatusCategory category = CommandStatusCategory.Warning)
+        {
+            var panel = MakeCommandPanel(title, rows);
+            panel.AddToClassList("command-data-quality-panel");
+            panel.AddToClassList(ThemeTokens.StatusClassFor(category));
+            return panel;
+        }
+
+        public static VisualElement MakeCommandEmptyState(string title, params string[] rows)
+        {
+            var safeRows = rows == null || rows.Length == 0 ? new[] { ThemeTokens.EmptyStateMessage(title) } : rows;
+            var panel = MakeCommandPanel(title, safeRows);
+            panel.AddToClassList("command-empty-state");
+            return panel;
+        }
+
+        public static VisualElement MakeCommandSectionTabs(IReadOnlyList<string> tabs, string activeTab)
+        {
+            var row = new VisualElement();
+            row.AddToClassList("command-section-tabs");
+            if (tabs == null || tabs.Count == 0)
+            {
+                return row;
+            }
+
+            foreach (var tab in tabs)
+            {
+                var label = new Label(tab ?? string.Empty);
+                label.AddToClassList("command-section-tab");
+                if (!string.IsNullOrWhiteSpace(activeTab) && string.Equals(tab, activeTab, System.StringComparison.OrdinalIgnoreCase))
+                {
+                    label.AddToClassList("command-section-tab-active");
+                }
+
+                row.Add(label);
+            }
+
+            return row;
         }
 
         public static VisualElement MakeSafetyBanner(params string[] rows)

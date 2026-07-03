@@ -1,6 +1,6 @@
 # Data Sources UI
 
-Milestone 1.8 adds the first user-facing Data Sources workflow in the Unity shell. Milestone 1.8.1 adds runtime dependency diagnostics so SQLite and copied plugin dependencies can be checked before import.
+Milestone 1.8 adds the first user-facing Data Sources workflow in the Unity shell. Milestone 1.8.1 adds runtime dependency diagnostics so SQLite and copied plugin dependencies can be checked before import. Milestone 2.7 keeps the workflow intact and presents it in the dark command-center theme baseline.
 
 ## Scope
 
@@ -12,8 +12,11 @@ Milestone 1.8 adds the first user-facing Data Sources workflow in the Unity shel
 - Safe import through the existing provider/firewall/persistence pipeline.
 - Database diagnostics after import.
 - Runtime dependency check button.
+- Command-center KPI panels for source mode, live-data safety, preview safety, import safety and runtime/database state.
 
 No network sources, scraping, FotMob integration, external APIs, fake live FM26 data, unlicensed player images, badges or provider flags are included.
+
+The page may show a synthetic fixture quick-fill option for development/testing only. It must remain clearly labelled as synthetic fixture data and must not imply live FM26 access.
 
 ## Runtime Path
 

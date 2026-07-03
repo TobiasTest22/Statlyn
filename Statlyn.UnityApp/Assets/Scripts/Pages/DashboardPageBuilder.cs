@@ -1,3 +1,4 @@
+using Statlyn.UI;
 using Statlyn.UI.ProfileFixtures;
 using Statlyn.UI.UnityBridge;
 using Statlyn.UnityApp.Components;
@@ -10,44 +11,28 @@ namespace Statlyn.UnityApp.Pages
         public void Build(VisualElement main)
         {
             main.Clear();
-            var header = new VisualElement();
-            header.AddToClassList("header");
-            main.Add(header);
-
-            var headerBrand = new VisualElement();
-            headerBrand.AddToClassList("header-brand");
-            header.Add(headerBrand);
-
-            var logo = StatlynUiFactory.MakeLogoImage(StatlynUiFactory.LightLogoResourceKey, "header-logo");
-            if (logo != null)
-            {
-                headerBrand.Add(logo);
-            }
-
-            var titleStack = new VisualElement();
-            titleStack.AddToClassList("title-stack");
-            headerBrand.Add(titleStack);
-
-            var title = new Label("Recruitment Intelligence");
-            title.AddToClassList("screen-title");
-            titleStack.Add(title);
-
-            var subtitle = new Label("Fixture mode preview - no live FM26 data");
-            subtitle.AddToClassList("screen-subtitle");
-            titleStack.Add(subtitle);
-
-            var status = new Label("Scouting firewall active");
-            status.AddToClassList("status-pill");
-            header.Add(status);
+            main.Add(StatlynUiFactory.MakeCommandPageHeader(
+                "Recruitment Intelligence",
+                "Command-center baseline for local, masked recruitment analysis",
+                "Scouting firewall active",
+                CommandStatusCategory.Success));
 
             var dashboard = new VisualElement();
             dashboard.AddToClassList("dashboard-grid");
+            dashboard.AddToClassList("command-kpi-row");
             main.Add(dashboard);
 
-            dashboard.Add(StatlynUiFactory.MakeCard("Active Source", new[] { "Mode: Fixture preview", "Status: No live FM26 data", "Players: 1 synthetic preview" }));
-            dashboard.Add(StatlynUiFactory.MakeCard("Connection", new[] { "FM26 process: Not checked", "Build support: Unsupported until mapped", "Snapshot: Not loaded" }));
-            dashboard.Add(StatlynUiFactory.MakeCard("Recruitment", new[] { "Squad needs: Awaiting data", "Targets: Awaiting data", "Alerts: 0" }));
-            dashboard.Add(StatlynUiFactory.MakeCard("Protection", new[] { "Hidden values blocked", "Raw entities blocked from UI", "Low confidence requires scouting" }));
+            dashboard.Add(StatlynUiFactory.MakeCommandKpiCard("Data Mode", "Fixture preview", "Synthetic development profile only", CommandStatusCategory.Warning));
+            dashboard.Add(StatlynUiFactory.MakeCommandKpiCard("Source Integrity", "No live FM26 data", "CSV import remains manual/local", CommandStatusCategory.Accent));
+            dashboard.Add(StatlynUiFactory.MakeCommandKpiCard("FM26 Support", "Unsupported", "No validated memory map or live binding", CommandStatusCategory.Warning));
+            dashboard.Add(StatlynUiFactory.MakeCommandKpiCard("Protection", "Firewall active", "Raw provider values stay out of UI", CommandStatusCategory.Success));
+
+            main.Add(StatlynUiFactory.MakeCommandWarningBanner("Safety Baseline", new[]
+            {
+                "Home may show one synthetic development profile as a labelled fixture preview.",
+                "No live FM26 data, fake benchmark values or external API sources are available.",
+                "Open Data Sources for local CSV import or Diagnostics for runtime checks."
+            }));
 
             main.Add(MakePlayerProfileSlice(UnityProfileRenderModel.From(FixtureProfileFactory.CreateDevelopmentPreviewProfile())));
             main.Add(DiagnosticsPanelBuilder.BuildAdvancedDiagnostics());
@@ -57,6 +42,7 @@ namespace Statlyn.UnityApp.Pages
         {
             var profile = new VisualElement();
             profile.AddToClassList("profile-slice");
+            profile.AddToClassList("command-panel");
 
             var header = new VisualElement();
             header.AddToClassList("profile-header");

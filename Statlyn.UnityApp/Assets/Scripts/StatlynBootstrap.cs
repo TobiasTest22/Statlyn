@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using System.Linq;
 using Statlyn.Data.Workflow;
+using Statlyn.UI;
 using Statlyn.UnityApp.Pages;
 using Statlyn.UnityApp.Components;
 using UnityEngine;
@@ -23,6 +25,7 @@ namespace Statlyn.UnityApp
         private readonly BenchmarksPageBuilder _benchmarks = new BenchmarksPageBuilder();
         private readonly DiagnosticsPageBuilder _diagnostics = new DiagnosticsPageBuilder();
         private readonly NotBuiltPageBuilder _notBuilt = new NotBuiltPageBuilder();
+        private readonly List<Button> _navButtons = new List<Button>();
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void CreateRuntimeShell()
@@ -56,6 +59,7 @@ namespace Statlyn.UnityApp
             var root = _document.rootVisualElement;
             root.Clear();
             root.AddToClassList("statlyn-root");
+            root.AddToClassList("theme-dark-command-center");
 
             var style = Resources.Load<StyleSheet>("StatlynTheme");
             if (style != null)
@@ -68,22 +72,59 @@ namespace Statlyn.UnityApp
             root.Add(sidebar);
 
             sidebar.Add(StatlynUiFactory.MakeBrandLockup());
+            sidebar.Add(BuildShellStatus());
 
             var main = new VisualElement();
             main.AddToClassList("main");
+            main.AddToClassList("command-main");
             root.Add(main);
 
+            _navButtons.Clear();
             foreach (var item in NavigationItems)
             {
                 var navItem = item;
                 var button = new Button();
                 button.text = item;
                 button.AddToClassList("nav-button");
-                button.clicked += () => ShowPage(main, navItem);
+                button.clicked += () =>
+                {
+                    SetActiveNav(navItem);
+                    ShowPage(main, navItem);
+                };
+                _navButtons.Add(button);
                 sidebar.Add(button);
             }
 
+            SetActiveNav("Home");
             _dashboard.Build(main);
+        }
+
+        private static VisualElement BuildShellStatus()
+        {
+            var status = new VisualElement();
+            status.AddToClassList("command-shell-status");
+            status.Add(StatlynUiFactory.MakeCommandStatusPill(ThemeTokens.GlobalSafetyLabel(false), CommandStatusCategory.Accent));
+
+            var runtime = new Label("CSV-only runtime | SQLite local database");
+            runtime.AddToClassList("command-shell-status-line");
+            status.Add(runtime);
+
+            var support = new Label("FM26 unsupported until validated");
+            support.AddToClassList("command-shell-status-line");
+            status.Add(support);
+            return status;
+        }
+
+        private void SetActiveNav(string pageName)
+        {
+            foreach (var button in _navButtons)
+            {
+                button.RemoveFromClassList("nav-active");
+                if (button.text == pageName)
+                {
+                    button.AddToClassList("nav-active");
+                }
+            }
         }
 
         private void ShowPage(VisualElement main, string pageName)

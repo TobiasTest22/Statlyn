@@ -22,15 +22,27 @@ namespace Statlyn.Data.Persistence
             }
 
             using (var connection = ConnectionFactory.OpenConnection())
-            using (var command = connection.CreateCommand())
+            {
+                return Save(playerId, roleScore, connection, null);
+            }
+        }
+
+        public long Save(long playerId, RoleScore roleScore, SqliteConnection connection, SqliteTransaction? transaction)
+        {
+            if (roleScore == null)
+            {
+                throw new ArgumentNullException(nameof(roleScore));
+            }
+
+            using (var command = CreateCommand(connection, transaction))
             {
                 command.CommandText =
                     @"INSERT INTO RoleScore (
                         PlayerId, RoleModelId, RoleFit, TechnicalFit, StatisticalFit, PhysicalFit, TacticalFit,
-                        RiskScore, Confidence, PositiveEvidence, NegativeEvidence, MissingData, BlockedDataNotice, CreatedAtUtc)
+                        RiskScore, Confidence, Recommendation, PositiveEvidence, NegativeEvidence, MissingData, BlockedDataNotice, CreatedAtUtc)
                       VALUES (
                         $playerId, NULL, $roleFit, $technicalFit, $statisticalFit, $physicalFit, $tacticalFit,
-                        $riskScore, $confidence, $positiveEvidence, $negativeEvidence, $missingData, $blockedDataNotice, $createdAtUtc);";
+                        $riskScore, $confidence, $recommendation, $positiveEvidence, $negativeEvidence, $missingData, $blockedDataNotice, $createdAtUtc);";
                 Add(command, "$playerId", playerId);
                 Add(command, "$roleFit", roleScore.RoleFit);
                 Add(command, "$technicalFit", roleScore.TechnicalFit);
@@ -39,6 +51,7 @@ namespace Statlyn.Data.Persistence
                 Add(command, "$tacticalFit", roleScore.TacticalFit);
                 Add(command, "$riskScore", roleScore.RiskScore);
                 Add(command, "$confidence", roleScore.Confidence);
+                Add(command, "$recommendation", roleScore.Recommendation.ToString());
                 Add(command, "$positiveEvidence", JoinValues(roleScore.PositiveEvidence.Select(item => item.FieldName + ":" + item.Message)));
                 Add(command, "$negativeEvidence", JoinValues(roleScore.NegativeEvidence.Select(item => item.FieldName + ":" + item.Message)));
                 Add(command, "$missingData", JoinValues(roleScore.MissingData));
@@ -49,6 +62,16 @@ namespace Statlyn.Data.Persistence
             }
         }
 
+        public void DeleteForPlayer(long playerId, SqliteConnection connection, SqliteTransaction? transaction)
+        {
+            using (var command = CreateCommand(connection, transaction))
+            {
+                command.CommandText = "DELETE FROM RoleScore WHERE PlayerId = $playerId;";
+                Add(command, "$playerId", playerId);
+                command.ExecuteNonQuery();
+            }
+        }
+
         public RoleScore? LoadLatest(long playerId, string roleName)
         {
             using (var connection = ConnectionFactory.OpenConnection())
@@ -56,7 +79,7 @@ namespace Statlyn.Data.Persistence
             {
                 command.CommandText =
                     @"SELECT RoleFit, TechnicalFit, StatisticalFit, PhysicalFit, TacticalFit, RiskScore, Confidence,
-                             PositiveEvidence, NegativeEvidence, MissingData, BlockedDataNotice
+                             Recommendation, PositiveEvidence, NegativeEvidence, MissingData, BlockedDataNotice
                       FROM RoleScore
                       WHERE PlayerId = $playerId
                       ORDER BY CreatedAtUtc DESC, Id DESC
@@ -69,7 +92,9 @@ namespace Statlyn.Data.Persistence
                         return null;
                     }
 
-                    var confidence = reader.GetInt32(6);
+                    var recommendation = Enum.TryParse<RecruitmentRecommendation>(reader.GetString(7), out var parsedRecommendation)
+                        ? parsedRecommendation
+                        : RecruitmentRecommendation.ScoutFurther;
                     return new RoleScore(
                         roleName,
                         reader.GetInt32(0),
@@ -78,12 +103,12 @@ namespace Statlyn.Data.Persistence
                         reader.GetInt32(3),
                         ReadNullableInt(reader, 4),
                         reader.GetInt32(5),
-                        confidence,
-                        Recommend(reader.GetInt32(0), confidence),
-                        SplitEvidence(reader.GetString(7), true),
-                        SplitEvidence(reader.GetString(8), false),
-                        SplitValues(reader.GetString(9)),
-                        ReadString(reader, 10));
+                        reader.GetInt32(6),
+                        recommendation,
+                        SplitEvidence(reader.GetString(8), true),
+                        SplitEvidence(reader.GetString(9), false),
+                        SplitValues(reader.GetString(10)),
+                        ReadString(reader, 11));
                 }
             }
         }
@@ -98,31 +123,6 @@ namespace Statlyn.Data.Persistence
             }
 
             return items;
-        }
-
-        private static RecruitmentRecommendation Recommend(int roleFit, int confidence)
-        {
-            if (confidence < 55)
-            {
-                return RecruitmentRecommendation.ScoutFurther;
-            }
-
-            if (roleFit >= 82 && confidence >= 75)
-            {
-                return RecruitmentRecommendation.Sign;
-            }
-
-            if (roleFit >= 72)
-            {
-                return RecruitmentRecommendation.Shortlist;
-            }
-
-            if (roleFit >= 58)
-            {
-                return RecruitmentRecommendation.Monitor;
-            }
-
-            return RecruitmentRecommendation.Avoid;
         }
     }
 }

@@ -19,22 +19,43 @@ namespace Statlyn.Data.Persistence
                 throw new System.InvalidOperationException("Physical metrics can only be persisted from masked players.");
             }
 
-            var stored = 0;
             using (var connection = ConnectionFactory.OpenConnection())
             {
-                foreach (var field in masked.Fields.Values)
-                {
-                    if (field.Key != PlayerFieldKey.PhysicalData || !field.IsKnown || field.IsBlocked || !field.CanStore || !field.CanScore || !field.NumericValue.HasValue)
-                    {
-                        continue;
-                    }
+                return SaveFromFields(playerId, masked, connection, null);
+            }
+        }
 
-                    Save(connection, playerId, field);
-                    stored++;
+        public int SaveFromFields(long playerId, object player, SqliteConnection connection, SqliteTransaction? transaction)
+        {
+            SafePersistenceGuard.RejectRaw(player, "Persist physical metrics");
+            if (!(player is MaskedPlayer masked))
+            {
+                throw new System.InvalidOperationException("Physical metrics can only be persisted from masked players.");
+            }
+
+            var stored = 0;
+            foreach (var field in masked.Fields.Values)
+            {
+                if (field.Key != PlayerFieldKey.PhysicalData || !field.IsKnown || field.IsBlocked || !field.CanStore || !field.CanScore || !field.NumericValue.HasValue)
+                {
+                    continue;
                 }
+
+                Save(connection, transaction, playerId, field);
+                stored++;
             }
 
             return stored;
+        }
+
+        public void DeleteForPlayer(long playerId, SqliteConnection connection, SqliteTransaction? transaction)
+        {
+            using (var command = CreateCommand(connection, transaction))
+            {
+                command.CommandText = "DELETE FROM PhysicalMetric WHERE PlayerId = $playerId;";
+                Add(command, "$playerId", playerId);
+                command.ExecuteNonQuery();
+            }
         }
 
         public IReadOnlyList<PhysicalMetricRecord> LoadForPlayer(long playerId)
@@ -61,9 +82,9 @@ namespace Statlyn.Data.Persistence
             return metrics;
         }
 
-        private static void Save(SqliteConnection connection, long playerId, VisiblePlayerField field)
+        private static void Save(SqliteConnection connection, SqliteTransaction? transaction, long playerId, VisiblePlayerField field)
         {
-            using (var command = connection.CreateCommand())
+            using (var command = CreateCommand(connection, transaction))
             {
                 command.CommandText =
                     @"INSERT INTO PhysicalMetric (PlayerId, FieldInstanceKey, MetricName, MetricValue, Unit, SourceName, Confidence)

@@ -21,7 +21,19 @@ namespace Statlyn.Data.Persistence
             }
 
             using (var connection = ConnectionFactory.OpenConnection())
-            using (var command = connection.CreateCommand())
+            {
+                return Save(metadata, completeness, connection, null);
+            }
+        }
+
+        public long Save(SourceMetadata metadata, DataCompletenessReport completeness, SqliteConnection connection, SqliteTransaction? transaction)
+        {
+            if (metadata == null)
+            {
+                throw new ArgumentNullException(nameof(metadata));
+            }
+
+            using (var command = CreateCommand(connection, transaction))
             {
                 command.CommandText =
                     @"INSERT INTO DataSource (

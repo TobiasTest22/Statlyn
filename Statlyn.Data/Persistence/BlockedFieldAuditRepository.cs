@@ -19,17 +19,38 @@ namespace Statlyn.Data.Persistence
                 throw new System.InvalidOperationException("Blocked field audit can only be persisted from masked players.");
             }
 
-            var stored = 0;
             using (var connection = ConnectionFactory.OpenConnection())
             {
-                foreach (var blocked in masked.BlockedFields)
-                {
-                    Save(connection, sourceEntityId, blocked);
-                    stored++;
-                }
+                return SaveBlockedFields(sourceEntityId, masked, connection, null);
+            }
+        }
+
+        public int SaveBlockedFields(string sourceEntityId, object player, SqliteConnection connection, SqliteTransaction? transaction)
+        {
+            SafePersistenceGuard.RejectRaw(player, "Persist blocked field audit");
+            if (!(player is MaskedPlayer masked))
+            {
+                throw new System.InvalidOperationException("Blocked field audit can only be persisted from masked players.");
+            }
+
+            var stored = 0;
+            foreach (var blocked in masked.BlockedFields)
+            {
+                Save(connection, transaction, sourceEntityId, blocked);
+                stored++;
             }
 
             return stored;
+        }
+
+        public void DeleteForEntity(string sourceEntityId, SqliteConnection connection, SqliteTransaction? transaction)
+        {
+            using (var command = CreateCommand(connection, transaction))
+            {
+                command.CommandText = "DELETE FROM BlockedFieldAudit WHERE SourceEntityId = $sourceEntityId;";
+                Add(command, "$sourceEntityId", sourceEntityId);
+                command.ExecuteNonQuery();
+            }
         }
 
         public IReadOnlyList<BlockedFieldNotice> LoadForEntity(string sourceEntityId)
@@ -57,9 +78,9 @@ namespace Statlyn.Data.Persistence
             return blocked;
         }
 
-        private static void Save(SqliteConnection connection, string sourceEntityId, BlockedFieldNotice blocked)
+        private static void Save(SqliteConnection connection, SqliteTransaction? transaction, string sourceEntityId, BlockedFieldNotice blocked)
         {
-            using (var command = connection.CreateCommand())
+            using (var command = CreateCommand(connection, transaction))
             {
                 command.CommandText =
                     @"INSERT INTO BlockedFieldAudit (SourceName, SourceEntityId, FieldKey, FieldName, Reason, CreatedAtUtc)

@@ -12,7 +12,14 @@ namespace Statlyn.Data.Persistence
         public long Save(long playerId, string sourceName, bool isFixtureMode, bool isLiveFm26Data, int confidence, int dataCompleteness)
         {
             using (var connection = ConnectionFactory.OpenConnection())
-            using (var command = connection.CreateCommand())
+            {
+                return Save(playerId, sourceName, isFixtureMode, isLiveFm26Data, confidence, dataCompleteness, connection, null);
+            }
+        }
+
+        public long Save(long playerId, string sourceName, bool isFixtureMode, bool isLiveFm26Data, int confidence, int dataCompleteness, Microsoft.Data.Sqlite.SqliteConnection connection, Microsoft.Data.Sqlite.SqliteTransaction? transaction)
+        {
+            using (var command = CreateCommand(connection, transaction))
             {
                 command.CommandText =
                     @"INSERT INTO PlayerProfileSnapshot (PlayerId, SourceName, IsFixtureMode, IsLiveFm26Data, Confidence, DataCompleteness, CreatedAtUtc)
@@ -26,6 +33,16 @@ namespace Statlyn.Data.Persistence
                 Add(command, "$createdAtUtc", DateTimeOffset.UtcNow.ToString("O"));
                 command.ExecuteNonQuery();
                 return LastInsertRowId(connection);
+            }
+        }
+
+        public void DeleteForPlayer(long playerId, Microsoft.Data.Sqlite.SqliteConnection connection, Microsoft.Data.Sqlite.SqliteTransaction? transaction)
+        {
+            using (var command = CreateCommand(connection, transaction))
+            {
+                command.CommandText = "DELETE FROM PlayerProfileSnapshot WHERE PlayerId = $playerId;";
+                Add(command, "$playerId", playerId);
+                command.ExecuteNonQuery();
             }
         }
     }

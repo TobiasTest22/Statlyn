@@ -18,6 +18,17 @@ namespace Statlyn.Data.Persistence
             command.Parameters.AddWithValue(name, value ?? DBNull.Value);
         }
 
+        protected static SqliteCommand CreateCommand(SqliteConnection connection, SqliteTransaction? transaction)
+        {
+            var command = connection.CreateCommand();
+            if (transaction != null)
+            {
+                command.Transaction = transaction;
+            }
+
+            return command;
+        }
+
         protected static int Bool(bool value)
         {
             return value ? 1 : 0;

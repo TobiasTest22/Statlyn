@@ -4,12 +4,20 @@ namespace Statlyn.Data.Persistence
 {
     public sealed class ImportPipelineOptions
     {
-        public ImportPipelineOptions(RoleModel previewRole)
+        public ImportPipelineOptions(RoleModel previewRole, int fatalFailureAfterAcceptedRows = -1)
         {
             PreviewRole = previewRole;
+            FatalFailureAfterAcceptedRows = fatalFailureAfterAcceptedRows;
         }
 
         public RoleModel PreviewRole { get; }
+
+        public int FatalFailureAfterAcceptedRows { get; }
+
+        public ImportPipelineOptions WithFatalFailureAfterAcceptedRows(int rows)
+        {
+            return new ImportPipelineOptions(PreviewRole, rows);
+        }
 
         public static ImportPipelineOptions CreateDefault()
         {

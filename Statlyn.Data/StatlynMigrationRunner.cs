@@ -25,6 +25,10 @@ namespace Statlyn.Data
                     }
                 }
 
+                EnsureColumn(connection, "RoleScore", "Recommendation", "TEXT NOT NULL DEFAULT 'ScoutFurther'");
+                EnsureColumn(connection, "PlayerStat", "SampleMinutesMissing", "INTEGER NOT NULL DEFAULT 1");
+                EnsureColumn(connection, "PlayerStat", "MinutesSource", "TEXT NOT NULL DEFAULT 'missing'");
+
                 using (var command = connection.CreateCommand())
                 {
                     command.CommandText = "SELECT COUNT(*) FROM SchemaVersion;";
@@ -45,6 +49,40 @@ namespace Statlyn.Data
                     }
                 }
             }
+        }
+
+        private static void EnsureColumn(SqliteConnection connection, string tableName, string columnName, string declaration)
+        {
+            if (HasColumn(connection, tableName, columnName))
+            {
+                return;
+            }
+
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = "ALTER TABLE " + tableName + " ADD COLUMN " + columnName + " " + declaration + ";";
+                command.ExecuteNonQuery();
+            }
+        }
+
+        private static bool HasColumn(SqliteConnection connection, string tableName, string columnName)
+        {
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = "PRAGMA table_info(" + tableName + ");";
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        if (string.Equals(reader.GetString(1), columnName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
         }
     }
 }

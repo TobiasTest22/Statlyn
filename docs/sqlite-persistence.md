@@ -10,6 +10,8 @@ Milestone 1.7 adds a local SQLite foundation in `Statlyn.Data`.
 - Schema version tracking.
 - Safe diagnostics.
 - Repository layer for masked/source-tagged data.
+- Import transaction boundary.
+- Re-import duplicate prevention.
 
 Unity is not bound to SQLite yet. The Unity Player Profile slice can keep rendering the fixture factory profile until a later UI milestone wires persistence into the app workflow.
 
@@ -37,6 +39,24 @@ Not stored:
 - raw blocked values
 - unmasked provider fields
 - unlicensed image bytes, URLs, badges or flags
+
+## Transaction And Re-Import Behavior
+
+One import uses a single SQLite connection and transaction for source metadata, players, visible fields, player stats, physical metrics, role scores, blocked audit rows, profile snapshots and the success audit row. If a fatal failure occurs during persistence, the transaction is rolled back and only a sanitized failure audit is written afterward.
+
+Re-import currently uses snapshot replace for player-scoped rows. When the same player is imported again, Statlyn updates the player record, deletes current visible fields, player stats, physical metrics, role scores, blocked audit rows and profile snapshot rows for that player, then inserts the fresh masked snapshot. This keeps reload deterministic and prevents xG, TopSpeed or Finishing rows from doubling.
+
+Unique indexes reinforce this behavior for visible fields, player stats, physical metrics and blocked audit rows.
+
+## Diagnostics And Recommendations
+
+Import audit diagnostics pass through a sanitizer before storage. Patterns such as `CurrentAbility: 200`, `Professionalism=19` and `PA 199` are redacted while field names, counts and source names remain readable.
+
+Role scores persist their `Recommendation` value. Reload does not recompute the recommendation from role fit and confidence.
+
+## Sample Minutes
+
+If a safe visible `Minutes` player-stat field exists, `PlayerStat` rows store that value as sample minutes. If no safe minutes field exists, `Minutes` remains `0`, `SampleMinutesMissing` is true and `MinutesSource` is `missing`. Statlyn does not assume per-90 validity without sample minutes.
 
 ## Reload Flow
 

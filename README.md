@@ -34,7 +34,7 @@ When FM26 is detected but no validated memory map exists, Statlyn must show an u
 
 CSV and JSON import support is local-file skeleton work only. It does not scrape, call FotMob, use unofficial endpoints or assume unlicensed images are available. Fixture data is synthetic development/test data only. The Player Profile slice is generated from a synthetic raw fixture that passes through the scouting firewall, role scoring and masked profile view model. It is not live FM26 data.
 
-The SQLite persistence layer is local-only foundation work. It stores masked players, visible permitted fields, player stats, physical metrics, source metadata, role scores, blocked-field audit metadata and import audit counts. It does not store raw provider snapshots, hidden FM26 values or raw blocked values.
+The SQLite persistence layer is local-only foundation work. It stores masked players, visible permitted fields, player stats, physical metrics, source metadata, role scores, blocked-field audit metadata and import audit counts. Imports run inside a transaction and re-imports replace the current stored player snapshot so safe fields, stats and metrics do not duplicate. It does not store raw provider snapshots, hidden FM26 values or raw blocked values.
 
 Performance metric definitions are generic/import-ready contracts, not official FM26 stat declarations. A metric can only be marked FM26-supported after later validation from visible FM26 data, exported data or a validated memory map. Generic role-output expectation profiles are foundation templates, not final FM26 role templates. Goalkeepers, centre-backs, midfielders, wide attackers and strikers intentionally use different output expectations.
 
@@ -109,3 +109,5 @@ raw provider data -> scouting knowledge firewall -> masked player -> scoring/UI
 Hidden CA, hidden PA and hidden personality values are blocked by design and covered by tests.
 
 Attributes are supporting evidence for recruitment analysis. Future scoring should increasingly be driven by performance output, role-specific statistical evidence, scout observations, source confidence, sample size and tactical fit.
+
+Import audit diagnostics are sanitized before storage. Role score recommendations are persisted as stored decisions rather than recalculated on reload, and player-stat sample minutes are stored when a safe Minutes field is available.

@@ -116,6 +116,8 @@ namespace Statlyn.Data
                         StatName TEXT NOT NULL,
                         StatValue REAL NOT NULL,
                         Minutes INTEGER NOT NULL,
+                        SampleMinutesMissing INTEGER NOT NULL DEFAULT 1,
+                        MinutesSource TEXT NOT NULL DEFAULT 'missing',
                         SourceName TEXT NOT NULL,
                         Confidence INTEGER NOT NULL,
                         FOREIGN KEY(PlayerId) REFERENCES Player(Id)
@@ -208,6 +210,7 @@ namespace Statlyn.Data
                         TacticalFit INTEGER NULL,
                         RiskScore INTEGER NOT NULL,
                         Confidence INTEGER NOT NULL,
+                        Recommendation TEXT NOT NULL DEFAULT 'ScoutFurther',
                         PositiveEvidence TEXT NOT NULL,
                         NegativeEvidence TEXT NOT NULL,
                         MissingData TEXT NOT NULL,
@@ -356,7 +359,19 @@ namespace Statlyn.Data
                         EvidenceTemplate TEXT NOT NULL,
                         MissingDataImpact TEXT NOT NULL,
                         FOREIGN KEY(ProfileName) REFERENCES RoleOutputExpectationProfile(ProfileName)
-                    );"
+                    );",
+                    @"CREATE UNIQUE INDEX IF NOT EXISTS UX_VisibleField_Player_FieldInstance
+                        ON VisibleField (PlayerId, FieldInstanceKey);",
+                    @"CREATE UNIQUE INDEX IF NOT EXISTS UX_PlayerStat_Player_FieldInstance
+                        ON PlayerStat (PlayerId, FieldInstanceKey);",
+                    @"CREATE UNIQUE INDEX IF NOT EXISTS UX_PhysicalMetric_Player_FieldInstance
+                        ON PhysicalMetric (PlayerId, FieldInstanceKey);",
+                    @"CREATE INDEX IF NOT EXISTS IX_DataSource_SourceName_ImportedAtUtc
+                        ON DataSource (SourceName, ImportedAtUtc);",
+                    @"CREATE INDEX IF NOT EXISTS IX_RoleScore_Player_RoleModel_CreatedAt
+                        ON RoleScore (PlayerId, RoleModelId, CreatedAtUtc);",
+                    @"CREATE UNIQUE INDEX IF NOT EXISTS UX_BlockedFieldAudit_Entity_Field
+                        ON BlockedFieldAudit (SourceEntityId, FieldKey, FieldName);"
                 };
             }
         }

@@ -68,6 +68,17 @@ Milestone 1.7 adds tests for:
 - Safe reload into `MaskedPlayer` and `MaskedPlayerProfileViewModel`.
 - Database diagnostics counts without hidden or blocked raw values.
 
+Milestone 1.7.1 adds tests for:
+
+- Import transaction commit and fatal rollback.
+- Raw-player rejection inside a transaction-aware persistence path.
+- Re-import idempotency for visible fields, player stats, physical metrics, blocked audits and role scores.
+- Diagnostic sanitization for hidden-value-looking patterns.
+- Import audit storage of sanitized diagnostics.
+- Persisted role-score recommendations.
+- Safe Minutes sample handling for player stats.
+- Duplicate-prevention indexes in the schema.
+
 Future tests should cover broader persistence migrations, real provider imports, Unity UI state transitions and native connector status parsing.
 
 Unity editor validation remains manual. Run `.\tools\copy-managed-to-unity.ps1` before opening the project so the Unity assembly definition can resolve the shared managed Statlyn DLLs.

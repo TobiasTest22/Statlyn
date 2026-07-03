@@ -69,7 +69,6 @@ namespace Statlyn.Data.Persistence
 
             var metadata = metadataResult.Value;
             var completeness = provider.GetDataCompleteness();
-            _dataSources.Save(metadata, completeness);
 
             var rowsRead = playersResult.Value.Count;
             var rowsAccepted = 0;
@@ -80,46 +79,84 @@ namespace Statlyn.Data.Persistence
             var blockedFields = 0;
             var unknownFields = 0;
 
-            foreach (var raw in playersResult.Value)
+            try
             {
-                try
+                using (var connection = _connectionFactory.OpenConnection())
+                using (var transaction = connection.BeginTransaction())
                 {
-                    var masked = _firewall.Mask(raw);
-                    var roleScore = _scoring.ScorePlayer(masked, options.PreviewRole);
-                    var playerId = _players.Save(masked, metadata, completeness);
-                    fieldsStored += _visibleFields.SaveFields(playerId, masked);
-                    playerStatsStored += _playerStats.SaveFromFields(playerId, masked);
-                    physicalMetricsStored += _physicalMetrics.SaveFromFields(playerId, masked);
-                    _roleScores.Save(playerId, roleScore);
-                    blockedFields += _blockedFields.SaveBlockedFields(masked.StatlynPlayerId, masked);
-                    unknownFields += masked.BlockedFields.Count(field => field.Key == PlayerFieldKey.Unknown);
-                    _profileSnapshots.Save(playerId, metadata.SourceName, IsFixture(metadata), metadata.IsLive && metadata.ProviderType == ProviderType.FM26LiveMemory, roleScore.Confidence, completeness.CompletenessPercentage);
-                    rowsAccepted++;
-                }
-                catch (Exception ex)
-                {
-                    rowsRejected++;
-                    diagnostics.Add("import.player.failed", DiagnosticStatus.Partial, "A player row failed safe import.", ex.GetType().Name);
+                    _dataSources.Save(metadata, completeness, connection, transaction);
+
+                    foreach (var raw in playersResult.Value)
+                    {
+                        MaskedPlayer masked;
+                        RoleScore roleScore;
+                        try
+                        {
+                            masked = _firewall.Mask(raw);
+                            roleScore = _scoring.ScorePlayer(masked, options.PreviewRole);
+                        }
+                        catch (Exception ex)
+                        {
+                            rowsRejected++;
+                            diagnostics.Add("import.player.failed", DiagnosticStatus.Partial, "A player row failed safe import before persistence.", ex.GetType().Name);
+                            continue;
+                        }
+
+                        var playerId = _players.Save(masked, metadata, completeness, connection, transaction);
+                        DeleteCurrentPlayerSnapshot(playerId, masked.StatlynPlayerId, connection, transaction);
+                        fieldsStored += _visibleFields.SaveFields(playerId, masked, connection, transaction);
+                        playerStatsStored += _playerStats.SaveFromFields(playerId, masked, connection, transaction);
+                        physicalMetricsStored += _physicalMetrics.SaveFromFields(playerId, masked, connection, transaction);
+                        _roleScores.Save(playerId, roleScore, connection, transaction);
+                        blockedFields += _blockedFields.SaveBlockedFields(masked.StatlynPlayerId, masked, connection, transaction);
+                        unknownFields += masked.BlockedFields.Count(field => field.Key == PlayerFieldKey.Unknown);
+                        _profileSnapshots.Save(playerId, metadata.SourceName, IsFixture(metadata), metadata.IsLive && metadata.ProviderType == ProviderType.FM26LiveMemory, roleScore.Confidence, completeness.CompletenessPercentage, connection, transaction);
+                        rowsAccepted++;
+
+                        if (options.FatalFailureAfterAcceptedRows >= 0 && rowsAccepted >= options.FatalFailureAfterAcceptedRows)
+                        {
+                            throw new InvalidOperationException("Simulated fatal import failure.");
+                        }
+                    }
+
+                    diagnostics.Add("import.complete", DiagnosticStatus.Verified, "Safe import pipeline completed.", rowsAccepted + " accepted; " + rowsRejected + " rejected.");
+                    var audit = new ImportAuditRecord(
+                        metadata.SourceName,
+                        metadata.ProviderType.ToString(),
+                        DateTimeOffset.UtcNow,
+                        rowsRead,
+                        rowsAccepted,
+                        rowsRejected,
+                        fieldsStored,
+                        playerStatsStored,
+                        physicalMetricsStored,
+                        blockedFields,
+                        unknownFields,
+                        SafeDiagnostics(diagnostics));
+                    _importAudits.Save(audit, connection, transaction);
+                    transaction.Commit();
+
+                    return new ImportPipelineResult(rowsRead, rowsAccepted, rowsRejected, fieldsStored, playerStatsStored, physicalMetricsStored, blockedFields, unknownFields, diagnostics);
                 }
             }
-
-            diagnostics.Add("import.complete", DiagnosticStatus.Verified, "Safe import pipeline completed.", rowsAccepted + " accepted; " + rowsRejected + " rejected.");
-            var audit = new ImportAuditRecord(
-                metadata.SourceName,
-                metadata.ProviderType.ToString(),
-                DateTimeOffset.UtcNow,
-                rowsRead,
-                rowsAccepted,
-                rowsRejected,
-                fieldsStored,
-                playerStatsStored,
-                physicalMetricsStored,
-                blockedFields,
-                unknownFields,
-                SafeDiagnostics(diagnostics));
-            _importAudits.Save(audit);
-
-            return new ImportPipelineResult(rowsRead, rowsAccepted, rowsRejected, fieldsStored, playerStatsStored, physicalMetricsStored, blockedFields, unknownFields, diagnostics);
+            catch (Exception ex)
+            {
+                diagnostics.Add("import.fatal", DiagnosticStatus.Failed, "Fatal import failure rolled back persisted data.", ex.GetType().Name);
+                _importAudits.Save(new ImportAuditRecord(
+                    metadata.SourceName,
+                    metadata.ProviderType.ToString(),
+                    DateTimeOffset.UtcNow,
+                    rowsRead,
+                    0,
+                    rowsRead,
+                    0,
+                    0,
+                    0,
+                    0,
+                    unknownFields,
+                    SafeDiagnostics(diagnostics)));
+                return new ImportPipelineResult(rowsRead, 0, rowsRead, 0, 0, 0, 0, unknownFields, diagnostics);
+            }
         }
 
         private ImportPipelineResult AuditFailure(IDataProvider provider, DiagnosticReport diagnostics, string message)
@@ -136,8 +173,18 @@ namespace Statlyn.Data.Persistence
                 0,
                 0,
                 0,
-                SafeDiagnostics(diagnostics) + " " + (message ?? string.Empty)));
+                DiagnosticSanitizer.Sanitize(SafeDiagnostics(diagnostics) + " " + (message ?? string.Empty))));
             return new ImportPipelineResult(0, 0, 0, 0, 0, 0, 0, 0, diagnostics);
+        }
+
+        private void DeleteCurrentPlayerSnapshot(long playerId, string statlynPlayerId, Microsoft.Data.Sqlite.SqliteConnection connection, Microsoft.Data.Sqlite.SqliteTransaction transaction)
+        {
+            _visibleFields.DeleteForPlayer(playerId, connection, transaction);
+            _playerStats.DeleteForPlayer(playerId, connection, transaction);
+            _physicalMetrics.DeleteForPlayer(playerId, connection, transaction);
+            _roleScores.DeleteForPlayer(playerId, connection, transaction);
+            _blockedFields.DeleteForEntity(statlynPlayerId, connection, transaction);
+            _profileSnapshots.DeleteForPlayer(playerId, connection, transaction);
         }
 
         private static bool IsFixture(SourceMetadata metadata)
@@ -162,7 +209,7 @@ namespace Statlyn.Data.Persistence
                 builder.Append(item.Key).Append(": ").Append(item.Message).Append(" ").Append(item.TechnicalDetail).AppendLine();
             }
 
-            return builder.ToString();
+            return DiagnosticSanitizer.Sanitize(builder.ToString());
         }
     }
 }

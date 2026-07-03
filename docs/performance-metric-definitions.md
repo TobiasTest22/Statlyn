@@ -31,3 +31,7 @@ Definitions support:
 - physical metrics
 
 Attributes can support interpretation, but performance output should increasingly drive recruitment evidence.
+
+## Sample Size
+
+Metrics that require minutes should not be treated as fully reliable unless safe sample minutes are present. The current persistence layer stores sample minutes on `PlayerStat` rows when a safe `Minutes` field exists. If it does not, the row is marked as sample-missing rather than inventing minutes.

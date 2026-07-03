@@ -19,7 +19,19 @@ namespace Statlyn.Data.Persistence
             }
 
             using (var connection = ConnectionFactory.OpenConnection())
-            using (var command = connection.CreateCommand())
+            {
+                return Save(audit, connection, null);
+            }
+        }
+
+        public long Save(ImportAuditRecord audit, Microsoft.Data.Sqlite.SqliteConnection connection, Microsoft.Data.Sqlite.SqliteTransaction? transaction)
+        {
+            if (audit == null)
+            {
+                throw new ArgumentNullException(nameof(audit));
+            }
+
+            using (var command = CreateCommand(connection, transaction))
             {
                 command.CommandText =
                     @"INSERT INTO ImportAudit (
@@ -39,7 +51,7 @@ namespace Statlyn.Data.Persistence
                 Add(command, "$physicalMetricsStored", audit.PhysicalMetricsStored);
                 Add(command, "$blockedFields", audit.BlockedFields);
                 Add(command, "$unknownFields", audit.UnknownFields);
-                Add(command, "$diagnostics", audit.Diagnostics);
+                Add(command, "$diagnostics", DiagnosticSanitizer.Sanitize(audit.Diagnostics));
                 command.ExecuteNonQuery();
                 return LastInsertRowId(connection);
             }

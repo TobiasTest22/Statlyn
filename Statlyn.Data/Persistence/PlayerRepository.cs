@@ -26,6 +26,17 @@ namespace Statlyn.Data.Persistence
             return Save(masked, metadata, completeness);
         }
 
+        public long Save(object player, SourceMetadata metadata, DataCompletenessReport completeness, SqliteConnection connection, SqliteTransaction? transaction)
+        {
+            SafePersistenceGuard.RejectRaw(player, "Persist player");
+            if (!(player is MaskedPlayer masked))
+            {
+                throw new InvalidOperationException("Only masked players can be persisted.");
+            }
+
+            return Save(masked, metadata, completeness, connection, transaction);
+        }
+
         public long Save(MaskedPlayer player, SourceMetadata metadata, DataCompletenessReport completeness)
         {
             if (player == null)
@@ -35,15 +46,26 @@ namespace Statlyn.Data.Persistence
 
             using (var connection = ConnectionFactory.OpenConnection())
             {
-                var existingId = FindPlayerId(connection, player.StatlynPlayerId);
+                return Save(player, metadata, completeness, connection, null);
+            }
+        }
+
+        public long Save(MaskedPlayer player, SourceMetadata metadata, DataCompletenessReport completeness, SqliteConnection connection, SqliteTransaction? transaction)
+        {
+            if (player == null)
+            {
+                throw new ArgumentNullException(nameof(player));
+            }
+
+            var existingId = FindPlayerId(connection, transaction, player.StatlynPlayerId);
                 if (existingId.HasValue)
                 {
-                    Update(connection, existingId.Value, player, metadata, completeness);
-                    SaveScoutKnowledge(connection, existingId.Value, player);
+                Update(connection, transaction, existingId.Value, player, metadata, completeness);
+                SaveScoutKnowledge(connection, transaction, existingId.Value, player);
                     return existingId.Value;
                 }
 
-                using (var command = connection.CreateCommand())
+            using (var command = CreateCommand(connection, transaction))
                 {
                     command.CommandText =
                         @"INSERT INTO Player (
@@ -59,9 +81,8 @@ namespace Statlyn.Data.Persistence
                 }
 
                 var id = LastInsertRowId(connection);
-                SaveScoutKnowledge(connection, id, player);
+            SaveScoutKnowledge(connection, transaction, id, player);
                 return id;
-            }
         }
 
         public StoredPlayerRecord? LoadByStatlynPlayerId(string statlynPlayerId)
@@ -118,9 +139,9 @@ namespace Statlyn.Data.Persistence
             }
         }
 
-        private static void Update(SqliteConnection connection, long playerId, MaskedPlayer player, SourceMetadata metadata, DataCompletenessReport completeness)
+        private static void Update(SqliteConnection connection, SqliteTransaction? transaction, long playerId, MaskedPlayer player, SourceMetadata metadata, DataCompletenessReport completeness)
         {
-            using (var command = connection.CreateCommand())
+            using (var command = CreateCommand(connection, transaction))
             {
                 command.CommandText =
                     @"UPDATE Player SET
@@ -166,9 +187,9 @@ namespace Statlyn.Data.Persistence
             Add(command, "$lastUpdatedUtc", DateTimeOffset.UtcNow.ToString("O"));
         }
 
-        private static long? FindPlayerId(SqliteConnection connection, string statlynPlayerId)
+        private static long? FindPlayerId(SqliteConnection connection, SqliteTransaction? transaction, string statlynPlayerId)
         {
-            using (var command = connection.CreateCommand())
+            using (var command = CreateCommand(connection, transaction))
             {
                 command.CommandText = "SELECT Id FROM Player WHERE StatlynPlayerId = $statlynPlayerId LIMIT 1;";
                 Add(command, "$statlynPlayerId", statlynPlayerId);
@@ -189,9 +210,9 @@ namespace Statlyn.Data.Persistence
             return field == null ? (int?)null : Convert.ToInt32(Math.Round(field.NumericValue!.Value), CultureInfo.InvariantCulture);
         }
 
-        private static void SaveScoutKnowledge(SqliteConnection connection, long playerId, MaskedPlayer player)
+        private static void SaveScoutKnowledge(SqliteConnection connection, SqliteTransaction? transaction, long playerId, MaskedPlayer player)
         {
-            using (var command = connection.CreateCommand())
+            using (var command = CreateCommand(connection, transaction))
             {
                 command.CommandText =
                     @"INSERT INTO ScoutKnowledge (PlayerId, KnowledgePercentage, HasScoutReport, LastUpdatedUtc)

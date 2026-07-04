@@ -17,13 +17,14 @@ namespace Statlyn.Tests
             var app = File.ReadAllText(Path.Combine(desktop, "src", "App.tsx"));
             var api = File.ReadAllText(Path.Combine(desktop, "src", "api.ts"));
 
-            Assert.Contains("Professional Recruitment Workspace", app, StringComparison.Ordinal);
-            Assert.Contains("Search local player, position, source or recommendation", app, StringComparison.Ordinal);
+            Assert.Contains("Scout Room", app, StringComparison.Ordinal);
+            Assert.Contains("Search player, position, source or recommendation", app, StringComparison.Ordinal);
             Assert.Contains("Clear filters", app, StringComparison.Ordinal);
             Assert.Contains("API Offline", app, StringComparison.Ordinal);
             Assert.Contains("No demo rows", app, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("No live FM26 data", app, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("/connector/status", api, StringComparison.Ordinal);
+            Assert.DoesNotContain("Internal Recruitment Analysis", app, StringComparison.Ordinal);
             Assert.DoesNotContain("Insight Panel", app, StringComparison.Ordinal);
             Assert.DoesNotContain("InsightRail", app, StringComparison.Ordinal);
 
@@ -68,7 +69,8 @@ namespace Statlyn.Tests
             Assert.DoesNotContain("insight-rail", styles, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("board-stat-grid", styles, StringComparison.Ordinal);
             Assert.Contains("Recruitment Board", app, StringComparison.Ordinal);
-            Assert.Contains("Professional Recruitment Workspace", app, StringComparison.Ordinal);
+            Assert.Contains("Scout Room", app, StringComparison.Ordinal);
+            Assert.Contains("board-tabs", styles, StringComparison.Ordinal);
 
             foreach (var referenceName in new[]
             {
@@ -125,8 +127,10 @@ namespace Statlyn.Tests
             var combined = string.Join("\n", reactDocs, commandDocs, uiDocs, readme);
 
             Assert.Contains("professional dark football recruitment analyst cockpit", combined, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("Scout Room-style", combined, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("React/Tauri is the strategic", combined, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("no persistent insight panel", combined, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("no gradients", combined, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("not a game UI", combined, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("No fake data", combined, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("No live FM26 data", combined, StringComparison.OrdinalIgnoreCase);

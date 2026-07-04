@@ -2,6 +2,8 @@
 
 `Statlyn.Desktop` is the strategic desktop UI. It is a React + Tauri professional dark football recruitment analyst cockpit with a flat black/glassy visual direction, dense readable tables, safe status cards, loading states, empty states, error states and an API status indicator.
 
+The current visual target is Scout Room-style in appearance principles only: narrow left rail, compact top search/filter row, dense central scout table, flat dark glass panels, restrained recruitment green accents and subtle amber/blue/red status treatment. It must not copy external player names, logos, club marks, fake ratings, fake charts or proprietary workflows.
+
 The target feeling is serious internal recruitment intelligence software: dark, clean, compact, data-heavy and professional. It should feel like football analytics mixed with a finance-terminal interface, not a game UI, fantasy app or generic AI dashboard.
 
 The desktop UI uses official Statlyn logo assets from `Statlyn.Desktop/public/branding/`. Dark glass surfaces should use the white wordmark and white mark variants; black-text variants are reserved for future light export, print or onboarding surfaces.
@@ -34,7 +36,7 @@ The desktop UI must not contain:
 The React/Tauri shell follows a focused scout-room cockpit layout:
 
 - left navigation with official Statlyn branding, stable page links and clear active state
-- main workspace with page title, search/filter foundation, safe KPI/status cards, a large recruitment board and API-down or empty states
+- main workspace with page title, search/filter foundation, safe KPI/status cards, a large table-first recruitment board and API-down or empty states
 - no persistent insight panel; selected detail belongs in the table workflow or the dedicated Player Profile page
 
 The selected-row workflow is scan, select and continue through safe Statlyn pages. The recruitment board can highlight a selected safe API row, but it must not create a persistent right-side insight panel, invent players, profile details, charts, alerts or KPIs.
@@ -49,6 +51,7 @@ The selected-row workflow is scan, select and continue through safe Statlyn page
 - borders: subtle and soft
 - glow/effects: minimal; selected and active states rely on text, borders and a restrained green indicator
 - density: expert-level but readable
+- no gradients; the interface should feel analytical, not game-like
 
 Color is supporting context only. Every status also needs text. FM26 unsupported must never render as a green/success state, and no benchmark must not render as success.
 

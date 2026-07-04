@@ -9,9 +9,11 @@ The cockpit layout is:
 - search/filter foundation over already-safe API rows
 - no persistent insight panel; selected player detail belongs in the table workflow or dedicated Player Profile page
 
-The UI should feel like serious internal recruitment intelligence software used by scouts, analysts, sporting directors and recruitment departments. It should be inspired by professional scouting database patterns without copying external player names, logos, numbers or content. It should not look like a game UI, crypto dashboard, generic AI dashboard or playful consumer app.
+The UI should feel like serious internal recruitment intelligence software used by scouts, analysts, sporting directors and recruitment departments. It should be inspired by professional scouting database patterns without copying external player names, logos, numbers or content. The active React/Tauri surface should follow Scout Room-style appearance principles: narrow sidebar, compact search/filter row, safe stat cards, large central scout table, selected-row emphasis, soft panel borders and restrained green/amber/blue/red status accents. It should not look like a game UI, crypto dashboard, generic AI dashboard or playful consumer app.
 
 React/Tauri remains display/API-only. It may hold selected-row UI state and render safe DTO values from `Statlyn.Api`; it must not calculate recruitment decisions, read SQLite, call provider code, call the native connector, scrape external data, invent fake rows, expose hidden values or claim FM26 support before validation.
+
+The React/Tauri cockpit baseline uses no gradients. Depth comes from black/deep-navy layering, subtle glass opacity, borders and density rather than decorative effects.
 
 Status colors:
 

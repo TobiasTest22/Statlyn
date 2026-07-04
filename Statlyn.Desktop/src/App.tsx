@@ -30,8 +30,7 @@ const navItems: SectionName[] = [
 ];
 
 const brandAssets = {
-  markWhite: "/branding/statlyn-mark-white.png",
-  wordmarkWhite: "/branding/statlyn-wordmark-white.png"
+  markWhite: "/branding/statlyn-mark-white.png"
 };
 
 const emptyState: ApiState = {
@@ -111,11 +110,7 @@ export default function App() {
     <div className="app-shell">
       <aside className="sidebar">
         <div className="brand">
-          <img className="brand-mark" src={brandAssets.markWhite} alt="" aria-hidden="true" />
-          <div className="brand-copy">
-            <img className="brand-wordmark" src={brandAssets.wordmarkWhite} alt="Statlyn" />
-            <span>Recruitment Intelligence</span>
-          </div>
+          <img className="brand-mark" src={brandAssets.markWhite} alt="Statlyn" />
         </div>
         <nav aria-label="Primary workspace">
           {navItems.map((item) => (
@@ -125,7 +120,7 @@ export default function App() {
               type="button"
               onClick={() => setActiveSection(item)}
             >
-              <span>{item}</span>
+              <span>{navLabel(item)}</span>
             </button>
           ))}
         </nav>
@@ -138,15 +133,18 @@ export default function App() {
       <main className="workspace">
         <header className="topbar">
           <div>
-            <span className="eyeline">Professional Recruitment Workspace</span>
             <h1>{sectionTitle(activeSection)}</h1>
             <p>{sectionSummary(activeSection, apiState, visiblePlayers.length, players.length, hasActiveFilters)}</p>
           </div>
-          <div className="status-strip" aria-label="Workspace status">
-            <StatusPill label="API" tone={error ? "danger" : apiState.health ? "success" : "muted"} value={error ? "Offline" : apiState.health ? "Connected" : "Checking"} />
-            <StatusPill label="Data" tone={apiState.dashboard && apiState.dashboard.importedPlayersCount > 0 ? "success" : "muted"} value={apiState.dataSources?.mode ?? "Local CSV"} />
-            <StatusPill label="Connector" tone={apiState.connectorStatus?.isNativeConnectorAvailable ? "info" : "muted"} value={apiState.connectorStatus ? apiState.connectorStatus.availability : "Checking"} />
-            <StatusPill label="FM26" tone={apiState.connectorStatus?.isFm26Supported ? "success" : "warning"} value={apiState.connectorStatus?.isFm26Supported ? "Supported" : "Unsupported"} />
+          <div className="top-actions" aria-label="Workspace actions and status">
+            <button className="action-button" type="button" onClick={() => refreshWorkspace()}>
+              Refresh
+            </button>
+            <div className="status-strip" aria-label="Workspace status">
+              <StatusPill label="API" tone={error ? "danger" : apiState.health ? "success" : "muted"} value={error ? "Offline" : apiState.health ? "Connected" : "Checking"} />
+              <StatusPill label="Data" tone={apiState.dashboard && apiState.dashboard.importedPlayersCount > 0 ? "success" : "muted"} value={apiState.dataSources?.mode ?? "Local CSV"} />
+              <StatusPill label="FM26" tone={apiState.connectorStatus?.isFm26Supported ? "success" : "warning"} value={apiState.connectorStatus?.isFm26Supported ? "Supported" : "Unsupported"} />
+            </div>
           </div>
         </header>
 
@@ -217,7 +215,7 @@ function AnalystControls({
         <input
           type="search"
           value={searchTerm}
-          placeholder="Search local player, position, source or recommendation..."
+          placeholder="Search player, position, source or recommendation..."
           onChange={(event) => onSearchTermChange(event.target.value)}
         />
       </label>
@@ -389,7 +387,7 @@ function BoardStatsPanel({ state, visiblePlayers }: { state: ApiState; visiblePl
   return (
     <section className="board-stat-grid" aria-label="Recruitment board local status">
       <BoardStatCard
-        label="Imported Players"
+        label="Players in Database"
         value={String(dashboard?.importedPlayersCount ?? 0)}
         note={dashboard && dashboard.importedPlayersCount > 0 ? "Safe local rows" : "Awaiting local data"}
         tone={dashboard && dashboard.importedPlayersCount > 0 ? "success" : "muted"}
@@ -441,49 +439,63 @@ function RecruitmentPanel({
 }) {
   return (
     <section className={`panel recruitment-panel ${compact ? "" : "wide"}`}>
-      <PanelHeader title="Recruitment Board" detail={players.length === 0 ? "No local players imported yet." : "Safe local players from Statlyn.Api."} />
-      <div className="table-toolbar">
-        <span>{players.length === 0 ? "Awaiting local data" : `${players.length} safe row${players.length === 1 ? "" : "s"}`}</span>
-        <StatusChip tone="warning" value="No live FM26 data" />
+      <div className="board-table-header">
+        <div className="board-tabs" aria-label="Recruitment board view">
+          <span className="active">All Players</span>
+          <span>Shortlisted</span>
+          <span>Comparison 0</span>
+        </div>
+        <div className="table-toolbar">
+          <span>{players.length === 0 ? "Awaiting local data" : `${players.length} safe row${players.length === 1 ? "" : "s"}`}</span>
+          <StatusChip tone="warning" value="No live FM26 data" />
+        </div>
       </div>
-      <div className={`analyst-table ${players.length === 0 ? "empty-only" : ""}`} role="table" aria-label="Recruitment board">
+      <div className="analyst-table" role="table" aria-label="Recruitment board">
+        <div className="table-row table-head" role="row">
+          <span>Player</span>
+          <span>Age</span>
+          <span>Nat</span>
+          <span>Source</span>
+          <span>Position</span>
+          <span>Role</span>
+          <span>Fit</span>
+          <span>Confidence</span>
+          <span>Benchmark</span>
+          <span>Decision</span>
+          <span>Warnings</span>
+        </div>
         {players.length === 0 ? (
           <div className="empty-table-state">
             <strong>No local player data imported.</strong>
             <span>Use Data Sources to import a permitted local CSV. No demo rows are generated.</span>
           </div>
         ) : (
-          <>
-            <div className="table-row table-head" role="row">
-              <span>Player</span>
-              <span>Role</span>
-              <span>Fit</span>
-              <span>Confidence</span>
-              <span>Benchmark</span>
-              <span>Decision</span>
-            </div>
-            {players.slice(0, compact ? 5 : 10).map((player) => {
-              const isSelected = player.statlynPlayerId === selectedPlayerId;
-              return (
-                <button
-                  className={`table-row table-button ${isSelected ? "selected" : ""}`}
-                  key={player.statlynPlayerId}
-                  type="button"
-                  onClick={() => onSelectPlayer(player.statlynPlayerId)}
-                >
-                  <span className="player-cell">
-                    <strong>{player.displayName}</strong>
-                    <small>{player.primaryPosition} / {player.sourceName || "Local source"}</small>
-                  </span>
-                  <span>{player.roleName}</span>
-                  <StatusChip tone={toneForScore(player.roleFit)} value={formatNullable(player.roleFit)} />
-                  <StatusChip tone={toneForScore(player.confidence)} value={formatNullable(player.confidence)} />
-                  <StatusChip tone={toneForBenchmark(player.benchmarkStatus)} value={player.benchmarkStatus} />
-                  <StatusChip tone={toneForRecommendation(player.recommendation)} value={player.recommendation} />
-                </button>
-              );
-            })}
-          </>
+          players.slice(0, compact ? 5 : 10).map((player) => {
+            const isSelected = player.statlynPlayerId === selectedPlayerId;
+            return (
+              <button
+                className={`table-row table-button ${isSelected ? "selected" : ""}`}
+                key={player.statlynPlayerId}
+                type="button"
+                onClick={() => onSelectPlayer(player.statlynPlayerId)}
+              >
+                <span className="player-cell">
+                  <strong>{player.displayName}</strong>
+                  <small>{player.primaryPosition} / {player.sourceName || "Local source"}</small>
+                </span>
+                <span>{player.age || "Unknown"}</span>
+                <span>{player.nationality || "Unknown"}</span>
+                <span>{player.sourceName || "Local"}</span>
+                <span>{player.primaryPosition || player.positionGroup}</span>
+                <span>{player.roleName}</span>
+                <StatusChip tone={toneForScore(player.roleFit)} value={formatNullable(player.roleFit)} />
+                <StatusChip tone={toneForScore(player.confidence)} value={formatNullable(player.confidence)} />
+                <StatusChip tone={toneForBenchmark(player.benchmarkStatus)} value={player.benchmarkStatus} />
+                <StatusChip tone={toneForRecommendation(player.recommendation)} value={player.recommendation} />
+                <StatusChip tone={player.safeWarnings.length > 0 || player.missingDataCount > 0 ? "warning" : "muted"} value={String(player.safeWarnings.length + player.missingDataCount)} />
+              </button>
+            );
+          })
         )}
       </div>
     </section>
@@ -688,6 +700,18 @@ function WarningList({ warnings }: { warnings: string[] }) {
 }
 
 function sectionTitle(section: SectionName): string {
+  if (section === "Recruitment Board") {
+    return "Scout Room";
+  }
+
+  return section;
+}
+
+function navLabel(section: SectionName): string {
+  if (section === "Recruitment Board") {
+    return "Scout Room";
+  }
+
   return section;
 }
 
@@ -700,12 +724,12 @@ function sectionSummary(
 ): string {
   if (section === "Recruitment Board") {
     if (totalPlayerCount === 0) {
-      return "No local players imported yet.";
+      return "Local data analysis and intelligent scouting. No local players imported yet.";
     }
 
     return hasActiveFilters
       ? `${visiblePlayerCount} of ${totalPlayerCount} safe local rows match the current filters.`
-      : "Safe local recruitment intelligence from Statlyn.Api.";
+      : "Local data analysis and intelligent scouting from Statlyn.Api.";
   }
 
   if (section === "Dashboard") {

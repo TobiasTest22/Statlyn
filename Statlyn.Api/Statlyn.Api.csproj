@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <ProjectReference Include="..\Statlyn.Core\Statlyn.Core.csproj" />
+    <ProjectReference Include="..\Statlyn.Analytics\Statlyn.Analytics.csproj" />
+    <ProjectReference Include="..\Statlyn.Scouting\Statlyn.Scouting.csproj" />
+    <ProjectReference Include="..\Statlyn.DataProviders\Statlyn.DataProviders.csproj" />
+    <ProjectReference Include="..\Statlyn.Data\Statlyn.Data.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+</Project>

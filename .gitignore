@@ -31,3 +31,8 @@ Statlyn.UnityApp/Assets/Plugins/Managed/Statlyn/*.dll
 Statlyn.UnityApp/Assets/Plugins/Managed/Statlyn/runtimes/
 Statlyn.UnityApp/Assets/Plugins/x86_64/
 Statlyn.UnityApp/Assets/StreamingAssets/Statlyn/Fixtures/
+Statlyn.Desktop/node_modules/
+Statlyn.Desktop/dist/
+Statlyn.Desktop/src-tauri/target/
+Statlyn.Desktop/src-tauri/gen/
+statlyn-*.log

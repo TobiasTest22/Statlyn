@@ -233,3 +233,18 @@ Milestone 2.8 adds `Milestone28Tests` for local CSV product hardening. These tes
 - navigation and smoke-test compatibility after the release-candidate diagnostics changes
 
 The release-candidate tests remain local-only. They do not require Unity, FM26, network access, external APIs or real player data.
+
+## React/Tauri Architecture Migration Tests
+
+Milestone 2.9 adds `ArchitectureMigrationTests` for the React/Tauri architecture migration. These tests cover:
+
+- strategic C# projects staying free of Unity references
+- API DTO property names excluding CA, PA, hidden personality, raw provider and memory-address fields
+- safe empty API states for an unsupported connector and empty SQLite database
+- analytics rejecting raw provider objects where testable
+- benchmarks returning insufficient-data states instead of fake percentiles
+- unsupported FM26 live-memory providers returning no fake player data
+- React source containing no football decision engines, scouting firewall rules or hidden-value terms
+- React/Tauri source avoiding direct SQLite, provider, native connector or C# analytics bypasses
+
+The React/Tauri validation path is local-only. Run `npm install`, `npm run build`, `npm run tauri:build` and, when practical, a short `npm run dev` or `npm run tauri:dev` smoke check. The desktop app must communicate with `Statlyn.Api` through safe DTO endpoints; it must not scrape, call external football APIs, open SQLite directly or calculate recruitment decisions in TypeScript or Rust.

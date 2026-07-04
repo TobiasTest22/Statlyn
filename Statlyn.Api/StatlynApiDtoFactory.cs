@@ -1,0 +1,239 @@
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using Statlyn.Data;
+using Statlyn.Data.Benchmarks;
+using Statlyn.Data.Dashboard;
+using Statlyn.Data.Profile;
+using Statlyn.Data.Readiness;
+using Statlyn.Data.Recruitment;
+using Statlyn.Data.RoleLab;
+using Statlyn.Data.Scouting;
+using Statlyn.Data.Shortlists;
+using Statlyn.Data.Workflow;
+
+namespace Statlyn.Api
+{
+    public sealed class StatlynApiDtoFactory
+    {
+        private readonly StatlynDbConnectionFactory _connectionFactory;
+
+        public StatlynApiDtoFactory(StatlynDbConnectionFactory connectionFactory)
+        {
+            _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
+        }
+
+        public AppHealthDto GetHealth()
+        {
+            var diagnostics = new StatlynDatabaseDiagnosticsService(_connectionFactory).ReadDiagnostics();
+            return new AppHealthDto(
+                "ok",
+                "Local CSV / permitted provider workspace",
+                _connectionFactory.DatabasePath,
+                diagnostics.SchemaVersion,
+                false,
+                "Connector unsupported until validated maps exist.",
+                "No validated FM map.",
+                "C# API is running. No live FM26 data is exposed.");
+        }
+
+        public DashboardOverviewDto GetDashboard()
+        {
+            var overview = new DashboardStatusService(_connectionFactory).BuildOverview();
+            return new DashboardOverviewDto(
+                overview.ToSafeText(),
+                overview.DatabasePath,
+                overview.DataSourceCount,
+                overview.ImportedPlayersCount,
+                overview.ShortlistCount,
+                overview.ScoutAssignmentCount,
+                overview.RoleLabTemplateCount,
+                overview.BenchmarkDefinitionCount,
+                overview.LocalReadinessStatus,
+                overview.Fm26Status);
+        }
+
+        public IReadOnlyList<PlayerListItemDto> GetPlayers()
+        {
+            return LoadRecruitmentRows().Players.Select(MapPlayer).ToList();
+        }
+
+        public PlayerProfileDto GetPlayer(string id)
+        {
+            var profile = new PlayerProfileQueryService(_connectionFactory).Query(new PlayerProfileQuery { StatlynPlayerId = id ?? string.Empty });
+            if (!profile.Success || profile.Player == null)
+            {
+                return new PlayerProfileDto(
+                    false,
+                    profile.SafeMessage,
+                    id ?? string.Empty,
+                    string.Empty,
+                    "Unknown",
+                    string.Empty,
+                    "Not scored",
+                    null,
+                    null,
+                    "Unknown",
+                    "No benchmark yet.",
+                    new List<string>(),
+                    profile.Warnings,
+                    profile.Diagnostics);
+            }
+
+            return new PlayerProfileDto(
+                true,
+                profile.SafeMessage,
+                profile.Player.StatlynPlayerId,
+                profile.Player.DisplayName,
+                ResolvePrimaryPosition(profile),
+                profile.SourceMetadata == null ? string.Empty : profile.SourceMetadata.SourceName,
+                profile.LatestRoleScore == null ? "Not scored" : profile.LatestRoleScore.RoleName,
+                profile.LatestRoleScore == null ? (int?)null : profile.LatestRoleScore.RoleFit,
+                profile.LatestRoleScore == null ? (int?)null : profile.LatestRoleScore.Confidence,
+                profile.TacticalFitDisplay,
+                profile.BenchmarkSummary == null ? "No benchmark yet." : profile.BenchmarkSummary.SafeMessage,
+                profile.RoleOutputSummary == null ? new List<string>() : profile.RoleOutputSummary.CoreMetrics.Concat(profile.RoleOutputSummary.SupportingMetrics).Select(metric => metric.ToString()).ToList(),
+                profile.Warnings,
+                profile.Diagnostics);
+        }
+
+        public RecruitmentBoardDto GetRecruitmentBoard()
+        {
+            var result = LoadRecruitmentRows();
+            var players = result.Players.Select(MapPlayer).ToList();
+            var recommendations = result.Players.Select(row => new RecruitmentRecommendationDto(
+                row.StatlynPlayerId,
+                row.DisplayName,
+                row.Recommendation.HasValue ? row.Recommendation.Value.ToString() : "ScoutFurther",
+                row.RoleFit.HasValue ? "C# recruitment board row uses persisted safe role evidence." : "No stored role score yet; scout further.",
+                row.RoleFit,
+                row.Confidence)).ToList();
+
+            return new RecruitmentBoardDto(result.SafeMessage, result.TotalCount, players, recommendations);
+        }
+
+        public RoleLabSummaryDto GetRoleLab()
+        {
+            var page = new RoleLabWorkflowService(_connectionFactory).BuildPageViewModel(includeArchived: false);
+            return new RoleLabSummaryDto(
+                page.SafeMessage,
+                page.Roles.Count,
+                page.RolePairs.Count,
+                page.PhaseOptions,
+                page.Roles.Select(role => role.RoleName).ToList());
+        }
+
+        public IReadOnlyList<SquadGapDto> GetSquadGaps()
+        {
+            var overview = new DashboardStatusService(_connectionFactory).BuildOverview();
+            if (overview.ImportedPlayersCount == 0)
+            {
+                return new[]
+                {
+                    new SquadGapDto("All", "No players imported; squad gap analysis is awaiting local data.", 0, "Awaiting local data.")
+                };
+            }
+
+            return new[]
+            {
+                new SquadGapDto("All", "Define squad targets before claiming a recruitment gap.", 20, "Squad gap engine is ready for safe local data.")
+            };
+        }
+
+        public ComparisonSummaryDto GetComparisons()
+        {
+            var players = GetPlayers().Take(2).Select(player => player.DisplayName).ToList();
+            return new ComparisonSummaryDto(
+                players.Count < 2 ? "No comparison available until at least two safe players are imported." : "Comparison summary uses safe player DTOs only.",
+                players,
+                players.Count < 2 ? new[] { "No players imported or insufficient comparison set." } : new List<string>());
+        }
+
+        public IReadOnlyList<ScoutReportSummaryDto> GetScoutReports()
+        {
+            var page = new ScoutDeskWorkflowService(_connectionFactory).BuildPageViewModel(new ScoutDeskQuery());
+            return page.Assignments.Select(card => new ScoutReportSummaryDto(
+                card.StatlynPlayerId,
+                card.PlayerName,
+                card.AssignmentStatus,
+                card.LatestReportRecommendation,
+                card.ScoutConfidence,
+                card.LatestReportSummary,
+                card.NoLiveFm26Label)).ToList();
+        }
+
+        public DataSourceStatusDto GetDataSources()
+        {
+            var overview = new DashboardStatusService(_connectionFactory).BuildOverview();
+            var fixture = new UnityFixtureCsvPathResolver().Resolve(AppContext.BaseDirectory, System.IO.Path.Combine(AppContext.BaseDirectory, "StreamingAssets"));
+            return new DataSourceStatusDto(
+                overview.DataSourceStatus,
+                "Local CSV only",
+                overview.DataSourceCount,
+                fixture.Success ? "Synthetic fixture available." : "Synthetic fixture missing; enter a local CSV manually.",
+                overview.ImportedPlayersCount == 0 ? "No players imported." : overview.ImportedPlayersCount.ToString(CultureInfo.InvariantCulture) + " player(s) imported.",
+                fixture.Success ? new List<string>() : new[] { fixture.Message });
+        }
+
+        public DiagnosticsDto GetDiagnostics()
+        {
+            var readiness = new LocalProductReadinessService(_connectionFactory, AppContext.BaseDirectory, System.IO.Path.Combine(AppContext.BaseDirectory, "StreamingAssets")).Run();
+            return new DiagnosticsDto(
+                readiness.SafeSummary,
+                readiness.Success,
+                readiness.DatabasePath,
+                readiness.FixturePath,
+                readiness.SchemaVersion,
+                readiness.ImportedPlayerCount,
+                readiness.ShortlistCount,
+                readiness.ScoutReportCount,
+                readiness.RoleLabTemplateCount,
+                readiness.BenchmarkDefinitionCount,
+                "Unsupported until validated memory maps exist. No live FM26 data.",
+                readiness.Warnings,
+                readiness.Errors);
+        }
+
+        private RecruitmentCentreResult LoadRecruitmentRows()
+        {
+            return new RecruitmentCentreQueryService(_connectionFactory).Query(new RecruitmentCentreQuery { Limit = 100 });
+        }
+
+        private static string ResolvePrimaryPosition(PlayerProfileResult profile)
+        {
+            var field = profile.VisibleFields.FirstOrDefault(item => string.Equals(item.FieldName, "PrimaryPosition", StringComparison.OrdinalIgnoreCase));
+            if (field != null && !string.IsNullOrWhiteSpace(field.DisplayValue))
+            {
+                return field.DisplayValue;
+            }
+
+            var fact = profile.MaskedPlayer != null && profile.MaskedPlayer.Facts.TryGetValue("PrimaryPosition", out var value)
+                ? value
+                : null;
+            return fact != null && fact.IsKnown && !string.IsNullOrWhiteSpace(fact.Value) ? fact.Value : "Unknown";
+        }
+
+        private static PlayerListItemDto MapPlayer(RecruitmentCentrePlayerRow row)
+        {
+            return new PlayerListItemDto(
+                row.StatlynPlayerId,
+                row.DisplayName,
+                row.AgeDisplay,
+                row.Nationality,
+                row.PositionGroup,
+                row.PrimaryPosition,
+                row.SourceName,
+                row.SourceConfidence,
+                row.DataCompleteness,
+                row.LatestRoleName,
+                row.RoleFit,
+                row.Confidence,
+                row.Recommendation.HasValue ? row.Recommendation.Value.ToString() : "ScoutFurther",
+                row.MissingDataCount,
+                row.BlockedFieldCount,
+                row.BenchmarkIndicator.Status,
+                row.KeyWarnings);
+        }
+    }
+}

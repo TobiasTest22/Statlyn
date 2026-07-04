@@ -1,12 +1,21 @@
 # Statlyn
 
-Statlyn is a desktop football recruitment intelligence platform for Football Manager 26 and future permitted football data sources. The first target is a Unity desktop app that can connect to a local FM26 process through a read-only native connector, then pass every raw field through a scouting knowledge firewall before analytics or UI can use it.
+Statlyn is a professional football recruitment intelligence platform built around a C# decision brain, a React/Tauri analyst workspace, connector-only native code and local-first storage.
+
+```text
+C# Core/Analytics/Scouting/Data = football logic and decisions
+React/Tauri UI = professional analyst workspace
+C++ connector = FM data reader later
+SQLite now / PostgreSQL later = data storage
+```
+
+FM26 is one future data source and proof-of-concept environment, not the product foundation. Statlyn is designed so real-life recruitment data can later arrive through CSV imports, manual club datasets, licensed APIs and other permitted sources.
 
 ## What Statlyn Is
 
 - A recruitment analysis workspace for squad planning, player comparison, scouting workflows and role-fit decisions.
 - A provider-agnostic platform intended to support FM26 live memory, CSV imports, manual club datasets and licensed APIs.
-- A dark command-center desktop UI foundation for a serious recruitment department style product.
+- A black glass React/Tauri analyst workspace for a serious recruitment department style product.
 
 ## What Statlyn Is Not
 
@@ -19,7 +28,9 @@ Statlyn is a desktop football recruitment intelligence platform for Football Man
 
 ## Current Status
 
-- Unity shell: initial desktop UI shell and diagnostics surface created.
+- React/Tauri desktop: strategic UI shell created in `Statlyn.Desktop`; it consumes safe DTOs from `Statlyn.Api` and contains no scoring engines.
+- Local API bridge: `Statlyn.Api` exposes safe DTO endpoints for dashboard, players, recruitment board, Role Lab, squad gaps, comparisons, scout reports, data sources and diagnostics.
+- Unity shell: current prototype/legacy desktop shell and diagnostics surface preserved.
 - Core C# libraries: provider model, masked player model, diagnostics, scoring guardrails and scouting knowledge firewall created.
 - Native connector: C++ read-only process-detection skeleton created.
 - FM26 build support: no validated memory maps yet.
@@ -56,15 +67,17 @@ Official logo usage is documented in `docs/branding.md`. Command-center UI guida
 
 ## Repository Layout
 
-- `Statlyn.UnityApp` - Unity desktop application shell.
+- `Statlyn.Core` - shared football domain models, tactical future hooks, masked fields and diagnostics.
+- `Statlyn.Analytics` - C# football decision engines: role fit, recruitment, benchmarks, outperformance, squad gaps, comparisons and red flags.
+- `Statlyn.Scouting` - scouting firewall, masking and safe evidence rules.
+- `Statlyn.Data` - repositories, SQLite implementation, workflow services and safe view models.
+- `Statlyn.DataProviders` - provider abstractions and CSV/manual/FM/future provider mappers.
+- `Statlyn.Api` - local ASP.NET Core API bridge for React/Tauri safe DTOs.
+- `Statlyn.Desktop` - React + Tauri strategic desktop analyst workspace.
 - `Statlyn.NativeConnector` - C++ Windows read-only connector skeleton.
-- `Statlyn.Core` - shared domain models, masked fields and diagnostics.
-- `Statlyn.Data` - local database schema contracts.
-- `Statlyn.DataProviders` - provider abstraction and FM26 provider facade.
-- `Statlyn.Analytics` - role scoring and verdict guardrails.
-- `Statlyn.Scouting` - scouting knowledge firewall.
-- `Statlyn.UI` - bindable view-model safeguards.
+- `Statlyn.UI` - reusable C# safe view-model helpers retained for current shells.
 - `Statlyn.Tests` - automated tests for masking and scoring safety.
+- `Statlyn.UnityApp` - legacy/current Unity prototype shell only.
 - `memory-maps` - FM26 memory-map registry templates.
 - `docs` - architecture, connector, UI and testing notes.
 - `tools` - local validation scripts.
@@ -103,6 +116,25 @@ cmake --build build\native --config Release
 ```
 
 Open `Statlyn.UnityApp` with Unity 6 or newer to run the desktop shell.
+
+Run the local C# API:
+
+```powershell
+dotnet run --project .\Statlyn.Api\Statlyn.Api.csproj --urls http://localhost:5118
+```
+
+Run the strategic React/Tauri workspace:
+
+```powershell
+cd Statlyn.Desktop
+npm install
+npm run dev
+npm run build
+npm run tauri:dev
+npm run tauri:build
+```
+
+The React app calls `Statlyn.Api` through safe DTO endpoints. It does not open SQLite directly and does not calculate recruitment, role, benchmark, scouting or provider decisions in TypeScript.
 
 Before opening Unity, copy the shared managed assemblies, SQLite dependencies and synthetic fixture CSV into Unity folders:
 

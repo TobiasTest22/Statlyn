@@ -25,6 +25,7 @@
     <ProjectReference Include="..\Statlyn.DataProviders\Statlyn.DataProviders.csproj" />
     <ProjectReference Include="..\Statlyn.UI\Statlyn.UI.csproj" />
     <ProjectReference Include="..\Statlyn.Data\Statlyn.Data.csproj" />
+    <ProjectReference Include="..\Statlyn.Api\Statlyn.Api.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Statlyn.UI", "Statlyn.UI\St
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Statlyn.Tests", "Statlyn.Tests\Statlyn.Tests.csproj", "{C337EA8A-6883-49D8-AFD9-905D5C02E7BB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Statlyn.Api", "Statlyn.Api\Statlyn.Api.csproj", "{8A852697-7CC4-4786-9932-4D9A5E92C040}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -111,6 +113,18 @@ Global
 		{C337EA8A-6883-49D8-AFD9-905D5C02E7BB}.Release|x64.Build.0 = Release|Any CPU
 		{C337EA8A-6883-49D8-AFD9-905D5C02E7BB}.Release|x86.ActiveCfg = Release|Any CPU
 		{C337EA8A-6883-49D8-AFD9-905D5C02E7BB}.Release|x86.Build.0 = Release|Any CPU
+		{8A852697-7CC4-4786-9932-4D9A5E92C040}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8A852697-7CC4-4786-9932-4D9A5E92C040}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8A852697-7CC4-4786-9932-4D9A5E92C040}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8A852697-7CC4-4786-9932-4D9A5E92C040}.Debug|x64.Build.0 = Debug|Any CPU
+		{8A852697-7CC4-4786-9932-4D9A5E92C040}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{8A852697-7CC4-4786-9932-4D9A5E92C040}.Debug|x86.Build.0 = Debug|Any CPU
+		{8A852697-7CC4-4786-9932-4D9A5E92C040}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8A852697-7CC4-4786-9932-4D9A5E92C040}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8A852697-7CC4-4786-9932-4D9A5E92C040}.Release|x64.ActiveCfg = Release|Any CPU
+		{8A852697-7CC4-4786-9932-4D9A5E92C040}.Release|x64.Build.0 = Release|Any CPU
+		{8A852697-7CC4-4786-9932-4D9A5E92C040}.Release|x86.ActiveCfg = Release|Any CPU
+		{8A852697-7CC4-4786-9932-4D9A5E92C040}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

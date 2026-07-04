@@ -1,37 +1,53 @@
 # Architecture
 
+Statlyn's target architecture is:
+
+```text
+C# Core
+= football logic and decisions
+
+React/Tauri UI
+= professional analyst workspace
+
+C++ connector
+= FM data reader later
+
+SQLite/PostgreSQL
+= data storage
+```
+
+The existing C# foundation remains the brain of the product. React/Tauri is now the strategic desktop UI. Unity is preserved only as the current legacy/prototype shell. FM26 is one future data source and proof-of-concept environment, not the product foundation.
+
 Statlyn is organized around provider-agnostic football data ingestion and a mandatory field-policy visibility layer.
 
 ```text
 Data provider
--> raw football data
--> source validation
--> licence/permission check
--> field policy registry
--> scouting knowledge firewall
--> masked Statlyn entities
--> analytics and scoring
--> masked profile view models and visual intelligence models
--> local SQLite database
--> Unity UI
+-> mapper
+-> normalized football model
+-> scouting knowledge firewall and masking
+-> analytics/application services
+-> safe DTOs
+-> React/Tauri UI
 ```
 
 For FM26, the data provider is the native connector reading the active process with query/read permissions only. For future real-life data, providers must declare their licence status, confidence, completeness and allowed usage.
 
 ## Main Projects
 
-- `Statlyn.Core` contains shared data types, diagnostics and masked fields.
+- `Statlyn.Core` contains shared football domain types, diagnostics, masked fields and generic tactical future hooks.
 - `Statlyn.DataProviders` defines the `IDataProvider` contract and FM26 provider facade.
 - `Statlyn.Scouting` owns `ScoutingKnowledgeFirewall`.
-- `Statlyn.Analytics` scores only masked players.
+- `Statlyn.Analytics` owns C# decision engines and scores only masked players.
 - `Statlyn.UI` rejects raw entities at binding boundaries.
-- `Statlyn.Data` holds SQLite schema contracts for visible and source-tagged data.
-- `Statlyn.NativeConnector` is the Windows C++ connector.
-- `Statlyn.UnityApp` is the desktop frontend.
+- `Statlyn.Data` holds repository interfaces, SQLite implementation, workflow services and safe view models.
+- `Statlyn.Api` exposes local safe DTO endpoints for React/Tauri.
+- `Statlyn.Desktop` is the strategic React/Tauri desktop workspace.
+- `Statlyn.NativeConnector` is the Windows C++ connector-only boundary.
+- `Statlyn.UnityApp` is the legacy/current prototype shell.
 
 ## Non-Negotiable Boundary
 
-Raw provider entities are allowed only in provider and firewall code. UI and scoring receive `MaskedPlayer` instances only.
+Raw provider entities are allowed only in provider and firewall code. UI and scoring receive `MaskedPlayer` instances or safe DTOs only.
 
 SQLite persistence follows the same boundary. Repositories accept `MaskedPlayer`, `VisiblePlayerField`, `RoleScore`, `SourceMetadata`, `DataCompletenessReport`, blocked-field notices and safe audit models. They reject raw provider entities and skip unknown, blocked or non-storable fields.
 
@@ -50,6 +66,8 @@ synthetic raw fixture
 ```
 
 The Unity adapter is a rendering shape only. It is built from `MaskedPlayerProfileViewModel`, not from `PlayerRawSnapshot`.
+
+React/Tauri must receive only DTOs from `Statlyn.Api`. It must not read SQLite, call provider code, inspect raw FM memory, calculate recruitment scores, calculate role fit, run benchmarks or duplicate firewall rules.
 
 Unknown fields are denied by default. Provider facts are not trusted simply because they are named `VisibleFacts`.
 

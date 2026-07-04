@@ -51,7 +51,8 @@ const navItems: SectionName[] = [
 
 const brandAssets = {
   markWhite: "/branding/statlyn-mark-white.png",
-  wordmarkWhite: "/branding/Statlyn_Logo_White-text.png"
+  wordmarkWhite: "/branding/statlyn-wordmark-white.png",
+  textLogoWhite: "/branding/Statlyn_Logo_White-text.png"
 };
 
 const emptyState: ApiState = {
@@ -132,9 +133,10 @@ export default function App() {
     <div className="app-shell">
       <aside className="sidebar">
         <div className="brand">
-          <img className="brand-mark" src={brandAssets.markWhite} alt="Statlyn" />
-          <img className="brand-wordmark" src={brandAssets.wordmarkWhite} alt="" aria-hidden="true" />
+          <img className="brand-mark" src={brandAssets.markWhite} alt="" aria-hidden="true" />
+          <img className="brand-wordmark" src={brandAssets.wordmarkWhite} alt="Statlyn" />
         </div>
+        <span className="nav-section-label">Main</span>
         <nav aria-label="Primary workspace">
           {navItems.map((item) => (
             <button
@@ -143,13 +145,27 @@ export default function App() {
               type="button"
               onClick={() => setActiveSection(item)}
             >
+              <WorkspaceIcon section={item} />
               <span>{navLabel(item)}</span>
             </button>
           ))}
         </nav>
         <div className="sidebar-footer">
-          <MiniStatus label="Local API" value={error ? "Offline" : apiState.health ? "Connected" : "Checking"} />
-          <MiniStatus label="FM26" value="No live data" />
+          <div className="analyst-user">
+            <span aria-hidden="true">TT</span>
+            <div>
+              <strong>Tobias T.</strong>
+              <small>Analyst</small>
+            </div>
+          </div>
+          <button className="sidebar-utility" type="button">
+            <WorkspaceIcon section="Diagnostics" />
+            <span>Settings</span>
+          </button>
+          <button className="sidebar-utility" type="button">
+            <span className="utility-icon logout-icon" aria-hidden="true" />
+            <span>Log out</span>
+          </button>
         </div>
       </aside>
 
@@ -160,14 +176,16 @@ export default function App() {
             <p>{sectionSummary(activeSection, apiState, visiblePlayers.length, players.length, hasActiveFilters)}</p>
           </div>
           <div className="top-actions" aria-label="Workspace actions and status">
+            <TopSignal tone={error ? "danger" : apiState.health ? "success" : "muted"} value={error ? "API Offline" : apiState.health ? "API Connected" : "API Checking"} />
             <button className="action-button" type="button" onClick={() => refreshWorkspace()}>
+              <span className="button-icon refresh-icon" aria-hidden="true" />
               Refresh
             </button>
-            <div className="status-strip" aria-label="Workspace status">
-              <StatusPill label="API" tone={error ? "danger" : apiState.health ? "success" : "muted"} value={error ? "Offline" : apiState.health ? "Connected" : "Checking"} />
-              <StatusPill label="Data" tone={apiState.dashboard && apiState.dashboard.importedPlayersCount > 0 ? "success" : "muted"} value={apiState.dataSources?.mode ?? "Local CSV"} />
-              <StatusPill label="FM26" tone="warning" value={apiState.connectorStatus?.mapSupportStatus ?? "Unsupported"} />
-            </div>
+            <button className="action-button" type="button" aria-label="Export safe local view">
+              <span className="button-icon export-icon" aria-hidden="true" />
+              Export
+            </button>
+            <button className="icon-action" type="button" aria-label="More workspace actions">...</button>
           </div>
         </header>
 
@@ -184,6 +202,7 @@ export default function App() {
             totalPlayers={players.length}
             visiblePlayers={visiblePlayers.length}
             dataSourceMode={apiState.dataSources?.mode ?? "Local CSV"}
+            fm26MapStatus={apiState.connectorStatus?.mapSupportStatus ?? "Unsupported"}
             hasActiveFilters={hasActiveFilters}
           />
         ) : null}
@@ -197,6 +216,7 @@ export default function App() {
             players={visiblePlayers}
             selectedPlayerId={selectedPlayer?.statlynPlayerId ?? null}
             onSelectPlayer={setSelectedPlayerId}
+            onNavigate={setActiveSection}
           />
         ) : null}
       </main>
@@ -216,6 +236,7 @@ function AnalystControls({
   totalPlayers,
   visiblePlayers,
   dataSourceMode,
+  fm26MapStatus,
   hasActiveFilters
 }: {
   searchTerm: string;
@@ -229,12 +250,13 @@ function AnalystControls({
   totalPlayers: number;
   visiblePlayers: number;
   dataSourceMode: string;
+  fm26MapStatus: string;
   hasActiveFilters: boolean;
 }) {
   return (
     <section className="analyst-controls" aria-label="Recruitment board search and filters">
       <label className="search-control">
-        <span>Search</span>
+        <span className="search-icon" aria-hidden="true" />
         <input
           type="search"
           value={searchTerm}
@@ -271,8 +293,8 @@ function AnalystControls({
         <strong>{dataSourceMode}</strong>
       </div>
       <div className="filter-status warning">
-        <span>FM26</span>
-        <strong>Unsupported</strong>
+        <span>FM26 Maps</span>
+        <strong>{fm26MapStatus}</strong>
       </div>
       {hasActiveFilters ? (
         <button className="clear-filters-button" type="button" onClick={() => {
@@ -292,21 +314,29 @@ function WorkspaceContent({
   state,
   players,
   selectedPlayerId,
-  onSelectPlayer
+  onSelectPlayer,
+  onNavigate
 }: {
   activeSection: SectionName;
   state: ApiState;
   players: PlayerListItemDto[];
   selectedPlayerId: string | null;
   onSelectPlayer: (id: string) => void;
+  onNavigate: (section: SectionName) => void;
 }) {
   if (activeSection === "Recruitment Board") {
     return (
       <section className="board-workspace">
         <BoardStatsPanel state={state} visiblePlayers={players.length} />
         <section className="content-grid board-grid">
-          <RecruitmentPanel players={players} selectedPlayerId={selectedPlayerId} onSelectPlayer={onSelectPlayer} />
+          <RecruitmentPanel
+            players={players}
+            selectedPlayerId={selectedPlayerId}
+            onSelectPlayer={onSelectPlayer}
+            onNavigate={onNavigate}
+          />
           <ScoutReportsPanel state={state} />
+          <RecruitmentWorkflowPanel state={state} visiblePlayers={players.length} />
           <DiagnosticsPanel state={state} />
         </section>
       </section>
@@ -547,11 +577,13 @@ function RecruitmentPanel({
   players,
   selectedPlayerId,
   onSelectPlayer,
+  onNavigate,
   compact = false
 }: {
   players: PlayerListItemDto[];
   selectedPlayerId: string | null;
   onSelectPlayer: (id: string) => void;
+  onNavigate?: (section: SectionName) => void;
   compact?: boolean;
 }) {
   return (
@@ -573,21 +605,20 @@ function RecruitmentPanel({
           <span>Age</span>
           <span>Nat</span>
           <span>Position</span>
-          <span>Source</span>
           <span>Role</span>
           <span>Fit</span>
           <span>Confidence</span>
           <span>Data</span>
           <span>Benchmark</span>
           <span>Decision</span>
-          <span>Missing</span>
-          <span>Blocked</span>
           <span>Risk</span>
         </div>
         {players.length === 0 ? (
           <EmptyVisualState
             title="No local player data imported."
-            message="Use Data Sources to import a permitted local CSV. No demo rows are generated."
+            message="Connect a data source to import a permitted local CSV. No demo rows are generated."
+            actionLabel="Go to Data Sources"
+            onAction={onNavigate ? () => onNavigate("Data Sources") : undefined}
           />
         ) : (
           players.slice(0, compact ? 5 : 10).map((player) => {
@@ -607,20 +638,44 @@ function RecruitmentPanel({
                 <span>{player.age || "Unknown"}</span>
                 <span>{player.nationality || "Unknown"}</span>
                 <span>{player.primaryPosition || player.positionGroup}</span>
-                <VisualTableCell label={player.sourceName || "Local"} value={player.sourceConfidence} tone={toneForScore(player.sourceConfidence)} />
                 <span>{player.roleName}</span>
                 <VisualTableCell value={player.roleFit} tone={toneForScore(player.roleFit)} />
                 <VisualTableCell value={player.confidence} tone={toneForScore(player.confidence)} />
                 <DataQualityBar value={player.dataCompleteness} compact />
                 <SignalBadge tone={toneForBenchmark(player.benchmarkStatus)} value={player.benchmarkStatus} />
                 <SignalBadge tone={toneForRecommendation(player.recommendation)} value={player.recommendation} />
-                <RiskCell label="Missing" value={player.missingDataCount} />
-                <RiskCell label="Blocked" value={player.blockedFieldCount} />
                 <RiskCell label="Risk" value={riskCount} />
               </button>
             );
           })
         )}
+      </div>
+    </section>
+  );
+}
+
+function RecruitmentWorkflowPanel({ state, visiblePlayers }: { state: ApiState; visiblePlayers: number }) {
+  const dashboard = state.dashboard;
+  const connector = state.connectorStatus;
+  const workflow: Array<{ label: string; value: number; tone: Tone }> = [
+    { label: "All Players", value: visiblePlayers, tone: visiblePlayers > 0 ? "success" : "muted" },
+    { label: "Shortlists", value: dashboard?.shortlistCount ?? 0, tone: dashboard && dashboard.shortlistCount > 0 ? "success" : "muted" },
+    { label: "Assignments", value: dashboard?.scoutAssignmentCount ?? 0, tone: dashboard && dashboard.scoutAssignmentCount > 0 ? "info" : "muted" },
+    { label: "Reports", value: state.scoutReports.length, tone: state.scoutReports.length > 0 ? "info" : "muted" },
+    { label: "Benchmarks", value: dashboard?.benchmarkDefinitionCount ?? 0, tone: dashboard && dashboard.benchmarkDefinitionCount > 0 ? "info" : "muted" },
+    { label: "FM26 Maps", value: connector?.usableMemoryMapCount ?? 0, tone: connector && connector.usableMemoryMapCount > 0 ? "success" : "warning" }
+  ];
+
+  return (
+    <section className="panel workflow-panel">
+      <SectionHeader title="Recruitment Funnel" detail="Safe local workflow counts only." />
+      <div className="workflow-steps" aria-label="Recruitment workflow counts">
+        {workflow.map((step) => (
+          <div className={`workflow-step ${step.tone}`} key={step.label}>
+            <span>{step.label}</span>
+            <strong>{step.value}</strong>
+          </div>
+        ))}
       </div>
     </section>
   );
@@ -985,6 +1040,15 @@ function StatusChip({ label, value, tone }: { label?: string; value: string; ton
   return <SignalBadge label={label} value={value} tone={tone} />;
 }
 
+function TopSignal({ value, tone }: { value: string; tone: Tone }) {
+  return (
+    <span className={`top-signal ${tone}`}>
+      <i aria-hidden="true" />
+      {value}
+    </span>
+  );
+}
+
 function DiagnosticLedger({ rows }: { rows: DiagnosticLedgerRow[] }) {
   return (
     <div className="diagnostic-ledger" role="table" aria-label="Diagnostic risk ledger">
@@ -1120,12 +1184,94 @@ function RiskCell({ label, value }: { label: string; value: number }) {
   );
 }
 
-function EmptyVisualState({ title, message }: { title: string; message: string }) {
+function EmptyVisualState({
+  title,
+  message,
+  actionLabel,
+  onAction
+}: {
+  title: string;
+  message: string;
+  actionLabel?: string;
+  onAction?: () => void;
+}) {
   return (
     <div className="empty-table-state empty-visual-state">
-      <strong>{title}</strong>
-      <span>{message}</span>
+      <span className="empty-state-icon" aria-hidden="true">SL</span>
+      <div>
+        <strong>{title}</strong>
+        <span>{message}</span>
+        {actionLabel && onAction ? (
+          <button className="empty-action" type="button" onClick={onAction}>
+            {actionLabel}
+          </button>
+        ) : null}
+      </div>
     </div>
+  );
+}
+
+function WorkspaceIcon({ section }: { section: SectionName }) {
+  const title = navLabel(section);
+
+  return (
+    <svg className="nav-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      {title === "Dashboard" ? (
+        <>
+          <path d="M4 12.5 12 5l8 7.5" />
+          <path d="M6.5 11.5V20h11v-8.5" />
+          <path d="M10 20v-5h4v5" />
+        </>
+      ) : title === "Scout Room" ? (
+        <>
+          <circle cx="8" cy="8" r="3" />
+          <circle cx="16" cy="8" r="3" />
+          <path d="M5 20v-1.5A4.5 4.5 0 0 1 9.5 14h5a4.5 4.5 0 0 1 4.5 4.5V20" />
+        </>
+      ) : title === "Player Profile" ? (
+        <>
+          <circle cx="12" cy="7.5" r="3.5" />
+          <path d="M5 20a7 7 0 0 1 14 0" />
+        </>
+      ) : title === "Role Lab" ? (
+        <>
+          <path d="M5 5h14v14H5z" />
+          <path d="M8 9h8M8 13h5" />
+        </>
+      ) : title === "Squad Gaps" ? (
+        <>
+          <path d="M4 6h16v12H4z" />
+          <path d="M12 6v12M4 12h16" />
+        </>
+      ) : title === "Comparisons" ? (
+        <>
+          <path d="M7 5v14M17 5v14" />
+          <path d="M4 9h6M14 15h6" />
+        </>
+      ) : title === "Scout Reports" ? (
+        <>
+          <path d="M7 4h8l3 3v13H7z" />
+          <path d="M14 4v4h4M9.5 12h5M9.5 16h4" />
+        </>
+      ) : title === "Tactical Lab" ? (
+        <>
+          <path d="M4 6h16v12H4z" />
+          <circle cx="9" cy="12" r="1.5" />
+          <circle cx="15" cy="12" r="1.5" />
+        </>
+      ) : title === "Data Sources" ? (
+        <>
+          <ellipse cx="12" cy="6" rx="6" ry="2.5" />
+          <path d="M6 6v6c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5V6" />
+          <path d="M6 12v6c0 1.4 2.7 2.5 6 2.5s6-1.1 6-2.5v-6" />
+        </>
+      ) : (
+        <>
+          <path d="M12 4v3M12 17v3M4 12h3M17 12h3" />
+          <circle cx="12" cy="12" r="4" />
+        </>
+      )}
+    </svg>
   );
 }
 

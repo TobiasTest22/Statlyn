@@ -29,7 +29,7 @@ FM26 is one future data source and proof-of-concept environment, not the product
 ## Current Status
 
 - React/Tauri desktop: strategic UI shell created in `Statlyn.Desktop`; it consumes safe DTOs from `Statlyn.Api` and contains no scoring engines.
-- React/Tauri cockpit refinement: professional dark recruitment analyst layout with stable left navigation, search/filter foundation, section-aware workspace and right-side selected-target insight rail.
+- React/Tauri cockpit refinement: professional dark recruitment analyst layout with stable left navigation, search/filter foundation, safe KPI/status cards and a large central recruitment board with no persistent insight panel.
 - Local API bridge: `Statlyn.Api` exposes safe DTO endpoints for dashboard, players, recruitment board, Role Lab, squad gaps, comparisons, scout reports, data sources and diagnostics.
 - FM26 connector diagnostics: `Statlyn.Api` exposes `/connector/status`, `/connector/fm26` and `/diagnostics/fm26` through a safe C# wrapper over the native connector. These endpoints report connector availability and process diagnostics only; they do not expose player data, memory addresses, raw snapshots, hidden values, CA or PA.
 - Unity shell: current prototype/legacy desktop shell and diagnostics surface preserved.

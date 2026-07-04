@@ -15,7 +15,7 @@ The desktop UI may handle:
 - filtering and sorting over already-safe DTOs
 - local UI state
 - connector status display from `/connector/status`
-- selected-row UI state for inspecting already-safe API rows
+- selected-row UI state for highlighting already-safe API rows
 
 The desktop UI must not contain:
 
@@ -31,13 +31,13 @@ The desktop UI must not contain:
 
 ## Cockpit Layout
 
-The React/Tauri shell follows a three-part analyst cockpit layout:
+The React/Tauri shell follows a focused scout-room cockpit layout:
 
 - left navigation with official Statlyn branding, stable page links and clear active state
-- main workspace with page title, search/filter foundation, operational status cards, safe tables/lists and API-down or empty states
-- right insight rail for selected target context, recruitment status summary and no-live-FM26 reminders
+- main workspace with page title, search/filter foundation, safe KPI/status cards, a large recruitment board and API-down or empty states
+- no persistent insight panel; selected detail belongs in the table workflow or the dedicated Player Profile page
 
-The selected-row workflow is scan, inspect, decide. The recruitment board can highlight a selected safe API row and mirror that row into the insight rail. If no row exists, the rail shows a safe empty state. It must not invent players, profile details, charts, alerts or KPIs.
+The selected-row workflow is scan, select and continue through safe Statlyn pages. The recruitment board can highlight a selected safe API row, but it must not create a persistent right-side insight panel, invent players, profile details, charts, alerts or KPIs.
 
 ## Visual System
 

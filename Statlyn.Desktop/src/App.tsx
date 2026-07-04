@@ -179,16 +179,6 @@ export default function App() {
           />
         ) : null}
       </main>
-
-      <InsightRail
-        state={apiState}
-        player={selectedPlayer}
-        isLoading={isLoading}
-        error={error}
-        hasAnyPlayers={players.length > 0}
-        hasActiveFilters={hasActiveFilters}
-        onRetry={refreshWorkspace}
-      />
     </div>
   );
 }
@@ -291,10 +281,13 @@ function WorkspaceContent({
 }) {
   if (activeSection === "Recruitment Board") {
     return (
-      <section className="content-grid board-grid">
-        <RecruitmentPanel players={players} selectedPlayerId={selectedPlayerId} onSelectPlayer={onSelectPlayer} />
-        <ScoutReportsPanel state={state} />
-        <DiagnosticsPanel state={state} />
+      <section className="board-workspace">
+        <BoardStatsPanel state={state} visiblePlayers={players.length} />
+        <section className="content-grid board-grid">
+          <RecruitmentPanel players={players} selectedPlayerId={selectedPlayerId} onSelectPlayer={onSelectPlayer} />
+          <ScoutReportsPanel state={state} />
+          <DiagnosticsPanel state={state} />
+        </section>
       </section>
     );
   }
@@ -385,6 +378,52 @@ function DashboardPanel({ state, wide = false }: { state: ApiState; wide?: boole
         <StatusChip tone={state.diagnostics?.success ? "success" : "muted"} value={state.diagnostics?.success ? "Diagnostics available" : "Diagnostics not checked"} />
         <StatusChip tone="info" value={state.dataSources?.importStatus ?? "No import status yet."} />
       </div>
+    </section>
+  );
+}
+
+function BoardStatsPanel({ state, visiblePlayers }: { state: ApiState; visiblePlayers: number }) {
+  const dashboard = state.dashboard;
+  const connector = state.connectorStatus;
+
+  return (
+    <section className="board-stat-grid" aria-label="Recruitment board local status">
+      <BoardStatCard
+        label="Imported Players"
+        value={String(dashboard?.importedPlayersCount ?? 0)}
+        note={dashboard && dashboard.importedPlayersCount > 0 ? "Safe local rows" : "Awaiting local data"}
+        tone={dashboard && dashboard.importedPlayersCount > 0 ? "success" : "muted"}
+      />
+      <BoardStatCard
+        label="Visible Rows"
+        value={String(visiblePlayers)}
+        note="After safe local filters"
+        tone={visiblePlayers > 0 ? "success" : "muted"}
+      />
+      <BoardStatCard
+        label="Shortlists"
+        value={String(dashboard?.shortlistCount ?? 0)}
+        note="Recruitment workflow"
+        tone={dashboard && dashboard.shortlistCount > 0 ? "success" : "muted"}
+      />
+      <BoardStatCard
+        label="Scout Assignments"
+        value={String(dashboard?.scoutAssignmentCount ?? 0)}
+        note="Human reports"
+        tone={dashboard && dashboard.scoutAssignmentCount > 0 ? "info" : "muted"}
+      />
+      <BoardStatCard
+        label="Role Templates"
+        value={String(dashboard?.roleLabTemplateCount ?? 0)}
+        note="Generic/import-safe"
+        tone={dashboard && dashboard.roleLabTemplateCount > 0 ? "info" : "muted"}
+      />
+      <BoardStatCard
+        label="FM26 Status"
+        value={connector?.isFm26Supported ? "Supported" : "Unsupported"}
+        note={connector?.supportStatusMessage ?? "No validated maps"}
+        tone={connector?.isFm26Supported ? "success" : "warning"}
+      />
     </section>
   );
 }
@@ -544,71 +583,6 @@ function ScoutReportsPanel({ state, wide = false }: { state: ApiState; wide?: bo
   );
 }
 
-function InsightRail({
-  state,
-  player,
-  isLoading,
-  error,
-  hasAnyPlayers,
-  hasActiveFilters,
-  onRetry
-}: {
-  state: ApiState;
-  player: PlayerListItemDto | null;
-  isLoading: boolean;
-  error: string | null;
-  hasAnyPlayers: boolean;
-  hasActiveFilters: boolean;
-  onRetry: () => void;
-}) {
-  return (
-    <aside className="insight-rail" aria-label="Selected player insight">
-      <div className="insight-header">
-        <span className="eyeline">Insight Panel</span>
-        <h2>Selected Context</h2>
-      </div>
-      {isLoading ? (
-        <div className="insight-empty">Loading local API context...</div>
-      ) : error ? (
-        <div className="api-down-card">
-          <strong>API Offline</strong>
-          <span>{error}</span>
-          <button className="retry-button" type="button" onClick={onRetry}>
-            Retry API connection
-          </button>
-        </div>
-      ) : player ? (
-        <div className="insight-stack">
-          <div className="target-card">
-            <span className="target-label">Target</span>
-            <h3>{player.displayName}</h3>
-            <p>{player.primaryPosition} / {player.positionGroup}</p>
-          </div>
-          <div className="chip-row vertical">
-            <StatusChip label="Decision" tone={toneForRecommendation(player.recommendation)} value={player.recommendation} />
-            <StatusChip label="Role Fit" tone={toneForScore(player.roleFit)} value={formatNullable(player.roleFit)} />
-            <StatusChip label="Confidence" tone={toneForScore(player.confidence)} value={formatNullable(player.confidence)} />
-            <StatusChip label="Benchmark" tone={toneForBenchmark(player.benchmarkStatus)} value={player.benchmarkStatus} />
-            <StatusChip label="Completeness" tone={player.dataCompleteness > 70 ? "success" : player.dataCompleteness > 0 ? "warning" : "muted"} value={`${player.dataCompleteness}%`} />
-          </div>
-          <WarningList warnings={player.safeWarnings} />
-          <MiniStatus label="Source" value={player.sourceName || "Local source"} />
-          <MiniStatus label="No Live FM26" value={state.health?.safeMessage ?? "No live FM26 data is exposed."} />
-        </div>
-      ) : (
-        <div className="insight-empty">
-          <strong>Select a player to inspect.</strong>
-          <span>
-            {hasAnyPlayers && hasActiveFilters
-              ? "No safe player row matches the current filters. Clear filters or select a visible row."
-              : "Imported CSV data is required before a profile can be shown. No demo profile is generated."}
-          </span>
-        </div>
-      )}
-    </aside>
-  );
-}
-
 function EmptyWorkflowPanel({ title, text, wide = false }: { title: string; text: string; wide?: boolean }) {
   return (
     <section className={`panel muted-panel ${wide ? "wide" : ""}`}>
@@ -654,6 +628,16 @@ function PanelHeader({ title, detail }: { title: string; detail: string }) {
 function Metric({ label, value, note, tone }: { label: string; value: number; note: string; tone: Tone }) {
   return (
     <div className={`metric ${tone}`}>
+      <span>{label}</span>
+      <strong>{value}</strong>
+      <small>{note}</small>
+    </div>
+  );
+}
+
+function BoardStatCard({ label, value, note, tone }: { label: string; value: string; note: string; tone: Tone }) {
+  return (
+    <div className={`board-stat-card ${tone} ${value.length > 8 ? "long-value" : ""}`}>
       <span>{label}</span>
       <strong>{value}</strong>
       <small>{note}</small>

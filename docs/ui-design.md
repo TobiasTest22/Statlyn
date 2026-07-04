@@ -7,7 +7,7 @@ The cockpit layout is:
 - stable left navigation with official Statlyn branding
 - section-aware main workspace for dashboard, recruitment board, data sources and diagnostics
 - search/filter foundation over already-safe API rows
-- right-side insight rail for selected safe player context
+- no persistent insight panel; selected player detail belongs in the table workflow or dedicated Player Profile page
 
 The UI should feel like serious internal recruitment intelligence software used by scouts, analysts, sporting directors and recruitment departments. It should be inspired by professional scouting database patterns without copying external player names, logos, numbers or content. It should not look like a game UI, crypto dashboard, generic AI dashboard or playful consumer app.
 

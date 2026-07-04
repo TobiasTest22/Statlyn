@@ -1,6 +1,6 @@
 # UI Design
 
-React/Tauri is the strategic Statlyn desktop UI. Unity is retained as legacy/prototype only. The active React/Tauri direction is a professional dark football recruitment analyst cockpit: black background, flat dark glass panels, recruitment green active accents, amber caution states, blue/cyan neutral analytics states, cool gray text and dense but readable operational layouts.
+React/Tauri is the strategic Statlyn desktop UI. Unity is retained as legacy/prototype only. The active React/Tauri direction is a flat financial-analysis-style football recruitment cockpit: black background, charcoal panels, recruitment green active accents, amber caution states, blue/cyan neutral analytics states, cool gray text and dense but readable operational layouts.
 
 The cockpit layout is:
 
@@ -9,11 +9,11 @@ The cockpit layout is:
 - search/filter foundation over already-safe API rows
 - no persistent insight panel; selected player detail belongs in the table workflow or dedicated Player Profile page
 
-The UI should feel like serious internal recruitment intelligence software used by scouts, analysts, sporting directors and recruitment departments. It should be inspired by professional scouting database patterns without copying external player names, logos, numbers or content. The active React/Tauri surface should follow Scout Room-style appearance principles: narrow sidebar, compact search/filter row, safe stat cards, large central scout table, selected-row emphasis, soft panel borders and restrained green/amber/blue/red status accents. It should not look like a game UI, crypto dashboard, generic AI dashboard or playful consumer app.
+The UI should feel like serious internal recruitment intelligence software used by scouts, analysts, sporting directors and recruitment departments. It should be inspired by professional scouting database and financial analytics terminal patterns without copying external player names, logos, numbers or content. The active React/Tauri surface should follow Scout Room-style appearance principles through a flatter analyst lens: narrow sidebar, compact search/filter row, safe model/status cards, large central scout table, selected-row emphasis, diagnostic ledgers, status matrices, thin panel borders and restrained green/amber/blue/red status accents. It should not look like a game UI, crypto dashboard, generic AI dashboard or playful consumer app.
 
 React/Tauri remains display/API-only. It may hold selected-row UI state and render safe DTO values from `Statlyn.Api`; it must not calculate recruitment decisions, read SQLite, call provider code, call the native connector, scrape external data, invent fake rows, expose hidden values or claim FM26 support before validation.
 
-The React/Tauri cockpit baseline uses no gradients. Depth comes from black/deep-navy layering, subtle glass opacity, borders and density rather than decorative effects.
+The React/Tauri cockpit baseline uses no gradients. Depth comes from black/charcoal layering, thin borders and density rather than decorative effects. Reusable visual modules such as metric cards, status matrices, data-quality bars, confidence bars, distribution strips, diagnostic ledgers, comparison matrices and empty visual states are display-only and must only show safe DTO values. No fake visuals are allowed.
 
 Status colors:
 

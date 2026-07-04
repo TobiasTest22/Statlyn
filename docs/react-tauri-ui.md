@@ -1,10 +1,10 @@
 # React/Tauri UI
 
-`Statlyn.Desktop` is the strategic desktop UI. It is a React + Tauri professional dark football recruitment analyst cockpit with a flat black/glassy visual direction, dense readable tables, safe status cards, loading states, empty states, error states and an API status indicator.
+`Statlyn.Desktop` is the strategic desktop UI. It is a React + Tauri professional dark football recruitment analyst cockpit with a flat financial-analysis-style visual direction, dense readable tables, safe status cards, loading states, empty states, error states and an API status indicator.
 
-The current visual target is Scout Room-style in appearance principles only: narrow left rail, compact top search/filter row, dense central scout table, flat dark glass panels, restrained recruitment green accents and subtle amber/blue/red status treatment. It must not copy external player names, logos, club marks, fake ratings, fake charts or proprietary workflows.
+The current visual target is a flat financial analyst recruitment terminal in Scout Room-style appearance principles only: narrow left rail, compact top search/filter row, dense central scout table, flat charcoal panels, model/status visual modules, restrained recruitment green accents and subtle amber/blue/red status treatment. It must not copy external player names, logos, club marks, fake ratings, fake charts or proprietary workflows.
 
-The target feeling is serious internal recruitment intelligence software: dark, clean, compact, data-heavy and professional. It should feel like football analytics mixed with a finance-terminal interface, not a game UI, fantasy app or generic AI dashboard.
+The target feeling is serious internal recruitment intelligence software: dark, clean, compact, data-heavy and professional. It should feel like football analytics mixed with a financial analytics terminal, not a game UI, fantasy app or generic AI dashboard.
 
 The desktop UI uses official Statlyn logo assets from `Statlyn.Desktop/public/branding/`. Dark glass surfaces should use the white wordmark and white mark variants; black-text variants are reserved for future light export, print or onboarding surfaces.
 
@@ -36,7 +36,7 @@ The desktop UI must not contain:
 The React/Tauri shell follows a focused scout-room cockpit layout:
 
 - left navigation with official Statlyn branding, stable page links and clear active state
-- main workspace with page title, search/filter foundation, safe KPI/status cards, a large table-first recruitment board and API-down or empty states
+- main workspace with page title, search/filter foundation, safe model/status cards, a large table-first recruitment board and API-down or empty states
 - no persistent insight panel; selected detail belongs in the table workflow or the dedicated Player Profile page
 
 The selected-row workflow is scan, select and continue through safe Statlyn pages. The recruitment board can highlight a selected safe API row, but it must not create a persistent right-side insight panel, invent players, profile details, charts, alerts or KPIs.
@@ -44,7 +44,7 @@ The selected-row workflow is scan, select and continue through safe Statlyn page
 ## Visual System
 
 - background: black with subtle dark analyst depth
-- surfaces: slightly lighter glass panels using flat layered dark surfaces
+- surfaces: flat charcoal panels using thin borders and low decoration
 - primary accent: recruitment green
 - secondary accents: amber/yellow for caution and blue/cyan for neutral analytics
 - text: white and cool gray
@@ -52,6 +52,7 @@ The selected-row workflow is scan, select and continue through safe Statlyn page
 - glow/effects: minimal; selected and active states rely on text, borders and a restrained green indicator
 - density: expert-level but readable
 - no gradients; the interface should feel analytical, not game-like
+- no fake visuals; bars, matrices, ledgers and placeholders may only represent safe API DTO values
 
 Color is supporting context only. Every status also needs text. FM26 unsupported must never render as a green/success state, and no benchmark must not render as success.
 
@@ -117,7 +118,7 @@ No fake data is a hard rule. The UI must not create fake rows, fake KPIs, fake s
 
 The Connector Status panel is informational only. It displays the API-reported binding availability, FM process detection state, read-only access status and support message. A detected FM process must still render as unsupported until validated maps exist.
 
-For Milestone 3.3, the FM26 Diagnostics surface displays safe API DTO fields only: native connector availability, Windows/platform state, FM process detected/not detected, safe process ID if available, safe executable file/folder labels, version/build metadata where available, read-only access, memory-map registry counts, selected-map safe summary, map status and next action. FM process detection and map selection are diagnostics only. No player data is read in 3.3. FM26 remains unsupported for player reading. React/Tauri never calls native connector directly, never parses map files, never inspects local processes and never reads SQLite directly.
+For Milestone 3.3 and 3.3.5, the FM26 Diagnostics surface displays safe API DTO fields only: native connector availability, Windows/platform state, FM process detected/not detected, safe executable file/folder labels, version/build metadata where available, read-only access, memory-map registry counts, selected-map safe summary, map status and next action. FM process detection and map selection are diagnostics only. Memory maps remain metadata-only templates until validated. No player data is read. FM26 remains unsupported for player reading. React/Tauri never calls native connector directly, never parses map files, never inspects local processes and never reads SQLite directly.
 
 First safe player snapshot is later.
 

@@ -1,8 +1,8 @@
 # Command-Center UI
 
-React/Tauri is now the strategic Statlyn desktop UI. Unity remains a legacy/prototype shell. The current React/Tauri direction is a professional dark football recruitment analyst cockpit: flat black/glassy surfaces, recruitment green active states, amber caution states, blue/cyan neutral analytics states and dense but readable recruitment tables.
+React/Tauri is now the strategic Statlyn desktop UI. Unity remains a legacy/prototype shell. The current React/Tauri direction is a flat financial-analysis-style football recruitment cockpit: black/charcoal surfaces, recruitment green active states, amber caution states, blue/cyan neutral analytics states and dense but readable recruitment tables.
 
-The React/Tauri cockpit uses a stable left navigation, a section-aware main workspace, a search/filter foundation, safe KPI/status cards and a large central recruitment board. It follows Scout Room-style appearance principles: compact filters, a top stat strip, a dense table, selected-row emphasis, soft panel borders and restrained status colors. This is design-language inspiration only; it must keep Statlyn's own branding and content. The current Statlyn desktop direction has no persistent insight panel; selected player detail belongs in the table workflow or the dedicated Player Profile page. It still consumes only `Statlyn.Api` DTOs and must not read SQLite, call C# decision engines, call the native connector, invent fake data or show hidden values.
+The React/Tauri cockpit uses a stable left navigation, a section-aware main workspace, a search/filter foundation, safe model/status visual modules and a large central recruitment board. It follows Scout Room-style appearance principles through a flatter analyst-terminal lens: compact filters, a top stat strip, a dense table, selected-row emphasis, thin panel borders, ledgers, matrices and restrained status colors. This is design-language inspiration only; it must keep Statlyn's own branding and content. The current Statlyn desktop direction has no persistent insight panel; selected player detail belongs in the table workflow or the dedicated Player Profile page. It still consumes only `Statlyn.Api` DTOs and must not read SQLite, call C# decision engines, call the native connector, invent fake data, show hidden values or render fake visuals.
 
 Milestone 2.7 moves Statlyn's Unity shell toward a dark football recruitment command center while keeping the existing safe local workflow intact.
 
@@ -12,7 +12,7 @@ Milestone 2.7 moves Statlyn's Unity shell toward a dark football recruitment com
 - `LightGlass` remains a legacy/fallback theme.
 - Official Statlyn logo assets from `Assets/Resources/Branding` are the only logo assets used.
 - The dark theme uses navy/charcoal backgrounds, compact panels, subtle borders and restrained teal/cyan accents.
-- React/Tauri uses the official assets in `Statlyn.Desktop/public/branding` and keeps the UI flat black/glassy with a restrained recruitment green accent.
+- React/Tauri uses the official assets in `Statlyn.Desktop/public/branding` and keeps the UI flat black/charcoal with a restrained recruitment green accent.
 - React/Tauri uses no gradients in the cockpit baseline; the interface should feel analytical, not game-like.
 
 ## Status System
@@ -38,7 +38,8 @@ Built pages should prefer:
 - short page subtitle
 - safety/status banner
 - primary action row
-- compact KPI/status cards
+- compact model/status cards
+- diagnostic ledgers and status matrices
 - command panels for row-heavy details
 - textual empty and error states
 

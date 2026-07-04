@@ -9,15 +9,41 @@ import type {
   ScoutReportSummaryDto
 } from "./types";
 
-const API_BASE = import.meta.env.VITE_STATLYN_API_URL ?? "http://localhost:5118";
+const REQUEST_TIMEOUT_MS = 8000;
+const API_BASE = normalizeBaseUrl(import.meta.env.VITE_STATLYN_API_URL ?? "http://localhost:5118");
+
+function normalizeBaseUrl(value: string): string {
+  return value.replace(/\/+$/, "");
+}
 
 async function getJson<T>(path: string): Promise<T> {
-  const response = await fetch(`${API_BASE}${path}`);
-  if (!response.ok) {
-    throw new Error(`API request failed: ${path}`);
-  }
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
-  return (await response.json()) as T;
+  try {
+    const response = await fetch(`${API_BASE}${path}`, {
+      headers: { Accept: "application/json" },
+      signal: controller.signal
+    });
+
+    if (!response.ok) {
+      throw new Error(`Statlyn.Api returned ${response.status} for ${path}.`);
+    }
+
+    return (await response.json()) as T;
+  } catch (caught: unknown) {
+    if (caught instanceof DOMException && caught.name === "AbortError") {
+      throw new Error(`Statlyn.Api did not respond within ${REQUEST_TIMEOUT_MS / 1000} seconds.`);
+    }
+
+    if (caught instanceof TypeError) {
+      throw new Error(`Cannot reach Statlyn.Api at ${API_BASE}.`);
+    }
+
+    throw caught instanceof Error ? new Error(caught.message) : new Error("Could not load safe Statlyn.Api data.");
+  } finally {
+    window.clearTimeout(timeout);
+  }
 }
 
 export async function loadWorkspace(): Promise<ApiState> {

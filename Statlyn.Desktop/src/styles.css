@@ -38,28 +38,41 @@ button {
 .brand {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 0 8px 22px;
+  gap: 11px;
+  min-height: 48px;
+  padding: 0 8px 24px;
 }
 
 .brand-mark {
-  display: grid;
-  width: 36px;
-  height: 36px;
-  place-items: center;
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+  padding: 5px;
   border: 1px solid rgba(45, 212, 191, 0.7);
   border-radius: 6px;
-  color: #9ff7ed;
-  font-weight: 800;
   background: rgba(255, 255, 255, 0.04);
 }
 
-.brand strong,
-.brand span {
+.brand-copy {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.brand-wordmark {
+  display: block;
+  width: 118px;
+  height: auto;
+  max-height: 28px;
+  object-fit: contain;
+  object-position: left center;
+}
+
+.brand-copy span {
   display: block;
 }
 
-.brand span {
+.brand-copy span {
   color: #9ca8a5;
   font-size: 12px;
 }
@@ -297,6 +310,26 @@ small {
   align-content: center;
   gap: 8px;
   margin-bottom: 14px;
+}
+
+.retry-button {
+  width: fit-content;
+  border: 1px solid rgba(45, 212, 191, 0.45);
+  border-radius: 6px;
+  background: rgba(45, 212, 191, 0.12);
+  color: #c8fffa;
+  cursor: pointer;
+  padding: 9px 12px;
+}
+
+.retry-button:hover {
+  background: rgba(45, 212, 191, 0.2);
+}
+
+.state-mark {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
 }
 
 .state-panel.danger {

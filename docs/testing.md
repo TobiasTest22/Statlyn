@@ -248,3 +248,23 @@ Milestone 2.9 adds `ArchitectureMigrationTests` for the React/Tauri architecture
 - React/Tauri source avoiding direct SQLite, provider, native connector or C# analytics bypasses
 
 The React/Tauri validation path is local-only. Run `npm install`, `npm run build`, `npm run tauri:build` and, when practical, a short `npm run dev` or `npm run tauri:dev` smoke check. The desktop app must communicate with `Statlyn.Api` through safe DTO endpoints; it must not scrape, call external football APIs, open SQLite directly or calculate recruitment decisions in TypeScript or Rust.
+
+## React/Tauri API Stabilization Tests
+
+Milestone 3.0 adds API and desktop stabilization coverage:
+
+- real HTTP endpoint checks for `/health`, `/dashboard`, `/players`, `/players/{id}` and `/diagnostics`
+- empty SQLite database responses returning safe empty states
+- serialized endpoint responses excluding hidden ability, hidden personality, raw value, memory-address and stack-trace field names
+- React/Tauri source staying free of SQLite, C# analytics/data/scouting references and native connector calls
+- Tauri config retaining the Statlyn app identifier, icon path and local API `connect-src`
+- desktop docs recording the API boundary, separate API development mode and future sidecar decision
+- `docs/npm-audit-notes.md` documenting the current `vite` and `esbuild` audit findings
+
+For local validation, run:
+
+```powershell
+.\tools\run-desktop-validation.ps1
+```
+
+The script runs managed build/tests, the native read-only scan, tracked JSON validation, a temporary `Statlyn.Api` health check, desktop `npm run check` and, unless skipped, `npm run tauri:build`. It does not require Unity or FM26 and must stop the temporary API process before exiting.

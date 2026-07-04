@@ -69,6 +69,8 @@ The Unity adapter is a rendering shape only. It is built from `MaskedPlayerProfi
 
 React/Tauri must receive only DTOs from `Statlyn.Api`. It must not read SQLite, call provider code, inspect raw FM memory, calculate recruitment scores, calculate role fit, run benchmarks or duplicate firewall rules.
 
+The current desktop development mode starts `Statlyn.Api` separately from Tauri. Future packaging can introduce a sidecar process once the API contract and desktop validation path are stable. Until then, Tauri remains a thin shell around React assets and local API calls; Rust code must not add database, provider, connector or decision logic.
+
 Unknown fields are denied by default. Provider facts are not trusted simply because they are named `VisibleFacts`.
 
 Grouped fields use `FieldInstanceKey` so values like `TechnicalAttribute:Finishing`, `TechnicalAttribute:Pace`, `PlayerStat:xG`, `PhysicalData:TopSpeed` and `ScoutObservation:PressingEffort` cannot overwrite one another.
@@ -76,6 +78,10 @@ Grouped fields use `FieldInstanceKey` so values like `TechnicalAttribute:Finishi
 ## Current Build Support
 
 No FM26 build is validated yet. The app and provider therefore return unsupported diagnostics and empty player snapshots rather than fixture data. The Unity fixture preview is synthetic development data and must remain clearly labelled as no live FM26 data.
+
+## API Contract Direction
+
+Milestone 3.0 keeps the current endpoint contract as direct safe DTOs to avoid destabilizing the new desktop client. A later API-contract milestone can introduce a shared `ApiResponse<T>` envelope with `status`, `data`, `warnings`, `errors`, `safeMessage` and `generatedAtUtc` once the desktop screens and tests are ready to migrate together.
 
 ## Performance Output Direction
 

@@ -18,6 +18,8 @@ The supported release-candidate loop is:
 
 CSV local import remains the only user-facing data source workflow. There is no live FM26 data, no external API integration, no scraping and no fake benchmark percentile generation.
 
+React/Tauri is now the strategic desktop workspace, but it does not bypass this local CSV safety model. The desktop app reads safe DTOs from `Statlyn.Api`; imported data still flows through C# providers, the scouting firewall, SQLite repositories and API DTO mapping before it reaches the UI.
+
 ## Readiness Check
 
 `LocalProductReadinessService` checks the local database, current schema version, fixture availability, SQLite runtime, import workflow construction, page/query services, smoke-test service availability and FM26 unsupported status.

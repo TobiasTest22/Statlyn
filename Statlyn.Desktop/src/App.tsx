@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { apiBaseUrl, loadWorkspace } from "./api";
 import type { ApiState, PlayerListItemDto } from "./types";
 
@@ -14,6 +14,11 @@ const navItems = [
   "Data Sources",
   "Diagnostics"
 ];
+
+const brandAssets = {
+  markWhite: "/branding/statlyn-mark-white.png",
+  wordmarkWhite: "/branding/statlyn-wordmark-white.png"
+};
 
 const emptyState: ApiState = {
   health: null,
@@ -31,32 +36,36 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let isMounted = true;
+  const refreshWorkspace = useCallback((shouldApply: () => boolean = () => true) => {
     setIsLoading(true);
+    setError(null);
+
     loadWorkspace()
       .then((state) => {
-        if (isMounted) {
+        if (shouldApply()) {
           setApiState(state);
-          setError(null);
         }
       })
       .catch((caught: unknown) => {
-        if (isMounted) {
+        if (shouldApply()) {
           setApiState(emptyState);
           setError(caught instanceof Error ? caught.message : "Could not load safely.");
         }
       })
       .finally(() => {
-        if (isMounted) {
+        if (shouldApply()) {
           setIsLoading(false);
         }
       });
+  }, []);
 
+  useEffect(() => {
+    let isMounted = true;
+    refreshWorkspace(() => isMounted);
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [refreshWorkspace]);
 
   const players = apiState.board?.players ?? [];
   const selectedPlayer = useMemo(() => players[0] ?? null, [players]);
@@ -65,9 +74,9 @@ export default function App() {
     <div className="app-shell">
       <aside className="sidebar">
         <div className="brand">
-          <div className="brand-mark">S</div>
-          <div>
-            <strong>Statlyn</strong>
+          <img className="brand-mark" src={brandAssets.markWhite} alt="" aria-hidden="true" />
+          <div className="brand-copy">
+            <img className="brand-wordmark" src={brandAssets.wordmarkWhite} alt="Statlyn" />
             <span>Recruitment Intelligence</span>
           </div>
         </div>
@@ -99,7 +108,7 @@ export default function App() {
         </header>
 
         {isLoading ? <LoadingState /> : null}
-        {!isLoading && error ? <ErrorState message={error} /> : null}
+        {!isLoading && error ? <ErrorState message={error} onRetry={refreshWorkspace} /> : null}
         {!isLoading && !error ? (
           <section className="content-grid">
             <DashboardPanel state={apiState} />
@@ -154,7 +163,7 @@ function RecruitmentPanel({ players }: { players: PlayerListItemDto[] }) {
             <div className="table-row" key={player.statlynPlayerId}>
               <span>
                 <strong>{player.displayName}</strong>
-                <small>{player.primaryPosition} · {player.sourceName}</small>
+                <small>{player.primaryPosition} - {player.sourceName}</small>
               </span>
               <span>{player.roleName}</span>
               <span>{formatNullable(player.roleFit)}</span>
@@ -175,7 +184,7 @@ function PlayerProfilePanel({ player }: { player: PlayerListItemDto | null }) {
       {player ? (
         <div className="profile-stack">
           <h2>{player.displayName}</h2>
-          <p>{player.primaryPosition} · {player.nationality}</p>
+          <p>{player.primaryPosition} - {player.nationality}</p>
           <StatusPill label="Benchmark" tone="info" value={player.benchmarkStatus} />
           <StatusPill label="Blocked Fields" tone={player.blockedFieldCount > 0 ? "warning" : "muted"} value={String(player.blockedFieldCount)} />
         </div>
@@ -272,15 +281,23 @@ function StatusPill({ label, value, tone }: { label: string; value: string; tone
 }
 
 function LoadingState() {
-  return <div className="state-panel">Loading safe C# API DTOs...</div>;
+  return (
+    <div className="state-panel">
+      <img className="state-mark" src={brandAssets.markWhite} alt="" aria-hidden="true" />
+      <span>Loading safe C# API DTOs...</span>
+    </div>
+  );
 }
 
-function ErrorState({ message }: { message: string }) {
+function ErrorState({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
     <div className="state-panel danger">
       <strong>Could not load safely.</strong>
       <span>{message}</span>
       <small>Start Statlyn.Api, then refresh the desktop workspace.</small>
+      <button className="retry-button" type="button" onClick={onRetry}>
+        Retry API connection
+      </button>
     </div>
   );
 }

@@ -47,7 +47,7 @@ FM26 is one future data source and proof-of-concept environment, not the product
 - Unity runtime validation v1: Diagnostics page, Runtime Check and Full Smoke Test covering the CSV-only workflow against a separate smoke-test database.
 - UI Command-Center Theme Baseline: dark Unity shell, command-center status/KPI helpers, safe local dashboard overview counts and consistent command headers across built and placeholder pages.
 - Local CSV release-candidate hardening: product readiness checks, CSV hardening messages, safe database backup/smoke reset foundation and safe snapshot text outputs.
-- Branding: official Statlyn logo assets are copied into Unity `Resources/Branding` and used by the shell/sidebar.
+- Branding: official Statlyn logo assets are copied into Unity `Resources/Branding`, packaged under `Statlyn.Desktop/public/branding` and used by the desktop shell/sidebar.
 - Field policy registry: deny-by-default masking for display, scoring and storage.
 - Field instance keys: grouped values such as `TechnicalAttribute:Finishing` and `PlayerStat:xG` are preserved without overwriting.
 - Dashboard: local SQLite overview cards show real safe counts or `Awaiting local data.`; Player Profile v1 loads persisted safe imported data through `PlayerProfileQueryService`, `PlayerProfileReportViewModel` and safe `StatlynVisualAnalytics*` models.
@@ -63,7 +63,7 @@ The SQLite persistence layer is local-only foundation work. It stores masked pla
 
 Performance metric definitions are generic/import-ready contracts, not official FM26 stat declarations. A metric can only be marked FM26-supported after later validation from visible FM26 data, exported data or a validated memory map. Generic role-output expectation profiles and benchmark definitions are foundation templates, not final FM26 role templates. Goalkeepers, centre-backs, midfielders, wide attackers and strikers intentionally use different output expectations. No fake benchmark percentiles are generated; if no comparison group exists, Player Profile v1 and Recruitment Centre rows say no benchmark yet.
 
-Official logo usage is documented in `docs/branding.md`. Command-center UI guidance is documented in `docs/command-center-ui.md`. Local CSV release-candidate flow is documented in `docs/local-csv-release-candidate.md`, and database maintenance safety is documented in `docs/database-maintenance.md`. Visual analytics components are documented in `docs/visual-analytics-components.md`. Benchmarks are documented in `docs/benchmarks.md`. Shortlists are documented in `docs/shortlists.md`. Scout Desk is documented in `docs/scout-desk.md` and report safety in `docs/scout-report-safety.md`. Role Lab is documented in `docs/role-lab.md` and the phase-role model in `docs/fm26-phase-role-model.md`. The currently available repo assets are `StatLyn_Logo.png`, `StatLyn_Logo_Reversed.png`, `Statlyn_Logo_Black-text.png` and `Statlyn_Logo_White-text.png`.
+Official logo usage is documented in `docs/branding.md`. Command-center UI guidance is documented in `docs/command-center-ui.md`. React/Tauri desktop usage is documented in `docs/react-tauri-ui.md`. NPM audit status is documented in `docs/npm-audit-notes.md`. Local CSV release-candidate flow is documented in `docs/local-csv-release-candidate.md`, and database maintenance safety is documented in `docs/database-maintenance.md`. Visual analytics components are documented in `docs/visual-analytics-components.md`. Benchmarks are documented in `docs/benchmarks.md`. Shortlists are documented in `docs/shortlists.md`. Scout Desk is documented in `docs/scout-desk.md` and report safety in `docs/scout-report-safety.md`. Role Lab is documented in `docs/role-lab.md` and the phase-role model in `docs/fm26-phase-role-model.md`. The currently available repo assets include `StatLyn_Logo.png`, `StatLyn_Logo_Reversed.png`, `StatLyn_Mark_White_Tight.png`, `StatLyn_Transparant_Black.png`, `Statlyn_Logo_Black-text.png` and `Statlyn_Logo_White-text.png`.
 
 ## Repository Layout
 
@@ -108,6 +108,14 @@ Check the native connector source for forbidden process-modification calls:
 .\tools\check-native-readonly.ps1
 ```
 
+Run the local desktop validation path:
+
+```powershell
+.\tools\run-desktop-validation.ps1
+```
+
+This script builds/tests C#, runs the native read-only scan, validates tracked JSON, starts `Statlyn.Api` temporarily, checks `/health`, runs desktop checks and can build the Tauri installer. It does not require Unity or FM26 and stops the temporary API process before exiting.
+
 Build the native connector with CMake and a Windows C++ toolchain:
 
 ```powershell
@@ -129,12 +137,22 @@ Run the strategic React/Tauri workspace:
 cd Statlyn.Desktop
 npm install
 npm run dev
+npm run check
 npm run build
 npm run tauri:dev
 npm run tauri:build
 ```
 
-The React app calls `Statlyn.Api` through safe DTO endpoints. It does not open SQLite directly and does not calculate recruitment, role, benchmark, scouting or provider decisions in TypeScript.
+The React app calls `Statlyn.Api` through safe DTO endpoints. It does not open SQLite directly and does not calculate recruitment, role, benchmark, scouting or provider decisions in TypeScript. In current development mode the API must be started separately; API sidecar bundling is a future packaging milestone.
+
+Tauri installer outputs are produced under:
+
+```text
+Statlyn.Desktop\src-tauri\target\release\bundle\msi\
+Statlyn.Desktop\src-tauri\target\release\bundle\nsis\
+```
+
+Current desktop limitations: FM26 is unsupported, no real data appears unless safe local data is imported into SQLite, and the NPM audit findings are development-tooling findings documented in `docs/npm-audit-notes.md`.
 
 Before opening Unity, copy the shared managed assemblies, SQLite dependencies and synthetic fixture CSV into Unity folders:
 

@@ -33,7 +33,7 @@ jobs:
         shell: pwsh
         run: |
           Get-ChildItem -Recurse -Filter *.json | ForEach-Object {
-            Get-Content -Raw -LiteralPath $_.FullName | ConvertFrom-Json | Out-Null
+            Get-Content -Raw -LiteralPath $_.FullName | ConvertFrom-Json -AsHashtable | Out-Null
           }
 
   native:

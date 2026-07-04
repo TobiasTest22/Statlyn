@@ -43,8 +43,51 @@ export type Fm26ConnectorStatusDto = {
   lastErrorSafeMessage: string;
   generatedAtUtc: string;
   safeMessage: string;
+  memoryMapRegistryStatus: string;
+  selectedMemoryMapId: string;
+  hasValidatedMap: boolean;
+  memoryMapCount: number;
+  usableMemoryMapCount: number;
+  templateMemoryMapCount: number;
+  invalidMemoryMapCount: number;
   warnings: string[];
   errors: string[];
+};
+
+export type MemoryMapDiagnosticDto = {
+  mapId: string;
+  displayName: string;
+  gameVersion: string;
+  buildNumber: string;
+  platform: string;
+  architecture: string;
+  isTemplate: boolean;
+  isValidated: boolean;
+  isUsable: boolean;
+  supportStatus: string;
+  fieldCount: number;
+  visibleFieldCount: number;
+  hiddenFieldCountBlocked: number;
+  safeMessage: string;
+  validationWarnings: string[];
+  validationErrors: string[];
+};
+
+export type MemoryMapRegistryDto = {
+  registryStatus: string;
+  mapsFoundCount: number;
+  usableMapsCount: number;
+  templateMapsCount: number;
+  invalidMapsCount: number;
+  hasValidatedMap: boolean;
+  selectedMapId: string;
+  selectedMapDisplayName: string;
+  selectedMapStatus: string;
+  mapSupportStatus: string;
+  mapSupportMessage: string;
+  nextActionSafeMessage: string;
+  safeMessage: string;
+  maps: MemoryMapDiagnosticDto[];
 };
 
 export type DashboardOverviewDto = {
@@ -145,5 +188,6 @@ export type ApiState = {
   dataSources: DataSourceStatusDto | null;
   diagnostics: DiagnosticsDto | null;
   connectorStatus: Fm26ConnectorStatusDto | null;
+  memoryMaps: MemoryMapRegistryDto | null;
   scoutReports: ScoutReportSummaryDto[];
 };

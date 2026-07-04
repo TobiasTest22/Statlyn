@@ -42,6 +42,7 @@ const emptyState: ApiState = {
   dataSources: null,
   diagnostics: null,
   connectorStatus: null,
+  memoryMaps: null,
   scoutReports: []
 };
 
@@ -315,6 +316,7 @@ function WorkspaceContent({
     return (
       <section className="content-grid">
         <DataSourcesPanel state={state} wide />
+        <MemoryMapRegistryPanel state={state} wide />
         <ConnectorStatusPanel state={state} />
         <DiagnosticsPanel state={state} />
       </section>
@@ -325,6 +327,7 @@ function WorkspaceContent({
     return (
       <section className="content-grid">
         <DiagnosticsPanel state={state} wide />
+        <MemoryMapRegistryPanel state={state} wide />
         <ConnectorStatusPanel state={state} wide />
         <DataSourcesPanel state={state} />
       </section>
@@ -354,6 +357,7 @@ function WorkspaceContent({
       <DashboardPanel state={state} wide />
       <RecruitmentPanel players={players} selectedPlayerId={selectedPlayerId} onSelectPlayer={onSelectPlayer} />
       <ConnectorStatusPanel state={state} />
+      <MemoryMapRegistryPanel state={state} />
       <DataSourcesPanel state={state} />
       <DiagnosticsPanel state={state} />
       <ScoutReportsPanel state={state} />
@@ -419,10 +423,10 @@ function BoardStatsPanel({ state, visiblePlayers }: { state: ApiState; visiblePl
         tone={dashboard && dashboard.roleLabTemplateCount > 0 ? "info" : "muted"}
       />
       <BoardStatCard
-        label="FM26 Status"
+        label="FM26 Maps"
         value={connector?.mapSupportStatus ?? "Unsupported"}
-        note={connector?.supportStatusMessage ?? "No validated maps"}
-        tone="warning"
+        note={connector?.mapSupportMessage ?? "No validated maps"}
+        tone={toneForMapStatus(connector?.mapSupportStatus)}
       />
     </section>
   );
@@ -538,7 +542,7 @@ function ConnectorStatusPanel({ state, wide = false }: { state: ApiState; wide?:
         <StatusChip label="Platform" tone={connector?.isWindows ? "info" : "warning"} value={connector?.isWindows ? "Windows" : "Unsupported"} />
         <StatusChip label="FM Process" tone={connector?.isFmProcessDetected ? "info" : "muted"} value={connector?.detectionStatus ?? "NotDetected"} />
         <StatusChip label="Read-only" tone={toneForDiagnosticStatus(connector?.readOnlyAccessStatus)} value={connector?.readOnlyAccessStatus ?? "Unavailable"} />
-        <StatusChip label="Map" tone="warning" value={connector?.mapSupportStatus ?? "MapMissing"} />
+        <StatusChip label="Map" tone={toneForMapStatus(connector?.mapSupportStatus)} value={connector?.mapSupportStatus ?? "MapMissing"} />
         <StatusChip label="Support" tone="warning" value={connector?.isFm26Supported ? "Supported" : "Unsupported"} />
       </div>
       <div className="status-list dense">
@@ -554,8 +558,14 @@ function ConnectorStatusPanel({ state, wide = false }: { state: ApiState; wide?:
         <MiniStatus label="Access Level" value={connector?.requiredAccessLevel || "Read-only diagnostics unavailable"} />
         <MiniStatus label="Build Status" value={connector?.buildSupportStatus ?? "ConnectorUnavailable"} />
         <MiniStatus label="Build Message" value={connector?.buildSupportMessage ?? "FM26 diagnostics unavailable."} />
+        <MiniStatus label="Map Registry" value={connector?.memoryMapRegistryStatus ?? "Not checked"} />
+        <MiniStatus label="Maps Found" value={String(connector?.memoryMapCount ?? 0)} />
+        <MiniStatus label="Validated Maps" value={String(connector?.usableMemoryMapCount ?? 0)} />
+        <MiniStatus label="Template Maps" value={String(connector?.templateMemoryMapCount ?? 0)} />
+        <MiniStatus label="Invalid Maps" value={String(connector?.invalidMemoryMapCount ?? 0)} />
+        <MiniStatus label="Selected Map" value={connector?.selectedMemoryMapId || "None"} />
         <MiniStatus label="Map Message" value={connector?.mapSupportMessage ?? "No validated FM26 maps are loaded."} />
-        <MiniStatus label="Next Action" value={connector?.nextActionSafeMessage ?? "Validated FM26 maps are required before live FM player data can be read."} />
+        <MiniStatus label="Next Action" value={connector?.nextActionSafeMessage ?? "Validated FM26 maps are required before future player snapshots."} />
         <MiniStatus label="Generated" value={connector?.generatedAtUtc ?? "Not checked"} />
         {connector?.connectorVersion ? <MiniStatus label="Connector" value={connector.connectorVersion} /> : null}
       </div>
@@ -589,20 +599,66 @@ function DataSourcesPanel({ state, wide = false }: { state: ApiState; wide?: boo
   );
 }
 
+function MemoryMapRegistryPanel({ state, wide = false }: { state: ApiState; wide?: boolean }) {
+  const registry = state.memoryMaps;
+  const maps = registry?.maps ?? [];
+  return (
+    <section className={`panel map-registry-panel ${wide ? "wide" : ""}`}>
+      <PanelHeader title="Memory-map Registry" detail={registry?.safeMessage ?? "Map registry status is awaiting the local API."} />
+      <div className="chip-row">
+        <StatusChip label="Registry" tone={toneForMapStatus(registry?.registryStatus)} value={registry?.registryStatus ?? "Not checked"} />
+        <StatusChip label="Found" tone={registry && registry.mapsFoundCount > 0 ? "info" : "muted"} value={String(registry?.mapsFoundCount ?? 0)} />
+        <StatusChip label="Validated" tone={registry && registry.usableMapsCount > 0 ? "success" : "muted"} value={String(registry?.usableMapsCount ?? 0)} />
+        <StatusChip label="Templates" tone={registry && registry.templateMapsCount > 0 ? "warning" : "muted"} value={String(registry?.templateMapsCount ?? 0)} />
+        <StatusChip label="Invalid" tone={registry && registry.invalidMapsCount > 0 ? "danger" : "muted"} value={String(registry?.invalidMapsCount ?? 0)} />
+      </div>
+      <div className="status-list dense">
+        <MiniStatus label="Selected" value={registry?.selectedMapId || "None"} />
+        <MiniStatus label="Status" value={registry?.mapSupportStatus ?? "MapMissing"} />
+        <MiniStatus label="Message" value={registry?.mapSupportMessage ?? "No validated FM26 maps are loaded."} />
+        <MiniStatus label="Next" value={registry?.nextActionSafeMessage ?? "Player reading not implemented."} />
+        <MiniStatus label="Player Reading" value="Not implemented" />
+      </div>
+      {maps.length === 0 ? (
+        <div className="empty-line">No local map metadata files found. Player reading not implemented.</div>
+      ) : (
+        <div className="map-list">
+          {maps.slice(0, 6).map((map) => (
+            <div className="map-row" key={`${map.mapId}-${map.displayName}`}>
+              <div>
+                <strong>{map.displayName || map.mapId || "Unnamed map"}</strong>
+                <span>{map.isTemplate ? "Template" : map.isValidated ? "Validated metadata" : "Unvalidated metadata"} / {map.platform || "Platform unknown"} / {map.architecture || "Architecture unknown"}</span>
+              </div>
+              <div className="map-row-stats">
+                <StatusChip tone={toneForMapStatus(map.supportStatus)} value={map.supportStatus} />
+                <StatusChip label="Fields" tone="info" value={String(map.fieldCount)} />
+                <StatusChip label="Visible" tone="info" value={String(map.visibleFieldCount)} />
+                <StatusChip label="Blocked" tone={map.hiddenFieldCountBlocked > 0 ? "warning" : "muted"} value={String(map.hiddenFieldCountBlocked)} />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
 function DiagnosticsPanel({ state, wide = false }: { state: ApiState; wide?: boolean }) {
   const connector = state.connectorStatus;
+  const registry = state.memoryMaps;
   return (
     <section className={`panel ${wide ? "wide" : ""}`}>
       <PanelHeader title="Diagnostics" detail={state.diagnostics?.safeSummary ?? "Diagnostics unavailable."} />
       <div className="chip-row">
         <StatusChip label="Schema" tone="info" value={String(state.diagnostics?.schemaVersion ?? 0)} />
         <StatusChip label="FM26" tone="warning" value={connector?.supportStatusMessage ?? state.diagnostics?.fm26Status ?? "Unsupported"} />
-        <StatusChip label="Map" tone="warning" value={connector?.mapSupportStatus ?? "MapMissing"} />
+        <StatusChip label="Map" tone={toneForMapStatus(connector?.mapSupportStatus)} value={connector?.mapSupportStatus ?? "MapMissing"} />
+        <StatusChip label="Registry" tone={toneForMapStatus(registry?.registryStatus)} value={registry?.registryStatus ?? "Not checked"} />
         <StatusChip label="Access" tone={toneForDiagnosticStatus(connector?.readOnlyAccessStatus)} value={connector?.readOnlyAccessStatus ?? "Unavailable"} />
         <StatusChip label="API" tone="info" value={apiBaseUrl()} />
       </div>
       <div className="diagnostic-note">
-        {connector?.nextActionSafeMessage ?? "Validated FM26 maps are required before live FM player data can be read."}
+        {connector?.nextActionSafeMessage ?? "Validated FM26 maps are required before future player snapshots. Player reading not implemented."}
       </div>
     </section>
   );
@@ -849,6 +905,30 @@ function toneForDiagnosticStatus(value: string | undefined): Tone {
   }
 
   if (normalized.includes("available") || normalized.includes("diagnostic") || normalized.includes("ready")) {
+    return "info";
+  }
+
+  return "muted";
+}
+
+function toneForMapStatus(value: string | undefined): Tone {
+  const normalized = (value ?? "").toLowerCase();
+
+  if (normalized.includes("invalid") || normalized.includes("denied") || normalized.includes("failed")) {
+    return "danger";
+  }
+
+  if (
+    normalized.includes("missing") ||
+    normalized.includes("template") ||
+    normalized.includes("unvalidated") ||
+    normalized.includes("mismatch") ||
+    normalized.includes("unsupported")
+  ) {
+    return "warning";
+  }
+
+  if (normalized.includes("available") || normalized.includes("notimplemented")) {
     return "info";
   }
 

@@ -1,6 +1,7 @@
 using Statlyn.Api;
 using Statlyn.Data;
 using Statlyn.DataProviders.Fm26;
+using Statlyn.DataProviders.Fm26.MemoryMaps;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddCors(options =>
@@ -20,6 +21,13 @@ builder.Services.AddSingleton(_ =>
 });
 builder.Services.AddSingleton<IFm26NativeConnector, NativeFm26Connector>();
 builder.Services.AddSingleton<SafeFm26ConnectorService>();
+builder.Services.AddSingleton(_ =>
+{
+    var configuredPath = builder.Configuration["Statlyn:MemoryMapsPath"];
+    return string.IsNullOrWhiteSpace(configuredPath)
+        ? MemoryMapRegistryLoader.FromAppBase(AppContext.BaseDirectory)
+        : new MemoryMapRegistryLoader(configuredPath);
+});
 builder.Services.AddSingleton<StatlynApiDtoFactory>();
 
 var app = builder.Build();
@@ -40,6 +48,8 @@ app.MapGet("/connector/status", (StatlynApiDtoFactory dtoFactory) => dtoFactory.
 app.MapGet("/connector/fm26", (StatlynApiDtoFactory dtoFactory) => dtoFactory.GetConnectorStatus());
 app.MapGet("/diagnostics/fm26", (StatlynApiDtoFactory dtoFactory) => dtoFactory.GetConnectorStatus());
 app.MapGet("/diagnostics/fm26/summary", (StatlynApiDtoFactory dtoFactory) => dtoFactory.GetConnectorStatus());
+app.MapGet("/diagnostics/memory-maps", (StatlynApiDtoFactory dtoFactory) => dtoFactory.GetMemoryMaps());
+app.MapGet("/connector/memory-maps", (StatlynApiDtoFactory dtoFactory) => dtoFactory.GetMemoryMaps());
 
 app.Run();
 

@@ -301,4 +301,6 @@ Milestone 3.2 adds `Milestone32Tests` for the richer diagnostics-only FM26 surfa
 - React/Tauri displays FM26 diagnostics through `Statlyn.Api` only and does not call native connector, process APIs or SQLite
 - `tools/run-connector-diagnostics.ps1` calls `/health`, `/connector/status` and `/diagnostics/fm26`, prints support/map/next-action summary and stops its temporary API
 
-FM process detection is diagnostics only. No player data is read in 3.2. FM26 remains unsupported without validated memory maps. React/Tauri never calls native connector directly. First memory-map work is later. First safe player snapshot is later.
+FM process detection is diagnostics only. No player data is read in 3.2. FM26 remains unsupported without validated memory maps. React/Tauri never calls native connector directly. Milestone 3.3 adds metadata-only memory-map registry work. First safe player snapshot is later.
+
+Milestone 3.3 adds tests for the memory-map registry loader, validator and selector. Coverage includes missing directories, malformed JSON, template maps, unvalidated maps, write-enabled map rejection, hidden-field blocking, validated exact build selection, `/diagnostics/memory-maps`, `/connector/memory-maps`, connector-status map summaries, React/Tauri API-only rendering and the rule that player reading is still not implemented. Templates and unvalidated maps are not usable, and public DTOs do not expose raw offsets, memory addresses, process handles, raw provider snapshots, hidden field names, CA or PA.

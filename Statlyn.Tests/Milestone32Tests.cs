@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.Configuration;
 using Statlyn.Api;
 using Statlyn.DataProviders.Fm26;
+using Statlyn.DataProviders.Fm26.MemoryMaps;
 
 namespace Statlyn.Tests
 {
@@ -106,8 +107,8 @@ namespace Statlyn.Tests
                 var json = await client.GetStringAsync(path);
 
                 Assert.False(dto.IsFm26Supported);
-                Assert.Equal(Fm26DiagnosticSupportStatus.MapMissing.ToString(), dto.MapSupportStatus);
-                Assert.Contains("validated FM26 memory map", dto.NextActionSafeMessage, StringComparison.OrdinalIgnoreCase);
+                Assert.Contains(dto.MapSupportStatus, new[] { Fm26DiagnosticSupportStatus.MapMissing.ToString(), MemoryMapSupportStatus.TemplateOnly.ToString() });
+                Assert.Contains("future player snapshot", dto.NextActionSafeMessage, StringComparison.OrdinalIgnoreCase);
                 Assert.Contains("unsupported until validated maps", dto.SupportStatusMessage, StringComparison.OrdinalIgnoreCase);
                 AssertSafeJson(path, json);
             }
@@ -170,7 +171,7 @@ namespace Statlyn.Tests
             Assert.Contains("No player data is read in 3.2", docs, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("FM26 remains unsupported without validated memory maps", docs, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("React/Tauri never calls native connector directly", docs, StringComparison.OrdinalIgnoreCase);
-            Assert.Contains("First memory-map work is later", docs, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("metadata-only memory-map registry", docs, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("First safe player snapshot is later", docs, StringComparison.OrdinalIgnoreCase);
         }
 

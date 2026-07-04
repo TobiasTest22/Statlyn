@@ -46,8 +46,49 @@ namespace Statlyn.Api
         string LastErrorSafeMessage,
         string GeneratedAtUtc,
         string SafeMessage,
+        string MemoryMapRegistryStatus,
+        string SelectedMemoryMapId,
+        bool HasValidatedMap,
+        int MemoryMapCount,
+        int UsableMemoryMapCount,
+        int TemplateMemoryMapCount,
+        int InvalidMemoryMapCount,
         IReadOnlyList<string> Warnings,
         IReadOnlyList<string> Errors);
+
+    public sealed record MemoryMapRegistryDto(
+        string RegistryStatus,
+        int MapsFoundCount,
+        int UsableMapsCount,
+        int TemplateMapsCount,
+        int InvalidMapsCount,
+        bool HasValidatedMap,
+        string SelectedMapId,
+        string SelectedMapDisplayName,
+        string SelectedMapStatus,
+        string MapSupportStatus,
+        string MapSupportMessage,
+        string NextActionSafeMessage,
+        string SafeMessage,
+        IReadOnlyList<MemoryMapDiagnosticDto> Maps);
+
+    public sealed record MemoryMapDiagnosticDto(
+        string MapId,
+        string DisplayName,
+        string GameVersion,
+        string BuildNumber,
+        string Platform,
+        string Architecture,
+        bool IsTemplate,
+        bool IsValidated,
+        bool IsUsable,
+        string SupportStatus,
+        int FieldCount,
+        int VisibleFieldCount,
+        int HiddenFieldCountBlocked,
+        string SafeMessage,
+        IReadOnlyList<string> ValidationWarnings,
+        IReadOnlyList<string> ValidationErrors);
 
     public sealed record DashboardOverviewDto(
         string SafeMessage,

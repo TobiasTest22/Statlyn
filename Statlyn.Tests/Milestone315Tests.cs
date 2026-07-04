@@ -110,7 +110,10 @@ namespace Statlyn.Tests
                 Assert.DoesNotContain("CurrentAbility", name, StringComparison.OrdinalIgnoreCase);
                 Assert.DoesNotContain("PotentialAbility", name, StringComparison.OrdinalIgnoreCase);
                 Assert.DoesNotContain("Professionalism", name, StringComparison.OrdinalIgnoreCase);
-                Assert.DoesNotContain("Hidden", name, StringComparison.OrdinalIgnoreCase);
+                if (!string.Equals(name, "HiddenFieldCountBlocked", StringComparison.Ordinal))
+                {
+                    Assert.DoesNotContain("Hidden", name, StringComparison.OrdinalIgnoreCase);
+                }
                 Assert.DoesNotContain("Raw", name, StringComparison.OrdinalIgnoreCase);
                 Assert.DoesNotContain("MemoryAddress", name, StringComparison.OrdinalIgnoreCase);
                 Assert.False(string.Equals("CA", name, StringComparison.OrdinalIgnoreCase));

@@ -13,6 +13,7 @@ using Statlyn.Data.Scouting;
 using Statlyn.Data.Shortlists;
 using Statlyn.Data.Workflow;
 using Statlyn.DataProviders.Fm26;
+using Statlyn.DataProviders.Fm26.MemoryMaps;
 
 namespace Statlyn.Api
 {
@@ -20,22 +21,33 @@ namespace Statlyn.Api
     {
         private readonly StatlynDbConnectionFactory _connectionFactory;
         private readonly SafeFm26ConnectorService _connectorService;
+        private readonly MemoryMapRegistryLoader _memoryMapLoader;
+        private readonly MemoryMapSelector _memoryMapSelector;
 
         public StatlynApiDtoFactory(StatlynDbConnectionFactory connectionFactory)
-            : this(connectionFactory, new SafeFm26ConnectorService(new NullFm26NativeConnector()))
+            : this(connectionFactory, new SafeFm26ConnectorService(new NullFm26NativeConnector()), MemoryMapRegistryLoader.FromAppBase(AppContext.BaseDirectory))
         {
         }
 
         public StatlynApiDtoFactory(StatlynDbConnectionFactory connectionFactory, SafeFm26ConnectorService connectorService)
+            : this(connectionFactory, connectorService, MemoryMapRegistryLoader.FromAppBase(AppContext.BaseDirectory))
+        {
+        }
+
+        public StatlynApiDtoFactory(StatlynDbConnectionFactory connectionFactory, SafeFm26ConnectorService connectorService, MemoryMapRegistryLoader memoryMapLoader)
         {
             _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
             _connectorService = connectorService ?? throw new ArgumentNullException(nameof(connectorService));
+            _memoryMapLoader = memoryMapLoader ?? throw new ArgumentNullException(nameof(memoryMapLoader));
+            _memoryMapSelector = new MemoryMapSelector();
         }
 
         public AppHealthDto GetHealth()
         {
             var diagnostics = new StatlynDatabaseDiagnosticsService(_connectionFactory).ReadDiagnostics();
             var connector = _connectorService.GetDiagnostic();
+            var registry = _memoryMapLoader.Load();
+            var selection = _memoryMapSelector.Select(registry, connector.Process);
             return new AppHealthDto(
                 "ok",
                 "Local CSV / permitted provider workspace",
@@ -43,14 +55,24 @@ namespace Statlyn.Api
                 diagnostics.SchemaVersion,
                 false,
                 connector.IsNativeConnectorAvailable ? "Native connector diagnostics available. FM26 unsupported until validated maps exist." : "Native connector diagnostics unavailable. FM26 unsupported until validated maps exist.",
-                connector.MapSupportMessage,
+                selection.SupportMessage,
                 "C# API is running. No live FM26 data is exposed.");
         }
 
         public Fm26ConnectorStatusDto GetConnectorStatus()
         {
             var diagnostic = _connectorService.GetDiagnostic();
-            return MapConnectorStatus(diagnostic);
+            var registry = _memoryMapLoader.Load();
+            var selection = _memoryMapSelector.Select(registry, diagnostic.Process);
+            return MapConnectorStatus(diagnostic, registry, selection);
+        }
+
+        public MemoryMapRegistryDto GetMemoryMaps()
+        {
+            var connector = _connectorService.GetDiagnostic();
+            var registry = _memoryMapLoader.Load();
+            var selection = _memoryMapSelector.Select(registry, connector.Process);
+            return MapMemoryMapRegistry(registry, selection);
         }
 
         public DashboardOverviewDto GetDashboard()
@@ -195,6 +217,8 @@ namespace Statlyn.Api
         {
             var readiness = new LocalProductReadinessService(_connectionFactory, AppContext.BaseDirectory, System.IO.Path.Combine(AppContext.BaseDirectory, "StreamingAssets")).Run();
             var connector = _connectorService.GetDiagnostic();
+            var registry = _memoryMapLoader.Load();
+            var selection = _memoryMapSelector.Select(registry, connector.Process);
             return new DiagnosticsDto(
                 readiness.SafeSummary,
                 readiness.Success,
@@ -207,13 +231,13 @@ namespace Statlyn.Api
                 readiness.RoleLabTemplateCount,
                 readiness.BenchmarkDefinitionCount,
                 connector.IsNativeConnectorAvailable
-                    ? "Connector diagnostics available. " + connector.SupportStatusMessage + " " + connector.MapSupportMessage + " No live FM26 data."
-                    : "Connector diagnostics unavailable. " + connector.SupportStatusMessage + " " + connector.MapSupportMessage + " No live FM26 data.",
+                    ? "Connector diagnostics available. " + connector.SupportStatusMessage + " " + selection.SupportMessage + " No live FM26 data."
+                    : "Connector diagnostics unavailable. " + connector.SupportStatusMessage + " " + selection.SupportMessage + " No live FM26 data.",
                 readiness.Warnings,
                 readiness.Errors);
         }
 
-        private static Fm26ConnectorStatusDto MapConnectorStatus(Fm26ConnectorDiagnostic diagnostic)
+        private static Fm26ConnectorStatusDto MapConnectorStatus(Fm26ConnectorDiagnostic diagnostic, MemoryMapRegistryDiagnostic registry, MemoryMapSelectionResult selection)
         {
             return new Fm26ConnectorStatusDto(
                 diagnostic.IsNativeConnectorAvailable,
@@ -242,15 +266,62 @@ namespace Statlyn.Api
                 diagnostic.IsFm26Supported,
                 diagnostic.BuildSupportStatus,
                 diagnostic.BuildSupportMessage,
-                diagnostic.MapSupportStatus,
-                diagnostic.MapSupportMessage,
+                selection.SupportStatus,
+                selection.SupportMessage,
                 diagnostic.SupportStatusMessage,
-                diagnostic.NextActionSafeMessage,
+                selection.NextActionSafeMessage,
                 diagnostic.LastErrorSafeMessage,
                 diagnostic.GeneratedAtUtc.ToString("O", CultureInfo.InvariantCulture),
                 diagnostic.SafeMessage,
-                diagnostic.Warnings,
+                registry.RegistryStatus,
+                selection.SelectedMapId,
+                selection.HasValidatedMap,
+                registry.MapsFoundCount,
+                registry.UsableMapsCount,
+                registry.TemplateMapsCount,
+                registry.InvalidMapsCount,
+                diagnostic.Warnings.Concat(new[] { registry.SafeMessage, selection.SupportMessage }).ToList(),
                 diagnostic.Errors);
+        }
+
+        private static MemoryMapRegistryDto MapMemoryMapRegistry(MemoryMapRegistryDiagnostic registry, MemoryMapSelectionResult selection)
+        {
+            return new MemoryMapRegistryDto(
+                registry.RegistryStatus,
+                registry.MapsFoundCount,
+                registry.UsableMapsCount,
+                registry.TemplateMapsCount,
+                registry.InvalidMapsCount,
+                registry.HasValidatedMap,
+                selection.SelectedMapId,
+                selection.SelectedMapDisplayName,
+                selection.SupportStatus,
+                selection.SupportStatus,
+                selection.SupportMessage,
+                selection.NextActionSafeMessage,
+                registry.SafeMessage,
+                registry.Maps.Select(MapMemoryMap).ToList());
+        }
+
+        private static MemoryMapDiagnosticDto MapMemoryMap(MemoryMapFileDiagnostic map)
+        {
+            return new MemoryMapDiagnosticDto(
+                map.MapId,
+                map.DisplayName,
+                map.GameVersion,
+                map.BuildNumber,
+                map.Platform,
+                map.Architecture,
+                map.IsTemplate,
+                map.IsValidated,
+                map.IsUsable,
+                map.SupportStatus,
+                map.FieldCount,
+                map.VisibleFieldCount,
+                map.HiddenFieldCountBlocked,
+                map.SafeMessage,
+                map.ValidationWarnings,
+                map.ValidationErrors);
         }
 
         private RecruitmentCentreResult LoadRecruitmentRows()

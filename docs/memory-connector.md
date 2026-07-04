@@ -2,7 +2,7 @@
 
 The native connector is a Windows C++ DLL with a stable C ABI for managed C# bindings. Current production use is safe diagnostics only.
 
-FM process detection is diagnostics only. Read-only access is diagnostics only. No player data is read in 3.2. FM26 remains unsupported without validated memory maps.
+FM process detection is diagnostics only. Read-only access is diagnostics only. Memory-map registry loading is metadata only. No player data is read in 3.3. FM26 remains unsupported for player reading.
 
 Required exports are present in `Statlyn.NativeConnector/include/StatlynNativeConnector.h`:
 
@@ -41,7 +41,7 @@ The connector can search for `fm.exe`, query process metadata where Windows allo
 
 Detecting an FM process is not the same as supporting that FM26 build. Until validated maps exist, Statlyn must show unsupported status and return no player data.
 
-First memory-map work is later. First safe player snapshot is later. React/Tauri never calls native connector directly.
+Milestone 3.3 adds the first memory-map registry loader and validator. Templates are not usable, unvalidated maps are not usable, and selected maps are not used for player reading yet. First safe player snapshot is later. React/Tauri never calls native connector directly.
 
 ## Build-Specific Maps
 

@@ -49,6 +49,10 @@ try {
         & (Join-Path $repoRoot "tools/check-native-readonly.ps1")
     }
 
+    Invoke-ConnectorStep "memory-map registry validation" {
+        & (Join-Path $repoRoot "tools/validate-memory-maps.ps1")
+    }
+
     if (Test-Path $apiLog) {
         Remove-Item -LiteralPath $apiLog -Force
     }
@@ -68,13 +72,15 @@ try {
         $health = $null
         $connector = $null
         $fm26Diagnostics = $null
+        $memoryMaps = $null
         for ($attempt = 0; $attempt -lt 30; $attempt++) {
             Start-Sleep -Seconds 1
             try {
                 $health = Invoke-RestMethod -Uri "http://127.0.0.1:5118/health" -TimeoutSec 2
                 $connector = Invoke-RestMethod -Uri "http://127.0.0.1:5118/connector/status" -TimeoutSec 2
                 $fm26Diagnostics = Invoke-RestMethod -Uri "http://127.0.0.1:5118/diagnostics/fm26" -TimeoutSec 2
-                if ($health.status -eq "ok" -and $connector -ne $null -and $fm26Diagnostics -ne $null) {
+                $memoryMaps = Invoke-RestMethod -Uri "http://127.0.0.1:5118/diagnostics/memory-maps" -TimeoutSec 2
+                if ($health.status -eq "ok" -and $connector -ne $null -and $fm26Diagnostics -ne $null -and $memoryMaps -ne $null) {
                     break
                 }
             }
@@ -82,7 +88,7 @@ try {
             }
         }
 
-        if ($health -eq $null -or $connector -eq $null -or $fm26Diagnostics -eq $null) {
+        if ($health -eq $null -or $connector -eq $null -or $fm26Diagnostics -eq $null -or $memoryMaps -eq $null) {
             if (Test-Path $apiLog) {
                 Get-Content -LiteralPath $apiLog -Tail 80
             }
@@ -94,7 +100,7 @@ try {
         }
 
         if ($health.isFm26Supported -or $connector.isFm26Supported -or $fm26Diagnostics.isFm26Supported) {
-            throw "FM26 support was reported before a validated map exists."
+            throw "FM26 support was reported before player reading is implemented."
         }
 
         Write-Host ("[Statlyn] Connector availability: " + $connector.availability)
@@ -104,6 +110,11 @@ try {
         Write-Host ("[Statlyn] Read-only status: " + $connector.readOnlyAccessStatus)
         Write-Host ("[Statlyn] Build support: " + $connector.buildSupportStatus)
         Write-Host ("[Statlyn] Map status: " + $connector.mapSupportStatus)
+        Write-Host ("[Statlyn] Map registry: " + $memoryMaps.registryStatus)
+        Write-Host ("[Statlyn] Maps found: " + $memoryMaps.mapsFoundCount)
+        Write-Host ("[Statlyn] Usable maps: " + $memoryMaps.usableMapsCount)
+        Write-Host ("[Statlyn] Template maps: " + $memoryMaps.templateMapsCount)
+        Write-Host ("[Statlyn] Invalid maps: " + $memoryMaps.invalidMapsCount)
         Write-Host ("[Statlyn] Support message: " + $connector.supportStatusMessage)
         Write-Host ("[Statlyn] Next action: " + $connector.nextActionSafeMessage)
     }

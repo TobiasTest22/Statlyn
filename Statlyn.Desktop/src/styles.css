@@ -812,6 +812,59 @@ small {
   gap: 12px;
 }
 
+.map-registry-panel {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+}
+
+.map-list {
+  display: grid;
+  overflow: hidden;
+  border: 1px solid rgba(117, 139, 161, 0.12);
+  border-radius: 8px;
+  background: rgba(5, 9, 14, 0.68);
+}
+
+.map-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(260px, auto);
+  gap: 12px;
+  align-items: center;
+  border-top: 1px solid rgba(117, 139, 161, 0.11);
+  padding: 11px 12px;
+}
+
+.map-row:first-child {
+  border-top: 0;
+}
+
+.map-row strong,
+.map-row span {
+  display: block;
+  min-width: 0;
+}
+
+.map-row strong {
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.map-row span {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.35;
+  margin-top: 3px;
+}
+
+.map-row-stats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
 .diagnostic-note {
   margin-top: 12px;
   border: 1px solid rgba(245, 176, 46, 0.24);

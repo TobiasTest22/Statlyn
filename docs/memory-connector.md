@@ -2,7 +2,7 @@
 
 The native connector is a Windows C++ DLL with a stable C ABI for managed C# bindings. Current production use is safe diagnostics only.
 
-FM process detection is diagnostics only. Read-only access is diagnostics only. Memory-map registry loading is metadata only. No player data is read in 3.3. FM26 remains unsupported for player reading.
+FM process detection is diagnostics only. Read-only access is diagnostics only. Memory-map registry loading is metadata only. Safe FM26 snapshots are diagnostic metadata only. No player data is read in 3.4. FM26 remains unsupported for player reading.
 
 Required exports are present in `Statlyn.NativeConnector/include/StatlynNativeConnector.h`:
 
@@ -37,11 +37,11 @@ Run the local guard script after connector edits:
 
 ## Current Behavior
 
-The connector can search for `fm.exe`, query process metadata where Windows allows it and report unsupported build state. The safe API layer exposes connector availability, FM process detection, safe process labels, read-only access status, product/file version where available, architecture, build support status, map status and next action. Snapshot reads remain unsupported and are not used by the managed public connector interface.
+The connector can search for `fm.exe`, query process metadata where Windows allows it and report unsupported build state. The safe API layer exposes connector availability, FM process detection, safe process labels, read-only access status, product/file version where available, architecture, build support status, map status, safe snapshot gates and next action. Native snapshot reads remain unsupported and are not used by the managed public connector interface.
 
 Detecting an FM process is not the same as supporting that FM26 build. Until validated maps exist, Statlyn must show unsupported status and return no player data.
 
-Milestone 3.3 adds the first memory-map registry loader and validator. Templates are not usable, unvalidated maps are not usable, and selected maps are not used for player reading yet. First safe player snapshot is later. React/Tauri never calls native connector directly.
+Milestone 3.3 adds the first memory-map registry loader and validator. Templates are not usable, unvalidated maps are not usable, and selected maps are not used for player reading yet. Milestone 3.4 adds safe diagnostic snapshots that report why live reading is blocked. React/Tauri never calls native connector directly.
 
 ## Build-Specific Maps
 

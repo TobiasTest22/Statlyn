@@ -64,6 +64,7 @@ const emptyState: ApiState = {
   diagnostics: null,
   connectorStatus: null,
   memoryMaps: null,
+  fm26Snapshot: null,
   scoutReports: []
 };
 
@@ -367,6 +368,7 @@ function WorkspaceContent({
       <section className="content-grid">
         <DataSourcesPanel state={state} wide />
         <MemoryMapRegistryPanel state={state} wide />
+        <Fm26SnapshotPanel state={state} />
         <ConnectorStatusPanel state={state} />
         <DiagnosticsPanel state={state} />
       </section>
@@ -376,6 +378,7 @@ function WorkspaceContent({
   if (activeSection === "Diagnostics") {
     return (
       <section className="content-grid">
+        <Fm26SnapshotPanel state={state} wide />
         <DiagnosticsPanel state={state} wide />
         <MemoryMapRegistryPanel state={state} wide />
         <ConnectorStatusPanel state={state} wide />
@@ -407,6 +410,7 @@ function WorkspaceContent({
       <DashboardPanel state={state} wide />
       <RecruitmentPanel players={players} selectedPlayerId={selectedPlayerId} onSelectPlayer={onSelectPlayer} />
       <ConnectorStatusPanel state={state} />
+      <Fm26SnapshotPanel state={state} />
       <MemoryMapRegistryPanel state={state} />
       <DataSourcesPanel state={state} />
       <DiagnosticsPanel state={state} />
@@ -419,6 +423,7 @@ function DashboardPanel({ state, wide = false }: { state: ApiState; wide?: boole
   const dashboard = state.dashboard;
   const connector = state.connectorStatus;
   const registry = state.memoryMaps;
+  const snapshot = state.fm26Snapshot;
   return (
     <section className={`panel cockpit-panel ${wide ? "wide" : ""}`}>
       <SectionHeader
@@ -458,8 +463,8 @@ function DashboardPanel({ state, wide = false }: { state: ApiState; wide?: boole
         />
         <MetricCard
           label="FM26 Connector"
-          value={connector?.isFm26Supported ? "Supported" : "Unsupported"}
-          note={connector?.mapSupportStatus ?? "TemplateOnly"}
+          value={snapshot?.snapshotStatus ?? (connector?.isFm26Supported ? "Supported" : "Unsupported")}
+          note={snapshot?.blockingGate ? `Blocked at ${snapshot.blockingGate}` : connector?.mapSupportStatus ?? "TemplateOnly"}
           tone="warning"
         />
       </div>
@@ -480,8 +485,13 @@ function DashboardPanel({ state, wide = false }: { state: ApiState; wide?: boole
             },
             {
               label: "FM26",
-              value: connector?.isFm26Supported ? "Supported" : "Unsupported",
+              value: snapshot?.isFm26Supported ? "Supported" : "Unsupported",
               tone: "warning"
+            },
+            {
+              label: "Snapshot",
+              value: snapshot?.snapshotStatus ?? "Not checked",
+              tone: toneForSnapshotStatus(snapshot?.snapshotStatus)
             },
             {
               label: "Maps",
@@ -500,11 +510,11 @@ function DashboardPanel({ state, wide = false }: { state: ApiState; wide?: boole
               tone: dashboard && dashboard.importedPlayersCount > 0 ? "success" : "muted"
             },
             {
-              check: "FM26 Connector",
-              status: connector?.mapSupportStatus ?? "Unsupported",
-              value: connector?.memoryMapRegistryStatus ?? "Not checked",
-              message: connector?.supportStatusMessage ?? "FM26 unsupported until validated maps exist.",
-              tone: "warning"
+              check: "FM26 Snapshot",
+              status: snapshot?.snapshotStatus ?? connector?.mapSupportStatus ?? "Unsupported",
+              value: snapshot?.blockingGate || connector?.memoryMapRegistryStatus || "Not checked",
+              message: snapshot?.nextAction ?? connector?.supportStatusMessage ?? "FM26 unsupported until validated maps exist.",
+              tone: toneForSnapshotStatus(snapshot?.snapshotStatus)
             },
             {
               check: "Registry",
@@ -770,6 +780,96 @@ function ConnectorStatusPanel({ state, wide = false }: { state: ApiState; wide?:
         ]}
       />
       <WarningList warnings={connector?.warnings ?? ["FM26 unsupported until validated maps exist."]} />
+    </section>
+  );
+}
+
+function Fm26SnapshotPanel({ state, wide = false }: { state: ApiState; wide?: boolean }) {
+  const snapshot = state.fm26Snapshot;
+  const blockReason = snapshot?.blockReasons[0] ?? null;
+  const selectedMap = snapshot?.selectedMapSummary;
+
+  return (
+    <section className={`panel snapshot-panel ${wide ? "wide" : ""}`}>
+      <SectionHeader
+        title="Safe FM26 Snapshot"
+        detail={snapshot?.safeMessage ?? "Diagnostic metadata snapshot is awaiting the local API."}
+      />
+      {snapshot ? (
+        <>
+          <div className="metric-grid compact-four">
+            <MetricCard
+              label="Snapshot"
+              value={snapshot.snapshotStatus}
+              note={snapshot.generatedAtUtc || "Not checked"}
+              tone={toneForSnapshotStatus(snapshot.snapshotStatus)}
+            />
+            <MetricCard
+              label="Blocking Gate"
+              value={snapshot.blockingGate || "None"}
+              note={snapshot.allGatesPassed ? "No blocked gate" : "Live reading blocked"}
+              tone={snapshot.allGatesPassed ? "info" : "warning"}
+            />
+            <MetricCard
+              label="FM Process"
+              value={snapshot.fmProcessStatus || "Not checked"}
+              note={snapshot.fmProcessDetected ? snapshot.processName || "Detected" : "Not detected"}
+              tone={snapshot.fmProcessDetected ? "info" : "muted"}
+            />
+            <MetricCard
+              label="Map Readiness"
+              value={snapshot.mapRegistryStatus || "Not checked"}
+              note={`${snapshot.validatedMaps} validated / ${snapshot.templateMaps} template`}
+              tone={toneForMapStatus(snapshot.mapRegistryStatus)}
+            />
+          </div>
+
+          <div className="chip-row">
+            <SignalBadge label="Connector" tone={snapshot.isNativeConnectorAvailable ? "info" : "muted"} value={snapshot.connectorStatus} />
+            <SignalBadge label="Platform" tone={snapshot.isWindows ? "info" : "warning"} value={snapshot.platformStatus} />
+            <SignalBadge label="Read-only" tone={toneForDiagnosticStatus(snapshot.readOnlyStatus)} value={snapshot.readOnlyStatus || "Unavailable"} />
+            <SignalBadge label="Reader" tone="warning" value={snapshot.readerStatus} />
+            <SignalBadge label="FM26" tone="warning" value={snapshot.isFm26Supported ? "Supported" : "Unsupported"} />
+          </div>
+
+          <DiagnosticLedger
+            rows={snapshot.gates.map((gate) => ({
+              check: gate.label,
+              status: gate.gateStatus,
+              value: gate.snapshotStatus,
+              message: gate.safeMessage || gate.nextAction || "Gate did not return a message.",
+              tone: toneForGateStatus(gate.gateStatus, gate.snapshotStatus)
+            }))}
+          />
+
+          <StatusMatrix
+            title="Snapshot Metadata"
+            items={[
+              { label: "Selected Map", value: selectedMap?.displayName || selectedMap?.mapId || "None", tone: toneForMapStatus(selectedMap?.status) },
+              { label: "Build", value: selectedMap?.build || snapshot.productVersion || snapshot.fileVersion || "Not reported", tone: "muted" },
+              { label: "Architecture", value: snapshot.architecture || "Not reported", tone: "muted" },
+              { label: "Field Policy", value: snapshot.fieldPolicyStatus, tone: toneForDiagnosticStatus(snapshot.fieldPolicyStatus) }
+            ]}
+          />
+
+          <RiskSignal
+            tone={snapshot.allGatesPassed ? "info" : "warning"}
+            title={blockReason ? `Blocked: ${blockReason.gateKey}` : "Diagnostic Snapshot Only"}
+            message={blockReason?.safeMessage || snapshot.nextAction || "No player data is read by this snapshot."}
+          />
+          <RiskSignal
+            tone="warning"
+            title="No Player Data"
+            message={snapshot.nextAction || "Safe FM26 snapshots contain diagnostics metadata only. No live player rows or hidden values are exposed."}
+          />
+          <WarningList warnings={snapshot.warnings} />
+        </>
+      ) : (
+        <EmptyVisualState
+          title="Snapshot not checked"
+          message="Start Statlyn.Api and refresh diagnostics. No player data or fallback rows are generated."
+        />
+      )}
     </section>
   );
 }
@@ -1446,6 +1546,38 @@ function toneForMapStatus(value: string | undefined): Tone {
 
   if (normalized.includes("available") || normalized.includes("notimplemented")) {
     return "info";
+  }
+
+  return "muted";
+}
+
+function toneForSnapshotStatus(value: string | undefined): Tone {
+  const normalized = (value ?? "").toLowerCase();
+
+  if (normalized.includes("error") || normalized.includes("denied") || normalized.includes("failed")) {
+    return "danger";
+  }
+
+  if (normalized.includes("blocked")) {
+    return "warning";
+  }
+
+  if (normalized.includes("diagnostic") || normalized.includes("metadata")) {
+    return "info";
+  }
+
+  return "muted";
+}
+
+function toneForGateStatus(gateStatus: string | undefined, snapshotStatus: string | undefined): Tone {
+  const gate = (gateStatus ?? "").toLowerCase();
+
+  if (gate.includes("passed")) {
+    return "success";
+  }
+
+  if (gate.includes("blocked")) {
+    return toneForSnapshotStatus(snapshotStatus) === "danger" ? "danger" : "warning";
   }
 
   return "muted";

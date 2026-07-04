@@ -304,3 +304,27 @@ Milestone 3.2 adds `Milestone32Tests` for the richer diagnostics-only FM26 surfa
 FM process detection is diagnostics only. No player data is read in 3.2. FM26 remains unsupported without validated memory maps. React/Tauri never calls native connector directly. Milestone 3.3 adds metadata-only memory-map registry work. First safe player snapshot is later.
 
 Milestone 3.3 adds tests for the memory-map registry loader, validator and selector. Coverage includes missing directories, malformed JSON, template maps, unvalidated maps, write-enabled map rejection, hidden-field blocking, validated exact build selection, `/diagnostics/memory-maps`, `/connector/memory-maps`, connector-status map summaries, React/Tauri API-only rendering and the rule that player reading is still not implemented. Templates and unvalidated maps are not usable, and public DTOs do not expose raw offsets, memory addresses, process handles, raw provider snapshots, hidden field names, CA or PA.
+
+## FM26 Safe Snapshot Tests
+
+Milestone 3.4 adds `Milestone34Tests` for the first safe FM26 diagnostic snapshot foundation:
+
+- snapshot models and DTOs exclude offsets, pointers, addresses, handles, raw values, hidden ability names, player collections and squad data
+- missing connector blocks at connector-unavailable
+- unsupported platform blocks before process or map checks
+- FM not detected blocks at the process gate
+- template-only maps block at validated-map readiness
+- a synthetic validated matching map still blocks at reader-not-implemented
+- `/diagnostics/fm26/snapshot`, `/connector/fm26/snapshot` and snapshot readiness endpoints return safe DTOs
+- serialized snapshot JSON excludes hidden values, CA, PA, raw map internals, memory addresses, offsets, handles and stack traces
+- `/health` remains `isFm26Supported=false`
+- React/Tauri displays safe snapshot DTOs through the API client only and does not call native connector, SQLite or local file APIs
+- the managed native connector surface still has no player-reading or snapshot-reading method
+
+For local safe snapshot validation, run:
+
+```powershell
+.\tools\run-safe-snapshot-diagnostics.ps1
+```
+
+Safe snapshots are diagnostic metadata only. First real memory field reads remain a future milestone.

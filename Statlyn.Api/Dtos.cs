@@ -90,6 +90,61 @@ namespace Statlyn.Api
         IReadOnlyList<string> ValidationWarnings,
         IReadOnlyList<string> ValidationErrors);
 
+    public sealed record Fm26SelectedMapSummaryDto(
+        string MapId,
+        string DisplayName,
+        string Build,
+        string Status);
+
+    public sealed record Fm26SnapshotGateDto(
+        string GateKey,
+        string Label,
+        string GateStatus,
+        string SnapshotStatus,
+        string SafeMessage,
+        string NextAction);
+
+    public sealed record Fm26SnapshotBlockReasonDto(
+        string GateKey,
+        string Reason,
+        string SafeMessage,
+        string NextAction);
+
+    public sealed record Fm26SnapshotDto(
+        string SnapshotId,
+        string GeneratedAtUtc,
+        string SnapshotStatus,
+        string SafeMessage,
+        string ConnectorStatus,
+        bool IsNativeConnectorAvailable,
+        string PlatformStatus,
+        bool IsWindows,
+        bool FmProcessDetected,
+        string FmProcessStatus,
+        string ProcessName,
+        int? ProcessId,
+        string ProductVersion,
+        string FileVersion,
+        string Architecture,
+        string ReadOnlyStatus,
+        string MapRegistryStatus,
+        int MapsFound,
+        int ValidatedMaps,
+        int TemplateMaps,
+        int InvalidMaps,
+        Fm26SelectedMapSummaryDto SelectedMapSummary,
+        bool AllGatesPassed,
+        string BlockingGate,
+        bool IsFm26Supported,
+        bool IsLiveReadingAvailable,
+        string ReaderStatus,
+        string FieldPolicyStatus,
+        IReadOnlyList<Fm26SnapshotGateDto> Gates,
+        IReadOnlyList<Fm26SnapshotBlockReasonDto> BlockReasons,
+        string NextAction,
+        IReadOnlyList<string> Warnings,
+        IReadOnlyList<string> Errors);
+
     public sealed record DashboardOverviewDto(
         string SafeMessage,
         string DatabasePath,

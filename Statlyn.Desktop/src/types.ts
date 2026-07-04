@@ -90,6 +90,65 @@ export type MemoryMapRegistryDto = {
   maps: MemoryMapDiagnosticDto[];
 };
 
+export type Fm26SelectedMapSummaryDto = {
+  mapId: string;
+  displayName: string;
+  build: string;
+  status: string;
+};
+
+export type Fm26SnapshotGateDto = {
+  gateKey: string;
+  label: string;
+  gateStatus: string;
+  snapshotStatus: string;
+  safeMessage: string;
+  nextAction: string;
+};
+
+export type Fm26SnapshotBlockReasonDto = {
+  gateKey: string;
+  reason: string;
+  safeMessage: string;
+  nextAction: string;
+};
+
+export type Fm26SnapshotDto = {
+  snapshotId: string;
+  generatedAtUtc: string;
+  snapshotStatus: string;
+  safeMessage: string;
+  connectorStatus: string;
+  isNativeConnectorAvailable: boolean;
+  platformStatus: string;
+  isWindows: boolean;
+  fmProcessDetected: boolean;
+  fmProcessStatus: string;
+  processName: string;
+  processId: number | null;
+  productVersion: string;
+  fileVersion: string;
+  architecture: string;
+  readOnlyStatus: string;
+  mapRegistryStatus: string;
+  mapsFound: number;
+  validatedMaps: number;
+  templateMaps: number;
+  invalidMaps: number;
+  selectedMapSummary: Fm26SelectedMapSummaryDto;
+  allGatesPassed: boolean;
+  blockingGate: string;
+  isFm26Supported: boolean;
+  isLiveReadingAvailable: boolean;
+  readerStatus: string;
+  fieldPolicyStatus: string;
+  gates: Fm26SnapshotGateDto[];
+  blockReasons: Fm26SnapshotBlockReasonDto[];
+  nextAction: string;
+  warnings: string[];
+  errors: string[];
+};
+
 export type DashboardOverviewDto = {
   safeMessage: string;
   databasePath: string;
@@ -189,5 +248,6 @@ export type ApiState = {
   diagnostics: DiagnosticsDto | null;
   connectorStatus: Fm26ConnectorStatusDto | null;
   memoryMaps: MemoryMapRegistryDto | null;
+  fm26Snapshot: Fm26SnapshotDto | null;
   scoutReports: ScoutReportSummaryDto[];
 };

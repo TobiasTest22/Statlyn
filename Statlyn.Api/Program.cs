@@ -46,8 +46,11 @@ app.MapGet("/data-sources", (StatlynApiDtoFactory dtoFactory) => dtoFactory.GetD
 app.MapGet("/diagnostics", (StatlynApiDtoFactory dtoFactory) => dtoFactory.GetDiagnostics());
 app.MapGet("/connector/status", (StatlynApiDtoFactory dtoFactory) => dtoFactory.GetConnectorStatus());
 app.MapGet("/connector/fm26", (StatlynApiDtoFactory dtoFactory) => dtoFactory.GetConnectorStatus());
+app.MapGet("/connector/fm26/snapshot", (StatlynApiDtoFactory dtoFactory) => dtoFactory.GetFm26Snapshot());
 app.MapGet("/diagnostics/fm26", (StatlynApiDtoFactory dtoFactory) => dtoFactory.GetConnectorStatus());
 app.MapGet("/diagnostics/fm26/summary", (StatlynApiDtoFactory dtoFactory) => dtoFactory.GetConnectorStatus());
+app.MapGet("/diagnostics/fm26/snapshot", (StatlynApiDtoFactory dtoFactory) => dtoFactory.GetFm26Snapshot());
+app.MapGet("/diagnostics/fm26/snapshot/readiness", (StatlynApiDtoFactory dtoFactory) => dtoFactory.GetFm26Snapshot());
 app.MapGet("/diagnostics/memory-maps", (StatlynApiDtoFactory dtoFactory) => dtoFactory.GetMemoryMaps());
 app.MapGet("/connector/memory-maps", (StatlynApiDtoFactory dtoFactory) => dtoFactory.GetMemoryMaps());
 

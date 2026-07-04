@@ -14,6 +14,7 @@ using Statlyn.Data.Shortlists;
 using Statlyn.Data.Workflow;
 using Statlyn.DataProviders.Fm26;
 using Statlyn.DataProviders.Fm26.MemoryMaps;
+using Statlyn.DataProviders.Fm26.Snapshots;
 
 namespace Statlyn.Api
 {
@@ -23,6 +24,7 @@ namespace Statlyn.Api
         private readonly SafeFm26ConnectorService _connectorService;
         private readonly MemoryMapRegistryLoader _memoryMapLoader;
         private readonly MemoryMapSelector _memoryMapSelector;
+        private readonly SafeFm26SnapshotService _snapshotService;
 
         public StatlynApiDtoFactory(StatlynDbConnectionFactory connectionFactory)
             : this(connectionFactory, new SafeFm26ConnectorService(new NullFm26NativeConnector()), MemoryMapRegistryLoader.FromAppBase(AppContext.BaseDirectory))
@@ -40,6 +42,7 @@ namespace Statlyn.Api
             _connectorService = connectorService ?? throw new ArgumentNullException(nameof(connectorService));
             _memoryMapLoader = memoryMapLoader ?? throw new ArgumentNullException(nameof(memoryMapLoader));
             _memoryMapSelector = new MemoryMapSelector();
+            _snapshotService = new SafeFm26SnapshotService(_connectorService, _memoryMapLoader, _memoryMapSelector, new Fm26SnapshotGateEvaluator());
         }
 
         public AppHealthDto GetHealth()
@@ -73,6 +76,12 @@ namespace Statlyn.Api
             var registry = _memoryMapLoader.Load();
             var selection = _memoryMapSelector.Select(registry, connector.Process);
             return MapMemoryMapRegistry(registry, selection);
+        }
+
+        public Fm26SnapshotDto GetFm26Snapshot()
+        {
+            var result = _snapshotService.CreateSnapshot();
+            return MapFm26Snapshot(result.Snapshot);
         }
 
         public DashboardOverviewDto GetDashboard()
@@ -322,6 +331,60 @@ namespace Statlyn.Api
                 map.SafeMessage,
                 map.ValidationWarnings,
                 map.ValidationErrors);
+        }
+
+        private static Fm26SnapshotDto MapFm26Snapshot(Fm26SafeSnapshot snapshot)
+        {
+            var summary = snapshot.SourceSummary;
+            var capability = snapshot.CapabilityReport;
+            return new Fm26SnapshotDto(
+                snapshot.SnapshotId,
+                snapshot.GeneratedAtUtc.ToString("O", CultureInfo.InvariantCulture),
+                snapshot.Status.ToString(),
+                snapshot.SafeMessage,
+                summary.ConnectorAvailability,
+                summary.IsNativeConnectorAvailable,
+                summary.PlatformStatus,
+                summary.IsWindows,
+                summary.ProcessDetected,
+                summary.ProcessStatus,
+                summary.ProcessName,
+                summary.ProcessId,
+                summary.ProductVersion,
+                summary.FileVersion,
+                summary.Architecture,
+                summary.ReadOnlyAccessStatus,
+                summary.MemoryMapRegistryStatus,
+                summary.MapsFound,
+                summary.ValidatedMaps,
+                summary.TemplateMaps,
+                summary.InvalidMaps,
+                new Fm26SelectedMapSummaryDto(
+                    summary.SelectedMapId,
+                    summary.SelectedMapDisplayName,
+                    summary.SelectedMapBuild,
+                    summary.SelectedMapStatus),
+                capability.AllGatesPassed,
+                capability.BlockingGate,
+                capability.IsFm26Supported,
+                capability.IsLiveReadingAvailable,
+                capability.ReaderStatus,
+                capability.FieldPolicyStatus,
+                snapshot.Gates.Select(gate => new Fm26SnapshotGateDto(
+                    gate.GateKey,
+                    gate.Label,
+                    gate.GateStatus.ToString(),
+                    gate.SnapshotStatus.ToString(),
+                    gate.SafeMessage,
+                    gate.NextActionSafeMessage)).ToList(),
+                snapshot.BlockReasons.Select(reason => new Fm26SnapshotBlockReasonDto(
+                    reason.GateKey,
+                    reason.Reason,
+                    reason.SafeMessage,
+                    reason.NextActionSafeMessage)).ToList(),
+                snapshot.NextActionSafeMessage,
+                snapshot.Warnings,
+                snapshot.Errors);
         }
 
         private RecruitmentCentreResult LoadRecruitmentRows()

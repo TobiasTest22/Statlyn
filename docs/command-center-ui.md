@@ -51,6 +51,8 @@ The UI must not invent data to look busy. It must not show fake live FM26 data, 
 
 Home reads local SQLite counts through `DashboardStatusService`. Empty databases show `Awaiting local data.` rather than placeholder recruitment numbers.
 
+FM26 safe snapshot modules are diagnostic ledgers only. They may show snapshot status, connector/process/read-only/map gates, blocking gate and next action from `Statlyn.Api`, but they must not display player rows, attributes, hidden values, fake readiness or live support.
+
 ## Validation
 
 Managed tests verify theme tokens, status mapping, safe navigation metadata, dashboard overview counts and smoke-test compatibility. Unity Editor validation remains manual unless a release note says it was opened and checked locally. SQLite-in-Unity must be validated through the Diagnostics page runtime check before runtime import is trusted in the Editor.

@@ -17,10 +17,13 @@ namespace Statlyn.Tests
             var app = File.ReadAllText(Path.Combine(desktop, "src", "App.tsx"));
             var api = File.ReadAllText(Path.Combine(desktop, "src", "api.ts"));
 
-            Assert.Contains("Premium Analyst Cockpit", app, StringComparison.Ordinal);
+            Assert.Contains("Professional Recruitment Workspace", app, StringComparison.Ordinal);
+            Assert.Contains("Search local player, position, source or recommendation", app, StringComparison.Ordinal);
+            Assert.Contains("Clear filters", app, StringComparison.Ordinal);
             Assert.Contains("Insight Panel", app, StringComparison.Ordinal);
             Assert.Contains("API Offline", app, StringComparison.Ordinal);
             Assert.Contains("No demo rows", app, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("No demo profile", app, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("No live FM26 data", app, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("/connector/status", api, StringComparison.Ordinal);
 
@@ -49,6 +52,41 @@ namespace Statlyn.Tests
             })
             {
                 Assert.DoesNotContain(forbidden, text, StringComparison.OrdinalIgnoreCase);
+            }
+        }
+
+        [Fact]
+        public void ReactTauriScoutRoomCorrectionAvoidsGameVisualsAndReferenceData()
+        {
+            var root = FindRepositoryRoot();
+            var desktop = Path.Combine(root, "Statlyn.Desktop");
+            var app = File.ReadAllText(Path.Combine(desktop, "src", "App.tsx"));
+            var styles = File.ReadAllText(Path.Combine(desktop, "src", "styles.css"));
+            var desktopText = string.Join("\n", app, styles);
+
+            Assert.DoesNotContain("gradient", styles, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("Recruitment Board", app, StringComparison.Ordinal);
+            Assert.Contains("Professional Recruitment Workspace", app, StringComparison.Ordinal);
+
+            foreach (var referenceName in new[]
+            {
+                "Kenan Yildiz",
+                "Joao Neves",
+                "João Neves",
+                "Warren Zaire-Emery",
+                "Warren Zaïre-Emery",
+                "Geovany Quenda",
+                "Pau Cubarsi",
+                "Pau Cubarsí",
+                "Rayan Cherki",
+                "Benjamin Sesko",
+                "Benjamin Šeško",
+                "Jorrel Hato",
+                "Alejandro Garnacho",
+                "Mamadou Sarr"
+            })
+            {
+                Assert.DoesNotContain(referenceName, desktopText, StringComparison.OrdinalIgnoreCase);
             }
         }
 
@@ -84,9 +122,10 @@ namespace Statlyn.Tests
             var readme = File.ReadAllText(Path.Combine(root, "README.md"));
             var combined = string.Join("\n", reactDocs, commandDocs, uiDocs, readme);
 
-            Assert.Contains("premium football recruitment analyst cockpit", combined, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("professional dark football recruitment analyst cockpit", combined, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("React/Tauri is the strategic", combined, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("right-side insight", combined, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("not a game UI", combined, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("No fake data", combined, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("No live FM26 data", combined, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("React/Tauri remains display/API-only", combined, StringComparison.OrdinalIgnoreCase);

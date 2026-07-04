@@ -1,8 +1,8 @@
 # React/Tauri UI
 
-`Statlyn.Desktop` is the strategic desktop UI. It is a React + Tauri premium football recruitment analyst cockpit with a black glass visual direction, dense readable tables, safe status cards, loading states, empty states, error states and an API status indicator.
+`Statlyn.Desktop` is the strategic desktop UI. It is a React + Tauri professional dark football recruitment analyst cockpit with a flat black/glassy visual direction, dense readable tables, safe status cards, loading states, empty states, error states and an API status indicator.
 
-The target feeling is serious internal recruitment intelligence software: dark, clean, glassy, data-heavy and professional. It should feel like football analytics mixed with a finance-terminal interface, not a generic AI dashboard.
+The target feeling is serious internal recruitment intelligence software: dark, clean, compact, data-heavy and professional. It should feel like football analytics mixed with a finance-terminal interface, not a game UI, fantasy app or generic AI dashboard.
 
 The desktop UI uses official Statlyn logo assets from `Statlyn.Desktop/public/branding/`. Dark glass surfaces should use the white wordmark and white mark variants; black-text variants are reserved for future light export, print or onboarding surfaces.
 
@@ -34,7 +34,7 @@ The desktop UI must not contain:
 The React/Tauri shell follows a three-part analyst cockpit layout:
 
 - left navigation with official Statlyn branding, stable page links and clear active state
-- main workspace with page title, operational status cards, safe tables/lists and API-down or empty states
+- main workspace with page title, search/filter foundation, operational status cards, safe tables/lists and API-down or empty states
 - right insight rail for selected target context, recruitment status summary and no-live-FM26 reminders
 
 The selected-row workflow is scan, inspect, decide. The recruitment board can highlight a selected safe API row and mirror that row into the insight rail. If no row exists, the rail shows a safe empty state. It must not invent players, profile details, charts, alerts or KPIs.
@@ -42,12 +42,12 @@ The selected-row workflow is scan, inspect, decide. The recruitment board can hi
 ## Visual System
 
 - background: black with subtle dark analyst depth
-- surfaces: slightly lighter glass panels
+- surfaces: slightly lighter glass panels using flat layered dark surfaces
 - primary accent: recruitment green
 - secondary accents: amber/yellow for caution and blue/cyan for neutral analytics
 - text: white and cool gray
 - borders: subtle and soft
-- glow: restrained and only for selected/active states
+- glow/effects: minimal; selected and active states rely on text, borders and a restrained green indicator
 - density: expert-level but readable
 
 Color is supporting context only. Every status also needs text. FM26 unsupported must never render as a green/success state, and no benchmark must not render as success.

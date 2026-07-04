@@ -15,7 +15,7 @@ FM26 is one future data source and proof-of-concept environment, not the product
 
 - A recruitment analysis workspace for squad planning, player comparison, scouting workflows and role-fit decisions.
 - A provider-agnostic platform intended to support FM26 live memory, CSV imports, manual club datasets and licensed APIs.
-- A black glass React/Tauri analyst workspace for a serious recruitment department style product.
+- A flat black/glassy React/Tauri analyst workspace for a serious recruitment department style product.
 
 ## What Statlyn Is Not
 
@@ -29,7 +29,7 @@ FM26 is one future data source and proof-of-concept environment, not the product
 ## Current Status
 
 - React/Tauri desktop: strategic UI shell created in `Statlyn.Desktop`; it consumes safe DTOs from `Statlyn.Api` and contains no scoring engines.
-- React/Tauri cockpit refinement: premium dark recruitment analyst layout with stable left navigation, section-aware workspace and right-side selected-target insight rail.
+- React/Tauri cockpit refinement: professional dark recruitment analyst layout with stable left navigation, search/filter foundation, section-aware workspace and right-side selected-target insight rail.
 - Local API bridge: `Statlyn.Api` exposes safe DTO endpoints for dashboard, players, recruitment board, Role Lab, squad gaps, comparisons, scout reports, data sources and diagnostics.
 - FM26 connector diagnostics: `Statlyn.Api` exposes `/connector/status`, `/connector/fm26` and `/diagnostics/fm26` through a safe C# wrapper over the native connector. These endpoints report connector availability and process diagnostics only; they do not expose player data, memory addresses, raw snapshots, hidden values, CA or PA.
 - Unity shell: current prototype/legacy desktop shell and diagnostics surface preserved.
@@ -65,7 +65,7 @@ The SQLite persistence layer is local-only foundation work. It stores masked pla
 
 Performance metric definitions are generic/import-ready contracts, not official FM26 stat declarations. A metric can only be marked FM26-supported after later validation from visible FM26 data, exported data or a validated memory map. Generic role-output expectation profiles and benchmark definitions are foundation templates, not final FM26 role templates. Goalkeepers, centre-backs, midfielders, wide attackers and strikers intentionally use different output expectations. No fake benchmark percentiles are generated; if no comparison group exists, Player Profile v1 and Recruitment Centre rows say no benchmark yet.
 
-Official logo usage is documented in `docs/branding.md`. Command-center UI guidance is documented in `docs/command-center-ui.md`. React/Tauri desktop usage and the premium football recruitment analyst cockpit direction are documented in `docs/react-tauri-ui.md` and `docs/ui-design.md`. FM26 connector diagnostics are documented in `docs/fm26-connector-diagnostics.md`. NPM audit status is documented in `docs/npm-audit-notes.md`. Local CSV release-candidate flow is documented in `docs/local-csv-release-candidate.md`, and database maintenance safety is documented in `docs/database-maintenance.md`. Visual analytics components are documented in `docs/visual-analytics-components.md`. Benchmarks are documented in `docs/benchmarks.md`. Shortlists are documented in `docs/shortlists.md`. Scout Desk is documented in `docs/scout-desk.md` and report safety in `docs/scout-report-safety.md`. Role Lab is documented in `docs/role-lab.md` and the phase-role model in `docs/fm26-phase-role-model.md`. The currently available repo assets include `StatLyn_Logo.png`, `StatLyn_Logo_Reversed.png`, `StatLyn_Mark_White_Tight.png`, `StatLyn_Transparant_Black.png`, `Statlyn_Logo_Black-text.png` and `Statlyn_Logo_White-text.png`.
+Official logo usage is documented in `docs/branding.md`. Command-center UI guidance is documented in `docs/command-center-ui.md`. React/Tauri desktop usage and the professional dark football recruitment analyst cockpit direction are documented in `docs/react-tauri-ui.md` and `docs/ui-design.md`. FM26 connector diagnostics are documented in `docs/fm26-connector-diagnostics.md`. NPM audit status is documented in `docs/npm-audit-notes.md`. Local CSV release-candidate flow is documented in `docs/local-csv-release-candidate.md`, and database maintenance safety is documented in `docs/database-maintenance.md`. Visual analytics components are documented in `docs/visual-analytics-components.md`. Benchmarks are documented in `docs/benchmarks.md`. Shortlists are documented in `docs/shortlists.md`. Scout Desk is documented in `docs/scout-desk.md` and report safety in `docs/scout-report-safety.md`. Role Lab is documented in `docs/role-lab.md` and the phase-role model in `docs/fm26-phase-role-model.md`. The currently available repo assets include `StatLyn_Logo.png`, `StatLyn_Logo_Reversed.png`, `StatLyn_Mark_White_Tight.png`, `StatLyn_Transparant_Black.png`, `Statlyn_Logo_Black-text.png` and `Statlyn_Logo_White-text.png`.
 
 ## Repository Layout
 

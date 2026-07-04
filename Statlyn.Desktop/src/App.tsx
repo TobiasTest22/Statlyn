@@ -46,9 +46,12 @@ const emptyState: ApiState = {
 };
 
 export default function App() {
-  const [activeSection, setActiveSection] = useState<SectionName>("Dashboard");
+  const [activeSection, setActiveSection] = useState<SectionName>("Recruitment Board");
   const [apiState, setApiState] = useState<ApiState>(emptyState);
   const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [positionFilter, setPositionFilter] = useState("All");
+  const [recommendationFilter, setRecommendationFilter] = useState("All");
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -84,10 +87,25 @@ export default function App() {
   }, [refreshWorkspace]);
 
   const players = apiState.board?.players ?? [];
-  const selectedPlayer = useMemo(
-    () => players.find((player) => player.statlynPlayerId === selectedPlayerId) ?? players[0] ?? null,
-    [players, selectedPlayerId]
+  const positionOptions = useMemo(
+    () => ["All", ...uniqueSorted(players.map((player) => player.primaryPosition || player.positionGroup))],
+    [players]
   );
+  const recommendationOptions = useMemo(
+    () => ["All", ...uniqueSorted(players.map((player) => player.recommendation))],
+    [players]
+  );
+  const visiblePlayers = useMemo(
+    () => filterPlayers(players, searchTerm, positionFilter, recommendationFilter),
+    [players, positionFilter, recommendationFilter, searchTerm]
+  );
+  const selectedPlayer = useMemo(
+    () => visiblePlayers.find((player) => player.statlynPlayerId === selectedPlayerId) ?? visiblePlayers[0] ?? null,
+    [visiblePlayers, selectedPlayerId]
+  );
+  const hasActiveFilters = searchTerm.trim().length > 0 || positionFilter !== "All" || recommendationFilter !== "All";
+  const showsScoutControls =
+    activeSection === "Recruitment Board" || activeSection === "Player Profile" || activeSection === "Scout Reports";
 
   return (
     <div className="app-shell">
@@ -120,9 +138,9 @@ export default function App() {
       <main className="workspace">
         <header className="topbar">
           <div>
-            <span className="eyeline">Premium Analyst Cockpit</span>
-            <h1>{activeSection}</h1>
-            <p>{sectionSummary(activeSection, apiState, players.length)}</p>
+            <span className="eyeline">Professional Recruitment Workspace</span>
+            <h1>{sectionTitle(activeSection)}</h1>
+            <p>{sectionSummary(activeSection, apiState, visiblePlayers.length, players.length, hasActiveFilters)}</p>
           </div>
           <div className="status-strip" aria-label="Workspace status">
             <StatusPill label="API" tone={error ? "danger" : apiState.health ? "success" : "muted"} value={error ? "Offline" : apiState.health ? "Connected" : "Checking"} />
@@ -132,21 +150,129 @@ export default function App() {
           </div>
         </header>
 
+        {showsScoutControls ? (
+          <AnalystControls
+            searchTerm={searchTerm}
+            onSearchTermChange={setSearchTerm}
+            positionFilter={positionFilter}
+            onPositionFilterChange={setPositionFilter}
+            positionOptions={positionOptions}
+            recommendationFilter={recommendationFilter}
+            onRecommendationFilterChange={setRecommendationFilter}
+            recommendationOptions={recommendationOptions}
+            totalPlayers={players.length}
+            visiblePlayers={visiblePlayers.length}
+            dataSourceMode={apiState.dataSources?.mode ?? "Local CSV"}
+            hasActiveFilters={hasActiveFilters}
+          />
+        ) : null}
+
         {isLoading ? <LoadingState /> : null}
         {!isLoading && error ? <ErrorState message={error} onRetry={refreshWorkspace} /> : null}
         {!isLoading && !error ? (
           <WorkspaceContent
             activeSection={activeSection}
             state={apiState}
-            players={players}
+            players={visiblePlayers}
             selectedPlayerId={selectedPlayer?.statlynPlayerId ?? null}
             onSelectPlayer={setSelectedPlayerId}
           />
         ) : null}
       </main>
 
-      <InsightRail state={apiState} player={selectedPlayer} isLoading={isLoading} error={error} onRetry={refreshWorkspace} />
+      <InsightRail
+        state={apiState}
+        player={selectedPlayer}
+        isLoading={isLoading}
+        error={error}
+        hasAnyPlayers={players.length > 0}
+        hasActiveFilters={hasActiveFilters}
+        onRetry={refreshWorkspace}
+      />
     </div>
+  );
+}
+
+function AnalystControls({
+  searchTerm,
+  onSearchTermChange,
+  positionFilter,
+  onPositionFilterChange,
+  positionOptions,
+  recommendationFilter,
+  onRecommendationFilterChange,
+  recommendationOptions,
+  totalPlayers,
+  visiblePlayers,
+  dataSourceMode,
+  hasActiveFilters
+}: {
+  searchTerm: string;
+  onSearchTermChange: (value: string) => void;
+  positionFilter: string;
+  onPositionFilterChange: (value: string) => void;
+  positionOptions: string[];
+  recommendationFilter: string;
+  onRecommendationFilterChange: (value: string) => void;
+  recommendationOptions: string[];
+  totalPlayers: number;
+  visiblePlayers: number;
+  dataSourceMode: string;
+  hasActiveFilters: boolean;
+}) {
+  return (
+    <section className="analyst-controls" aria-label="Recruitment board search and filters">
+      <label className="search-control">
+        <span>Search</span>
+        <input
+          type="search"
+          value={searchTerm}
+          placeholder="Search local player, position, source or recommendation..."
+          onChange={(event) => onSearchTermChange(event.target.value)}
+        />
+      </label>
+      <label className="filter-control">
+        <span>Position</span>
+        <select value={positionFilter} onChange={(event) => onPositionFilterChange(event.target.value)}>
+          {positionOptions.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </select>
+      </label>
+      <label className="filter-control">
+        <span>Recommendation</span>
+        <select value={recommendationFilter} onChange={(event) => onRecommendationFilterChange(event.target.value)}>
+          {recommendationOptions.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </select>
+      </label>
+      <div className="filter-status">
+        <span>Rows</span>
+        <strong>{totalPlayers === 0 ? "No local data" : `${visiblePlayers} / ${totalPlayers}`}</strong>
+      </div>
+      <div className="filter-status">
+        <span>Source</span>
+        <strong>{dataSourceMode}</strong>
+      </div>
+      <div className="filter-status warning">
+        <span>FM26</span>
+        <strong>Unsupported</strong>
+      </div>
+      {hasActiveFilters ? (
+        <button className="clear-filters-button" type="button" onClick={() => {
+          onSearchTermChange("");
+          onPositionFilterChange("All");
+          onRecommendationFilterChange("All");
+        }}>
+          Clear filters
+        </button>
+      ) : null}
+    </section>
   );
 }
 
@@ -281,42 +407,44 @@ function RecruitmentPanel({
         <span>{players.length === 0 ? "Awaiting local data" : `${players.length} safe row${players.length === 1 ? "" : "s"}`}</span>
         <StatusChip tone="warning" value="No live FM26 data" />
       </div>
-      <div className="analyst-table" role="table" aria-label="Recruitment board">
-        <div className="table-row table-head" role="row">
-          <span>Player</span>
-          <span>Role</span>
-          <span>Fit</span>
-          <span>Confidence</span>
-          <span>Benchmark</span>
-          <span>Decision</span>
-        </div>
+      <div className={`analyst-table ${players.length === 0 ? "empty-only" : ""}`} role="table" aria-label="Recruitment board">
         {players.length === 0 ? (
           <div className="empty-table-state">
             <strong>No local player data imported.</strong>
             <span>Use Data Sources to import a permitted local CSV. No demo rows are generated.</span>
           </div>
         ) : (
-          players.slice(0, compact ? 5 : 10).map((player) => {
-            const isSelected = player.statlynPlayerId === selectedPlayerId;
-            return (
-              <button
-                className={`table-row table-button ${isSelected ? "selected" : ""}`}
-                key={player.statlynPlayerId}
-                type="button"
-                onClick={() => onSelectPlayer(player.statlynPlayerId)}
-              >
-                <span className="player-cell">
-                  <strong>{player.displayName}</strong>
-                  <small>{player.primaryPosition} / {player.sourceName || "Local source"}</small>
-                </span>
-                <span>{player.roleName}</span>
-                <StatusChip tone={toneForScore(player.roleFit)} value={formatNullable(player.roleFit)} />
-                <StatusChip tone={toneForScore(player.confidence)} value={formatNullable(player.confidence)} />
-                <StatusChip tone={toneForBenchmark(player.benchmarkStatus)} value={player.benchmarkStatus} />
-                <StatusChip tone={toneForRecommendation(player.recommendation)} value={player.recommendation} />
-              </button>
-            );
-          })
+          <>
+            <div className="table-row table-head" role="row">
+              <span>Player</span>
+              <span>Role</span>
+              <span>Fit</span>
+              <span>Confidence</span>
+              <span>Benchmark</span>
+              <span>Decision</span>
+            </div>
+            {players.slice(0, compact ? 5 : 10).map((player) => {
+              const isSelected = player.statlynPlayerId === selectedPlayerId;
+              return (
+                <button
+                  className={`table-row table-button ${isSelected ? "selected" : ""}`}
+                  key={player.statlynPlayerId}
+                  type="button"
+                  onClick={() => onSelectPlayer(player.statlynPlayerId)}
+                >
+                  <span className="player-cell">
+                    <strong>{player.displayName}</strong>
+                    <small>{player.primaryPosition} / {player.sourceName || "Local source"}</small>
+                  </span>
+                  <span>{player.roleName}</span>
+                  <StatusChip tone={toneForScore(player.roleFit)} value={formatNullable(player.roleFit)} />
+                  <StatusChip tone={toneForScore(player.confidence)} value={formatNullable(player.confidence)} />
+                  <StatusChip tone={toneForBenchmark(player.benchmarkStatus)} value={player.benchmarkStatus} />
+                  <StatusChip tone={toneForRecommendation(player.recommendation)} value={player.recommendation} />
+                </button>
+              );
+            })}
+          </>
         )}
       </div>
     </section>
@@ -421,12 +549,16 @@ function InsightRail({
   player,
   isLoading,
   error,
+  hasAnyPlayers,
+  hasActiveFilters,
   onRetry
 }: {
   state: ApiState;
   player: PlayerListItemDto | null;
   isLoading: boolean;
   error: string | null;
+  hasAnyPlayers: boolean;
+  hasActiveFilters: boolean;
   onRetry: () => void;
 }) {
   return (
@@ -465,8 +597,12 @@ function InsightRail({
         </div>
       ) : (
         <div className="insight-empty">
-          <strong>No player selected.</strong>
-          <span>No local player data has been imported yet. No demo profile is shown.</span>
+          <strong>Select a player to inspect.</strong>
+          <span>
+            {hasAnyPlayers && hasActiveFilters
+              ? "No safe player row matches the current filters. Clear filters or select a visible row."
+              : "Imported CSV data is required before a profile can be shown. No demo profile is generated."}
+          </span>
         </div>
       )}
     </aside>
@@ -567,9 +703,25 @@ function WarningList({ warnings }: { warnings: string[] }) {
   );
 }
 
-function sectionSummary(section: SectionName, state: ApiState, playerCount: number): string {
+function sectionTitle(section: SectionName): string {
+  return section;
+}
+
+function sectionSummary(
+  section: SectionName,
+  state: ApiState,
+  visiblePlayerCount: number,
+  totalPlayerCount: number,
+  hasActiveFilters: boolean
+): string {
   if (section === "Recruitment Board") {
-    return playerCount === 0 ? "No local players imported yet." : "Scan safe local rows, select a target and inspect context.";
+    if (totalPlayerCount === 0) {
+      return "No local players imported yet.";
+    }
+
+    return hasActiveFilters
+      ? `${visiblePlayerCount} of ${totalPlayerCount} safe local rows match the current filters.`
+      : "Safe local recruitment intelligence from Statlyn.Api.";
   }
 
   if (section === "Dashboard") {
@@ -645,4 +797,43 @@ function toneForRecommendation(value: string): Tone {
 
 function formatNullable(value: number | null): string {
   return value === null ? "Unknown" : String(value);
+}
+
+function filterPlayers(
+  players: PlayerListItemDto[],
+  searchTerm: string,
+  positionFilter: string,
+  recommendationFilter: string
+): PlayerListItemDto[] {
+  const normalizedSearch = searchTerm.trim().toLowerCase();
+
+  return players.filter((player) => {
+    const matchesSearch =
+      normalizedSearch.length === 0 ||
+      [
+        player.displayName,
+        player.age,
+        player.nationality,
+        player.positionGroup,
+        player.primaryPosition,
+        player.sourceName,
+        player.roleName,
+        player.recommendation,
+        player.benchmarkStatus
+      ]
+        .join(" ")
+        .toLowerCase()
+        .includes(normalizedSearch);
+    const matchesPosition =
+      positionFilter === "All" || player.primaryPosition === positionFilter || player.positionGroup === positionFilter;
+    const matchesRecommendation = recommendationFilter === "All" || player.recommendation === recommendationFilter;
+
+    return matchesSearch && matchesPosition && matchesRecommendation;
+  });
+}
+
+function uniqueSorted(values: string[]): string[] {
+  return Array.from(new Set(values.map((value) => value.trim()).filter(Boolean))).sort((left, right) =>
+    left.localeCompare(right)
+  );
 }

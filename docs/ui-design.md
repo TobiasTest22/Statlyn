@@ -1,14 +1,15 @@
 # UI Design
 
-React/Tauri is the strategic Statlyn desktop UI. Unity is retained as legacy/prototype only. The active React/Tauri direction is a premium football recruitment analyst cockpit: black background, dark glass panels, recruitment green active accents, amber caution states, blue/cyan neutral analytics states, cool gray text and dense but readable operational layouts.
+React/Tauri is the strategic Statlyn desktop UI. Unity is retained as legacy/prototype only. The active React/Tauri direction is a professional dark football recruitment analyst cockpit: black background, flat dark glass panels, recruitment green active accents, amber caution states, blue/cyan neutral analytics states, cool gray text and dense but readable operational layouts.
 
 The cockpit layout is:
 
 - stable left navigation with official Statlyn branding
 - section-aware main workspace for dashboard, recruitment board, data sources and diagnostics
+- search/filter foundation over already-safe API rows
 - right-side insight rail for selected safe player context
 
-The UI should feel like serious internal recruitment intelligence software used by scouts, analysts, sporting directors and recruitment departments. It should not look like a crypto dashboard, generic AI dashboard or playful consumer app.
+The UI should feel like serious internal recruitment intelligence software used by scouts, analysts, sporting directors and recruitment departments. It should be inspired by professional scouting database patterns without copying external player names, logos, numbers or content. It should not look like a game UI, crypto dashboard, generic AI dashboard or playful consumer app.
 
 React/Tauri remains display/API-only. It may hold selected-row UI state and render safe DTO values from `Statlyn.Api`; it must not calculate recruitment decisions, read SQLite, call provider code, call the native connector, scrape external data, invent fake rows, expose hidden values or claim FM26 support before validation.
 

@@ -1,5 +1,29 @@
 # UI Design
 
+React/Tauri is the strategic Statlyn desktop UI. Unity is retained as legacy/prototype only. The active React/Tauri direction is a premium football recruitment analyst cockpit: black background, dark glass panels, recruitment green active accents, amber caution states, blue/cyan neutral analytics states, cool gray text and dense but readable operational layouts.
+
+The cockpit layout is:
+
+- stable left navigation with official Statlyn branding
+- section-aware main workspace for dashboard, recruitment board, data sources and diagnostics
+- right-side insight rail for selected safe player context
+
+The UI should feel like serious internal recruitment intelligence software used by scouts, analysts, sporting directors and recruitment departments. It should not look like a crypto dashboard, generic AI dashboard or playful consumer app.
+
+React/Tauri remains display/API-only. It may hold selected-row UI state and render safe DTO values from `Statlyn.Api`; it must not calculate recruitment decisions, read SQLite, call provider code, call the native connector, scrape external data, invent fake rows, expose hidden values or claim FM26 support before validation.
+
+Status colors:
+
+- green: available, passed, safe local data
+- amber/yellow: warning, unsupported but expected, insufficient sample
+- red: offline, failed, rejected, dangerous state
+- blue/cyan: neutral analytics, API, diagnostics, local safe info
+- muted gray: no data, not checked, placeholder, no benchmark
+
+Color is never the only meaning. Status text must remain visible. FM26 unsupported must not be green, and no benchmark must not be success.
+
+## Unity Legacy Notes
+
 Statlyn now defaults to a dark command-center desktop interface for Unity. The previous white/glassy look remains as the `LightGlass` legacy fallback theme.
 
 Official logo assets are documented in `docs/branding.md`. The Unity shell uses the official Statlyn logo from `Assets/Resources/Branding`; do not create placeholder logos or pull external branding assets.

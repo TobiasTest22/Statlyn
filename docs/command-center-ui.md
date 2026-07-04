@@ -1,5 +1,9 @@
 # Command-Center UI
 
+React/Tauri is now the strategic Statlyn desktop UI. Unity remains a legacy/prototype shell. The current React/Tauri direction is a premium football recruitment analyst cockpit: black/glassy surfaces, recruitment green active states, amber caution states, blue/cyan neutral analytics states and dense but readable recruitment tables.
+
+The React/Tauri cockpit uses a stable left navigation, a section-aware main workspace and a right-side insight rail for selected safe player context. It still consumes only `Statlyn.Api` DTOs and must not read SQLite, call C# decision engines, call the native connector, invent fake data or show hidden values.
+
 Milestone 2.7 moves Statlyn's Unity shell toward a dark football recruitment command center while keeping the existing safe local workflow intact.
 
 ## Theme
@@ -8,6 +12,7 @@ Milestone 2.7 moves Statlyn's Unity shell toward a dark football recruitment com
 - `LightGlass` remains a legacy/fallback theme.
 - Official Statlyn logo assets from `Assets/Resources/Branding` are the only logo assets used.
 - The dark theme uses navy/charcoal backgrounds, compact panels, subtle borders and restrained teal/cyan accents.
+- React/Tauri uses the official assets in `Statlyn.Desktop/public/branding` and keeps the UI black/glassy with a recruitment green accent.
 
 ## Status System
 
@@ -21,6 +26,8 @@ Statuses must always have text. Color is supporting context only.
 - `Accent`: selected or active UI emphasis.
 
 Unsupported FM26 must never render as a healthy/live green state. No benchmark must never render as an available benchmark.
+
+For React/Tauri, green means available/success/safe local data, amber means caution or unsupported but expected, red means error or rejected state, blue/cyan means neutral local analytics or diagnostics, and muted gray means no data or not checked.
 
 ## Page Pattern
 

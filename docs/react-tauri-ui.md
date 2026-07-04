@@ -1,6 +1,8 @@
 # React/Tauri UI
 
-`Statlyn.Desktop` is the strategic desktop UI. It is a React + Tauri professional analyst workspace with a black glass visual direction, dense tables, safe status cards, loading states, empty states, error states and an API status indicator.
+`Statlyn.Desktop` is the strategic desktop UI. It is a React + Tauri premium football recruitment analyst cockpit with a black glass visual direction, dense readable tables, safe status cards, loading states, empty states, error states and an API status indicator.
+
+The target feeling is serious internal recruitment intelligence software: dark, clean, glassy, data-heavy and professional. It should feel like football analytics mixed with a finance-terminal interface, not a generic AI dashboard.
 
 The desktop UI uses official Statlyn logo assets from `Statlyn.Desktop/public/branding/`. Dark glass surfaces should use the white wordmark and white mark variants; black-text variants are reserved for future light export, print or onboarding surfaces.
 
@@ -13,6 +15,7 @@ The desktop UI may handle:
 - filtering and sorting over already-safe DTOs
 - local UI state
 - connector status display from `/connector/status`
+- selected-row UI state for inspecting already-safe API rows
 
 The desktop UI must not contain:
 
@@ -25,6 +28,29 @@ The desktop UI must not contain:
 - FM memory logic
 - native connector calls
 - direct database access
+
+## Cockpit Layout
+
+The React/Tauri shell follows a three-part analyst cockpit layout:
+
+- left navigation with official Statlyn branding, stable page links and clear active state
+- main workspace with page title, operational status cards, safe tables/lists and API-down or empty states
+- right insight rail for selected target context, recruitment status summary and no-live-FM26 reminders
+
+The selected-row workflow is scan, inspect, decide. The recruitment board can highlight a selected safe API row and mirror that row into the insight rail. If no row exists, the rail shows a safe empty state. It must not invent players, profile details, charts, alerts or KPIs.
+
+## Visual System
+
+- background: black with subtle dark analyst depth
+- surfaces: slightly lighter glass panels
+- primary accent: recruitment green
+- secondary accents: amber/yellow for caution and blue/cyan for neutral analytics
+- text: white and cool gray
+- borders: subtle and soft
+- glow: restrained and only for selected/active states
+- density: expert-level but readable
+
+Color is supporting context only. Every status also needs text. FM26 unsupported must never render as a green/success state, and no benchmark must not render as success.
 
 ## Development Run
 
@@ -84,7 +110,7 @@ The desktop UI must show honest states for:
 - no Role Lab templates
 - no data sources
 
-It must not create fake rows, fake KPIs, fake sync status, fake live FM26 data or hidden-value displays. If the API cannot be reached, the UI shows a safe connection error and retry button.
+No fake data is a hard rule. The UI must not create fake rows, fake KPIs, fake sync status, fake live FM26 data or hidden-value displays. If the API cannot be reached, the UI shows a safe connection error and retry button.
 
 The Connector Status panel is informational only. It displays the API-reported binding availability, FM process detection state, read-only access status and support message. A detected FM process must still render as unsupported until validated maps exist.
 

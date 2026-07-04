@@ -79,9 +79,9 @@ namespace Statlyn.DataProviders.Fm26.MemoryMaps
             get
             {
                 var count = 0;
-                foreach (var field in Fields)
+                foreach (var mapField in Fields)
                 {
-                    if (field.CanDisplay && !field.IsHidden)
+                    if (mapField.CanDisplay && !mapField.IsHidden)
                     {
                         count++;
                     }
@@ -96,9 +96,9 @@ namespace Statlyn.DataProviders.Fm26.MemoryMaps
             get
             {
                 var count = 0;
-                foreach (var field in Fields)
+                foreach (var mapField in Fields)
                 {
-                    if (field.IsHidden && !field.CanDisplay && !field.CanStore && !field.CanScore)
+                    if (mapField.IsHidden && !mapField.CanDisplay && !mapField.CanStore && !mapField.CanScore)
                     {
                         count++;
                     }

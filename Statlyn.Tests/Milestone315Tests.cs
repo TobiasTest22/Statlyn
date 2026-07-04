@@ -18,6 +18,8 @@ namespace Statlyn.Tests
             var api = File.ReadAllText(Path.Combine(desktop, "src", "api.ts"));
 
             Assert.Contains("Scout Room", app, StringComparison.Ordinal);
+            Assert.Contains("brand-wordmark", app, StringComparison.Ordinal);
+            Assert.Contains("Statlyn_Logo_White-text.png", app, StringComparison.Ordinal);
             Assert.Contains("Search player, position, source or recommendation", app, StringComparison.Ordinal);
             Assert.Contains("Clear filters", app, StringComparison.Ordinal);
             Assert.Contains("API Offline", app, StringComparison.Ordinal);

@@ -8,6 +8,10 @@ namespace Statlyn.DataProviders.Fm26
     public sealed class NativeFm26Connector : IFm26NativeConnector
     {
         private const int TextBufferLength = 2048;
+        private const string UnsupportedMessage = "FM26 unsupported until validated maps exist.";
+        private const string MapMissingMessage = "No validated FM26 memory map is loaded.";
+        private const string NextActionMessage = "A validated FM26 memory map is required before live FM player data can be read.";
+        private const string ReadOnlyAccessLevel = "Read-only diagnostic process query; no write or injection.";
         private readonly INativeConnectorInterop _interop;
         private readonly Fm26NativeConnectorOptions _options;
         private NativeConnectorAvailability _availability = NativeConnectorAvailability.Unavailable;
@@ -81,9 +85,16 @@ namespace Statlyn.DataProviders.Fm26
                     Process = process,
                     ReadOnlyAccessStatus = process.ReadOnlyAccessStatus,
                     IsFm26Supported = false,
-                    SupportStatusMessage = "FM26 unsupported until validated maps exist.",
+                    BuildSupportStatus = ResolveBuildSupportStatus(true, _availability, status, process),
+                    BuildSupportMessage = ResolveBuildSupportMessage(status, process),
+                    MapSupportStatus = Fm26DiagnosticSupportStatus.MapMissing.ToString(),
+                    MapSupportMessage = MapMissingMessage,
+                    SupportStatusMessage = UnsupportedMessage,
+                    NextActionSafeMessage = NextActionMessage,
                     LastErrorSafeMessage = lastError,
                     GeneratedAtUtc = DateTimeOffset.UtcNow,
+                    Warnings = BuildWarnings(process, status),
+                    Errors = BuildErrors(_availability, lastError),
                     SafeMessage = process.IsDetected
                         ? "FM process detected. Statlyn reports diagnostics only; no player data is read."
                         : "Native connector is available. FM process not detected."
@@ -172,16 +183,31 @@ namespace Statlyn.DataProviders.Fm26
                 Process = new Fm26ProcessDiagnostic
                 {
                     IsDetected = false,
+                    DetectionStatus = isWindows
+                        ? Fm26DiagnosticSupportStatus.ConnectorUnavailable.ToString()
+                        : Fm26DiagnosticSupportStatus.UnsupportedPlatform.ToString(),
+                    DetectionStatusMessage = safeMessage,
                     ProcessName = "fm.exe",
                     ProcessId = null,
+                    ExecutableFileName = "fm.exe",
                     ReadOnlyAccessStatus = "Unavailable",
+                    RequiredAccessLevel = ReadOnlyAccessLevel,
                     SafeMessage = "FM process diagnostics are unavailable."
                 },
                 ReadOnlyAccessStatus = "Unavailable",
                 IsFm26Supported = false,
-                SupportStatusMessage = "FM26 unsupported until validated maps exist.",
+                BuildSupportStatus = isWindows
+                    ? Fm26DiagnosticSupportStatus.ConnectorUnavailable.ToString()
+                    : Fm26DiagnosticSupportStatus.UnsupportedPlatform.ToString(),
+                BuildSupportMessage = safeMessage,
+                MapSupportStatus = Fm26DiagnosticSupportStatus.MapMissing.ToString(),
+                MapSupportMessage = MapMissingMessage,
+                SupportStatusMessage = UnsupportedMessage,
+                NextActionSafeMessage = NextActionMessage,
                 LastErrorSafeMessage = safeMessage,
                 GeneratedAtUtc = DateTimeOffset.UtcNow,
+                Warnings = new[] { UnsupportedMessage, MapMissingMessage },
+                Errors = string.IsNullOrWhiteSpace(safeMessage) ? Array.Empty<string>() : new[] { safeMessage },
                 SafeMessage = safeMessage
             };
         }
@@ -190,19 +216,127 @@ namespace Statlyn.DataProviders.Fm26
         {
             var detected = nativeProcess.Detected != 0 && status != NativeConnectorStatusCode.NotFound;
             var accessStatus = nativeProcess.ReadOnlyAccess != 0 ? "Available" : status == NativeConnectorStatusCode.AccessDenied ? "Access denied" : "Unavailable";
+            var executableFileName = SafeConnectorText.FileNameLabel(nativeProcess.ExecutablePath, "fm.exe");
+            var directoryLabel = SafeConnectorText.DirectoryLabel(nativeProcess.ExecutablePath);
+            var architecture = SafeConnectorText.Sanitize(nativeProcess.Architecture);
 
             return new Fm26ProcessDiagnostic
             {
                 IsDetected = detected,
+                DetectionStatus = ResolveDetectionStatus(status, detected),
+                DetectionStatusMessage = ResolveProcessMessage(status, detected, lastError),
+                ProcessDetectedAtUtc = detected ? (DateTimeOffset?)DateTimeOffset.UtcNow : null,
                 ProcessName = "fm.exe",
                 ProcessId = detected ? (int?)nativeProcess.ProcessId : null,
-                ProcessPath = SafeConnectorText.Sanitize(nativeProcess.ExecutablePath),
+                ExecutableFileName = executableFileName,
+                ExecutableDirectorySafeLabel = directoryLabel,
+                ProcessPath = SafeConnectorText.PathLabel(nativeProcess.ExecutablePath, executableFileName),
+                ProductName = string.Empty,
                 ProductVersion = SafeConnectorText.Sanitize(nativeProcess.ProductVersion),
-                Architecture = SafeConnectorText.Sanitize(nativeProcess.Architecture),
+                FileVersion = SafeConnectorText.Sanitize(nativeProcess.ProductVersion),
+                Architecture = architecture,
+                Is64BitProcess = string.IsNullOrWhiteSpace(architecture) ? (bool?)null : architecture.IndexOf("64", StringComparison.OrdinalIgnoreCase) >= 0 || architecture.Equals("x64", StringComparison.OrdinalIgnoreCase),
+                ReadOnlyAccessAttempted = detected,
                 HasReadOnlyAccess = nativeProcess.ReadOnlyAccess != 0,
                 ReadOnlyAccessStatus = accessStatus,
+                RequiredAccessLevel = ReadOnlyAccessLevel,
                 SafeMessage = ResolveProcessMessage(status, detected, lastError)
             };
+        }
+
+        private static string ResolveDetectionStatus(NativeConnectorStatusCode status, bool detected)
+        {
+            if (!detected || status == NativeConnectorStatusCode.NotFound)
+            {
+                return Fm26DiagnosticSupportStatus.NotDetected.ToString();
+            }
+
+            if (status == NativeConnectorStatusCode.AccessDenied)
+            {
+                return Fm26DiagnosticSupportStatus.AccessDenied.ToString();
+            }
+
+            if (status == NativeConnectorStatusCode.UnsupportedBuild)
+            {
+                return Fm26DiagnosticSupportStatus.UnsupportedBuild.ToString();
+            }
+
+            return Fm26DiagnosticSupportStatus.DiagnosticsOnly.ToString();
+        }
+
+        private static string ResolveBuildSupportStatus(bool isWindows, NativeConnectorAvailability availability, NativeConnectorStatusCode status, Fm26ProcessDiagnostic process)
+        {
+            if (!isWindows)
+            {
+                return Fm26DiagnosticSupportStatus.UnsupportedPlatform.ToString();
+            }
+
+            if (availability != NativeConnectorAvailability.Available)
+            {
+                return Fm26DiagnosticSupportStatus.ConnectorUnavailable.ToString();
+            }
+
+            if (!process.IsDetected)
+            {
+                return Fm26DiagnosticSupportStatus.NotDetected.ToString();
+            }
+
+            if (status == NativeConnectorStatusCode.AccessDenied)
+            {
+                return Fm26DiagnosticSupportStatus.AccessDenied.ToString();
+            }
+
+            if (status == NativeConnectorStatusCode.UnsupportedBuild)
+            {
+                return Fm26DiagnosticSupportStatus.UnsupportedBuild.ToString();
+            }
+
+            return Fm26DiagnosticSupportStatus.DiagnosticsOnly.ToString();
+        }
+
+        private static string ResolveBuildSupportMessage(NativeConnectorStatusCode status, Fm26ProcessDiagnostic process)
+        {
+            if (!process.IsDetected)
+            {
+                return "FM process not detected. Statlyn cannot validate a build.";
+            }
+
+            if (status == NativeConnectorStatusCode.AccessDenied)
+            {
+                return "FM process detected, but Windows denied the read-only diagnostic access required for future map validation.";
+            }
+
+            if (status == NativeConnectorStatusCode.UnsupportedBuild)
+            {
+                return "FM process detected, but this build has no validated Statlyn map.";
+            }
+
+            return "FM process metadata is diagnostics-only. Build support cannot become available until a validated memory map is loaded.";
+        }
+
+        private static string[] BuildWarnings(Fm26ProcessDiagnostic process, NativeConnectorStatusCode status)
+        {
+            if (status == NativeConnectorStatusCode.AccessDenied)
+            {
+                return new[] { "Read-only process diagnostics were denied.", UnsupportedMessage, MapMissingMessage };
+            }
+
+            if (!process.IsDetected)
+            {
+                return new[] { "FM process not detected.", UnsupportedMessage, MapMissingMessage };
+            }
+
+            return new[] { UnsupportedMessage, MapMissingMessage, "No player data is read by diagnostics." };
+        }
+
+        private static string[] BuildErrors(NativeConnectorAvailability availability, string lastError)
+        {
+            if (availability == NativeConnectorAvailability.Available || string.IsNullOrWhiteSpace(lastError))
+            {
+                return Array.Empty<string>();
+            }
+
+            return new[] { SafeConnectorText.Sanitize(lastError) };
         }
 
         private static string ResolveProcessMessage(NativeConnectorStatusCode status, bool detected, string lastError)

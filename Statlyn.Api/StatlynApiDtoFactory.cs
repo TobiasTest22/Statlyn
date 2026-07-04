@@ -43,7 +43,7 @@ namespace Statlyn.Api
                 diagnostics.SchemaVersion,
                 false,
                 connector.IsNativeConnectorAvailable ? "Native connector diagnostics available. FM26 unsupported until validated maps exist." : "Native connector diagnostics unavailable. FM26 unsupported until validated maps exist.",
-                "No validated FM map.",
+                connector.MapSupportMessage,
                 "C# API is running. No live FM26 data is exposed.");
         }
 
@@ -206,7 +206,9 @@ namespace Statlyn.Api
                 readiness.ScoutReportCount,
                 readiness.RoleLabTemplateCount,
                 readiness.BenchmarkDefinitionCount,
-                connector.IsNativeConnectorAvailable ? "Connector diagnostics available. FM26 unsupported until validated maps exist. No live FM26 data." : "Connector diagnostics unavailable. FM26 unsupported until validated maps exist. No live FM26 data.",
+                connector.IsNativeConnectorAvailable
+                    ? "Connector diagnostics available. " + connector.SupportStatusMessage + " " + connector.MapSupportMessage + " No live FM26 data."
+                    : "Connector diagnostics unavailable. " + connector.SupportStatusMessage + " " + connector.MapSupportMessage + " No live FM26 data.",
                 readiness.Warnings,
                 readiness.Errors);
         }
@@ -220,17 +222,35 @@ namespace Statlyn.Api
                 diagnostic.ConnectorBuildInfo,
                 diagnostic.IsWindows,
                 diagnostic.Process.IsDetected,
+                diagnostic.Process.DetectionStatus,
+                diagnostic.Process.DetectionStatusMessage,
+                diagnostic.Process.ProcessDetectedAtUtc.HasValue ? diagnostic.Process.ProcessDetectedAtUtc.Value.ToString("O", CultureInfo.InvariantCulture) : string.Empty,
                 diagnostic.Process.ProcessName,
                 diagnostic.Process.ProcessId,
+                diagnostic.Process.ExecutableFileName,
+                diagnostic.Process.ExecutableDirectorySafeLabel,
                 diagnostic.Process.ProcessPath,
+                diagnostic.Process.ProductName,
                 diagnostic.Process.ProductVersion,
+                diagnostic.Process.FileVersion,
                 diagnostic.Process.Architecture,
+                diagnostic.Process.Is64BitProcess,
+                diagnostic.Process.ReadOnlyAccessAttempted,
+                diagnostic.Process.HasReadOnlyAccess,
                 diagnostic.ReadOnlyAccessStatus,
+                diagnostic.Process.RequiredAccessLevel,
                 diagnostic.IsFm26Supported,
+                diagnostic.BuildSupportStatus,
+                diagnostic.BuildSupportMessage,
+                diagnostic.MapSupportStatus,
+                diagnostic.MapSupportMessage,
                 diagnostic.SupportStatusMessage,
+                diagnostic.NextActionSafeMessage,
                 diagnostic.LastErrorSafeMessage,
                 diagnostic.GeneratedAtUtc.ToString("O", CultureInfo.InvariantCulture),
-                diagnostic.SafeMessage);
+                diagnostic.SafeMessage,
+                diagnostic.Warnings,
+                diagnostic.Errors);
         }
 
         private RecruitmentCentreResult LoadRecruitmentRows()

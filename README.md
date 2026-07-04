@@ -31,7 +31,7 @@ FM26 is one future data source and proof-of-concept environment, not the product
 - React/Tauri desktop: strategic UI shell created in `Statlyn.Desktop`; it consumes safe DTOs from `Statlyn.Api` and contains no scoring engines.
 - React/Tauri cockpit refinement: Scout Room-style professional dark recruitment analyst layout with stable left navigation, compact search/filter foundation, safe KPI/status cards and a large central recruitment board with no persistent insight panel, no gradients and no copied external data.
 - Local API bridge: `Statlyn.Api` exposes safe DTO endpoints for dashboard, players, recruitment board, Role Lab, squad gaps, comparisons, scout reports, data sources and diagnostics.
-- FM26 connector diagnostics: `Statlyn.Api` exposes `/connector/status`, `/connector/fm26` and `/diagnostics/fm26` through a safe C# wrapper over the native connector. These endpoints report connector availability and process diagnostics only; they do not expose player data, memory addresses, raw snapshots, hidden values, CA or PA.
+- FM26 connector diagnostics: `Statlyn.Api` exposes `/connector/status`, `/connector/fm26`, `/diagnostics/fm26` and `/diagnostics/fm26/summary` through a safe C# wrapper over the native connector. These endpoints report connector availability, Windows/platform state, FM process detection, safe process labels, read-only access status, version/build metadata where available, map status and next action. FM process detection is diagnostics only. No player data is read in 3.2; the endpoints do not expose memory addresses, raw snapshots, hidden values, CA or PA.
 - Unity shell: current prototype/legacy desktop shell and diagnostics surface preserved.
 - Core C# libraries: provider model, masked player model, diagnostics, scoring guardrails and scouting knowledge firewall created.
 - Native connector: C++ read-only process-detection skeleton and managed C# diagnostics binding created.
@@ -55,7 +55,7 @@ FM26 is one future data source and proof-of-concept environment, not the product
 - Dashboard: local SQLite overview cards show real safe counts or `Awaiting local data.`; Player Profile v1 loads persisted safe imported data through `PlayerProfileQueryService`, `PlayerProfileReportViewModel` and safe `StatlynVisualAnalytics*` models.
 - Performance output foundation: generic/import-ready metric definitions and role-output expectation templates are seeded for future role-specific scoring.
 
-When FM26 is detected but no validated memory map exists, Statlyn must show an unsupported or partial state and return no fake player data.
+FM26 remains unsupported without validated memory maps. When FM26 is detected but no validated memory map exists, Statlyn must show an unsupported or diagnostics-only state and return no fake player data. First memory-map work is later. First safe player snapshot is later.
 
 CSV and JSON import support is local-file skeleton work only. The Data Sources workflow is CSV-only for now: preview reads headers/counts without storing data, then safe import runs through the provider, scouting firewall and SQLite transaction path. It does not scrape, call FotMob, use unofficial endpoints or assume unlicensed images are available. Fixture data is synthetic development/test data only and is used by tests and explicit fixture helpers, not as fake live dashboard data.
 
@@ -124,7 +124,7 @@ Run the connector diagnostics path:
 .\tools\run-connector-diagnostics.ps1
 ```
 
-This script builds C#, runs the native read-only scan, starts or reuses the local API, checks `/health` and checks `/connector/status`. It verifies that FM26 remains unsupported until validated maps exist.
+This script builds C#, runs the native read-only scan, starts the local API temporarily, checks `/health`, `/connector/status` and `/diagnostics/fm26`, prints connector availability, process detection, read-only access, support status, map status and next action, then stops the API. It verifies that FM26 remains unsupported until validated maps exist.
 
 Build the native connector with CMake and a Windows C++ toolchain:
 
@@ -153,7 +153,7 @@ npm run tauri:dev
 npm run tauri:build
 ```
 
-The React app calls `Statlyn.Api` through safe DTO endpoints. It does not open SQLite directly and does not calculate recruitment, role, benchmark, scouting or provider decisions in TypeScript. In current development mode the API must be started separately; API sidecar bundling is a future packaging milestone.
+The React app calls `Statlyn.Api` through safe DTO endpoints. React/Tauri never calls native connector directly. It does not open SQLite directly, inspect local processes, read FM memory or calculate recruitment, role, benchmark, scouting or provider decisions in TypeScript. In current development mode the API must be started separately; API sidecar bundling is a future packaging milestone.
 
 Tauri installer outputs are produced under:
 

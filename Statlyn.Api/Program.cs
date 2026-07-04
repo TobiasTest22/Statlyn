@@ -39,6 +39,7 @@ app.MapGet("/diagnostics", (StatlynApiDtoFactory dtoFactory) => dtoFactory.GetDi
 app.MapGet("/connector/status", (StatlynApiDtoFactory dtoFactory) => dtoFactory.GetConnectorStatus());
 app.MapGet("/connector/fm26", (StatlynApiDtoFactory dtoFactory) => dtoFactory.GetConnectorStatus());
 app.MapGet("/diagnostics/fm26", (StatlynApiDtoFactory dtoFactory) => dtoFactory.GetConnectorStatus());
+app.MapGet("/diagnostics/fm26/summary", (StatlynApiDtoFactory dtoFactory) => dtoFactory.GetConnectorStatus());
 
 app.Run();
 

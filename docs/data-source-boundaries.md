@@ -25,4 +25,6 @@ FM26 is only one possible source. CSV imports, manual club datasets, licensed AP
 
 Unknown fields are denied by default. Hidden CA, hidden PA, hidden personality values, raw blocked values, memory addresses and raw provider dumps must never reach DTOs or UI.
 
-FM26 connector diagnostics are allowed to reach DTOs only as safe status: connector availability, FM process detected/not detected, read-only access status, product version, architecture and unsupported support state. They must not include raw player snapshots, memory maps, native handles, module base addresses, memory addresses, hidden fields, CA or PA.
+FM26 connector diagnostics are allowed to reach DTOs only as safe status: connector availability, Windows/platform state, FM process detected/not detected, safe process ID if available, safe executable file/folder labels, read-only access status, product/file version where available, architecture, build support status, map support status, next action and unsupported support state. FM process detection is diagnostics only. No player data is read in 3.2. FM26 remains unsupported without validated memory maps. They must not include raw player snapshots, memory maps, native handles, module base addresses, memory addresses, hidden fields, CA or PA.
+
+React/Tauri never calls native connector directly. First memory-map work is later. First safe player snapshot is later.

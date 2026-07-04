@@ -285,3 +285,20 @@ For local connector diagnostics, run:
 ```powershell
 .\tools\run-connector-diagnostics.ps1
 ```
+
+## FM26 Diagnostics Surface Tests
+
+Milestone 3.2 adds `Milestone32Tests` for the richer diagnostics-only FM26 surface:
+
+- connector diagnostic models exclude handles, base addresses, memory addresses, hidden values, CA, PA and raw provider fields
+- no support-status enum value is allowed to be `Supported`
+- missing native connector states return connector-unavailable and map-missing statuses
+- FM process not detected returns `NotDetected`
+- read-only access denied returns `AccessDenied`
+- process path output is reduced to a safe executable/folder label, not a user-specific full path
+- `/connector/status`, `/connector/fm26`, `/diagnostics/fm26` and `/diagnostics/fm26/summary` return safe unsupported DTOs
+- `/health` remains `isFm26Supported=false`
+- React/Tauri displays FM26 diagnostics through `Statlyn.Api` only and does not call native connector, process APIs or SQLite
+- `tools/run-connector-diagnostics.ps1` calls `/health`, `/connector/status` and `/diagnostics/fm26`, prints support/map/next-action summary and stops its temporary API
+
+FM process detection is diagnostics only. No player data is read in 3.2. FM26 remains unsupported without validated memory maps. React/Tauri never calls native connector directly. First memory-map work is later. First safe player snapshot is later.

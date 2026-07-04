@@ -29,9 +29,14 @@ namespace Statlyn.DataProviders.Fm26
             return new Fm26ProcessDiagnostic
             {
                 IsDetected = false,
+                DetectionStatus = Fm26DiagnosticSupportStatus.ConnectorUnavailable.ToString(),
+                DetectionStatusMessage = "Native connector unavailable.",
                 ProcessName = "fm.exe",
                 ProcessId = null,
+                ExecutableFileName = "fm.exe",
+                ReadOnlyAccessAttempted = false,
                 ReadOnlyAccessStatus = "Unavailable",
+                RequiredAccessLevel = "Read-only diagnostic process query; no write or injection.",
                 SafeMessage = "FM process diagnostics are unavailable."
             };
         }
@@ -47,8 +52,19 @@ namespace Statlyn.DataProviders.Fm26
                 Process = DetectFmProcess(),
                 ReadOnlyAccessStatus = "Unavailable",
                 IsFm26Supported = false,
+                BuildSupportStatus = Fm26DiagnosticSupportStatus.ConnectorUnavailable.ToString(),
+                BuildSupportMessage = "Native connector diagnostics are unavailable.",
+                MapSupportStatus = Fm26DiagnosticSupportStatus.MapMissing.ToString(),
+                MapSupportMessage = "No validated FM26 memory map is loaded.",
                 SupportStatusMessage = "FM26 unsupported until validated maps exist.",
+                NextActionSafeMessage = "A validated FM26 memory map is required before live FM player data can be read.",
                 LastErrorSafeMessage = LastError,
+                Warnings = new[]
+                {
+                    "Native connector diagnostics are unavailable.",
+                    "FM26 unsupported until validated maps exist.",
+                    "No validated FM26 memory map is loaded."
+                },
                 SafeMessage = "Native connector unavailable. No live FM26 data is exposed."
             };
         }

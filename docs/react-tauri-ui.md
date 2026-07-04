@@ -117,6 +117,10 @@ No fake data is a hard rule. The UI must not create fake rows, fake KPIs, fake s
 
 The Connector Status panel is informational only. It displays the API-reported binding availability, FM process detection state, read-only access status and support message. A detected FM process must still render as unsupported until validated maps exist.
 
+For Milestone 3.2, the FM26 Diagnostics surface displays safe API DTO fields only: native connector availability, Windows/platform state, FM process detected/not detected, safe process ID if available, safe executable file/folder labels, version/build metadata where available, read-only access, map status and next action. FM process detection is diagnostics only. No player data is read in 3.2. FM26 remains unsupported without validated memory maps. React/Tauri never calls native connector directly, never inspects local processes and never reads SQLite directly.
+
+First memory-map work is later. First safe player snapshot is later.
+
 ## API Bundling Decision
 
 Future packaging options:

@@ -1,6 +1,8 @@
 # FM26 Connector Diagnostics
 
-Milestone 3.1 adds a safe managed bridge over the native connector. This is a diagnostics foundation, not live FM26 data support.
+Milestone 3.1 added a safe managed bridge over the native connector. Milestone 3.2 improves the FM26 diagnostics surface across the native connector, C# API and React/Tauri UI. This is a diagnostics foundation, not live FM26 data support.
+
+FM process detection is diagnostics only. Read-only access is diagnostics only. No player data is read in 3.2. FM26 remains unsupported without validated memory maps.
 
 ## Flow
 
@@ -19,8 +21,11 @@ React/Tauri calls the API only. It must not load the native DLL, inspect process
 - `/connector/status`
 - `/connector/fm26`
 - `/diagnostics/fm26`
+- `/diagnostics/fm26/summary`
 
-The endpoints return the same safe status shape: connector availability, connector version/build info, platform state, FM process detected/not detected, read-only access status, product version, architecture, support message and safe error text.
+The endpoints return the same safe status shape: connector availability, connector version/build info, platform state, FM process detected/not detected, process ID if safely available, safe executable file/folder labels, read-only access status, product/file version where available, architecture, build support status, map support status, next action message, warnings and safe error text.
+
+The expected 3.2 map state is `MapMissing` or equivalent. The support message must continue to say that FM26 is unsupported until validated maps exist.
 
 ## Safety Limits
 
@@ -36,6 +41,8 @@ Diagnostics must not include:
 - stack traces or exception details
 
 Detecting `fm.exe` is not build support. `IsFm26Supported` remains false until a later milestone validates a build map and adds a reviewed player-reading path.
+
+First memory-map work is later. First safe player snapshot is later. React/Tauri never calls native connector directly; it reads these diagnostics through `Statlyn.Api` only.
 
 ## Validation
 

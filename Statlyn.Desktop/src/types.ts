@@ -16,17 +16,35 @@ export type Fm26ConnectorStatusDto = {
   connectorBuildInfo: string;
   isWindows: boolean;
   isFmProcessDetected: boolean;
+  detectionStatus: string;
+  detectionStatusMessage: string;
+  processDetectedAtUtc: string;
   processName: string;
   processId: number | null;
+  executableFileName: string;
+  executableDirectorySafeLabel: string;
   processPath: string;
+  productName: string;
   productVersion: string;
+  fileVersion: string;
   architecture: string;
+  is64BitProcess: boolean | null;
+  readOnlyAccessAttempted: boolean;
+  hasReadOnlyAccess: boolean;
   readOnlyAccessStatus: string;
+  requiredAccessLevel: string;
   isFm26Supported: boolean;
+  buildSupportStatus: string;
+  buildSupportMessage: string;
+  mapSupportStatus: string;
+  mapSupportMessage: string;
   supportStatusMessage: string;
+  nextActionSafeMessage: string;
   lastErrorSafeMessage: string;
   generatedAtUtc: string;
   safeMessage: string;
+  warnings: string[];
+  errors: string[];
 };
 
 export type DashboardOverviewDto = {

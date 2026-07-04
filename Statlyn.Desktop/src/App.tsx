@@ -30,7 +30,8 @@ const navItems: SectionName[] = [
 ];
 
 const brandAssets = {
-  markWhite: "/branding/statlyn-mark-white.png"
+  markWhite: "/branding/statlyn-mark-white.png",
+  wordmarkWhite: "/branding/Statlyn_Logo_White-text.png"
 };
 
 const emptyState: ApiState = {
@@ -111,6 +112,7 @@ export default function App() {
       <aside className="sidebar">
         <div className="brand">
           <img className="brand-mark" src={brandAssets.markWhite} alt="Statlyn" />
+          <img className="brand-wordmark" src={brandAssets.wordmarkWhite} alt="" aria-hidden="true" />
         </div>
         <nav aria-label="Primary workspace">
           {navItems.map((item) => (
@@ -143,7 +145,7 @@ export default function App() {
             <div className="status-strip" aria-label="Workspace status">
               <StatusPill label="API" tone={error ? "danger" : apiState.health ? "success" : "muted"} value={error ? "Offline" : apiState.health ? "Connected" : "Checking"} />
               <StatusPill label="Data" tone={apiState.dashboard && apiState.dashboard.importedPlayersCount > 0 ? "success" : "muted"} value={apiState.dataSources?.mode ?? "Local CSV"} />
-              <StatusPill label="FM26" tone={apiState.connectorStatus?.isFm26Supported ? "success" : "warning"} value={apiState.connectorStatus?.isFm26Supported ? "Supported" : "Unsupported"} />
+              <StatusPill label="FM26" tone="warning" value={apiState.connectorStatus?.mapSupportStatus ?? "Unsupported"} />
             </div>
           </div>
         </header>
@@ -323,7 +325,7 @@ function WorkspaceContent({
     return (
       <section className="content-grid">
         <DiagnosticsPanel state={state} wide />
-        <ConnectorStatusPanel state={state} />
+        <ConnectorStatusPanel state={state} wide />
         <DataSourcesPanel state={state} />
       </section>
     );
@@ -418,9 +420,9 @@ function BoardStatsPanel({ state, visiblePlayers }: { state: ApiState; visiblePl
       />
       <BoardStatCard
         label="FM26 Status"
-        value={connector?.isFm26Supported ? "Supported" : "Unsupported"}
+        value={connector?.mapSupportStatus ?? "Unsupported"}
         note={connector?.supportStatusMessage ?? "No validated maps"}
-        tone={connector?.isFm26Supported ? "success" : "warning"}
+        tone="warning"
       />
     </section>
   );
@@ -526,18 +528,38 @@ function PlayerProfilePanel({ player }: { player: PlayerListItemDto | null }) {
   );
 }
 
-function ConnectorStatusPanel({ state }: { state: ApiState }) {
+function ConnectorStatusPanel({ state, wide = false }: { state: ApiState; wide?: boolean }) {
   const connector = state.connectorStatus;
   return (
-    <section className="panel">
-      <PanelHeader title="Connector Status" detail={connector?.safeMessage ?? "Connector diagnostics unavailable."} />
-      <div className="status-list">
-        <MiniStatus label="Binding" value={connector?.availability ?? "Unknown"} />
-        <MiniStatus label="FM Process" value={connector?.isFmProcessDetected ? "Detected" : "Not detected"} />
-        <MiniStatus label="Read-only" value={connector?.readOnlyAccessStatus ?? "Unavailable"} />
-        <MiniStatus label="Support" value={connector?.supportStatusMessage ?? "Unsupported until validated maps exist."} />
-        {connector?.connectorVersion ? <MiniStatus label="Version" value={connector.connectorVersion} /> : null}
+    <section className={`panel connector-panel ${wide ? "wide" : ""}`}>
+      <PanelHeader title="FM26 Diagnostics" detail={connector?.safeMessage ?? "Connector diagnostics unavailable."} />
+      <div className="chip-row">
+        <StatusChip label="Native" tone={connector?.isNativeConnectorAvailable ? "success" : "muted"} value={connector?.availability ?? "Unknown"} />
+        <StatusChip label="Platform" tone={connector?.isWindows ? "info" : "warning"} value={connector?.isWindows ? "Windows" : "Unsupported"} />
+        <StatusChip label="FM Process" tone={connector?.isFmProcessDetected ? "info" : "muted"} value={connector?.detectionStatus ?? "NotDetected"} />
+        <StatusChip label="Read-only" tone={toneForDiagnosticStatus(connector?.readOnlyAccessStatus)} value={connector?.readOnlyAccessStatus ?? "Unavailable"} />
+        <StatusChip label="Map" tone="warning" value={connector?.mapSupportStatus ?? "MapMissing"} />
+        <StatusChip label="Support" tone="warning" value={connector?.isFm26Supported ? "Supported" : "Unsupported"} />
       </div>
+      <div className="status-list dense">
+        <MiniStatus label="Process" value={connector?.isFmProcessDetected ? connector.processName : "Not detected"} />
+        <MiniStatus label="Process ID" value={connector?.processId === null || connector?.processId === undefined ? "Unavailable" : String(connector.processId)} />
+        <MiniStatus label="Executable" value={connector?.executableFileName || "Not reported"} />
+        <MiniStatus label="Folder Label" value={connector?.executableDirectorySafeLabel || "Not reported"} />
+        <MiniStatus label="Product Version" value={connector?.productVersion || "Not reported"} />
+        <MiniStatus label="File Version" value={connector?.fileVersion || "Not reported"} />
+        <MiniStatus label="Architecture" value={connector?.architecture || "Not reported"} />
+        <MiniStatus label="64-bit" value={connector?.is64BitProcess === null || connector?.is64BitProcess === undefined ? "Not reported" : connector.is64BitProcess ? "Yes" : "No"} />
+        <MiniStatus label="Read-only Tried" value={connector?.readOnlyAccessAttempted ? "Yes" : "No"} />
+        <MiniStatus label="Access Level" value={connector?.requiredAccessLevel || "Read-only diagnostics unavailable"} />
+        <MiniStatus label="Build Status" value={connector?.buildSupportStatus ?? "ConnectorUnavailable"} />
+        <MiniStatus label="Build Message" value={connector?.buildSupportMessage ?? "FM26 diagnostics unavailable."} />
+        <MiniStatus label="Map Message" value={connector?.mapSupportMessage ?? "No validated FM26 maps are loaded."} />
+        <MiniStatus label="Next Action" value={connector?.nextActionSafeMessage ?? "Validated FM26 maps are required before live FM player data can be read."} />
+        <MiniStatus label="Generated" value={connector?.generatedAtUtc ?? "Not checked"} />
+        {connector?.connectorVersion ? <MiniStatus label="Connector" value={connector.connectorVersion} /> : null}
+      </div>
+      <WarningList warnings={connector?.warnings ?? ["FM26 unsupported until validated maps exist."]} />
     </section>
   );
 }
@@ -568,13 +590,19 @@ function DataSourcesPanel({ state, wide = false }: { state: ApiState; wide?: boo
 }
 
 function DiagnosticsPanel({ state, wide = false }: { state: ApiState; wide?: boolean }) {
+  const connector = state.connectorStatus;
   return (
     <section className={`panel ${wide ? "wide" : ""}`}>
       <PanelHeader title="Diagnostics" detail={state.diagnostics?.safeSummary ?? "Diagnostics unavailable."} />
       <div className="chip-row">
         <StatusChip label="Schema" tone="info" value={String(state.diagnostics?.schemaVersion ?? 0)} />
-        <StatusChip label="FM26" tone="warning" value={state.diagnostics?.fm26Status ?? "Unsupported"} />
+        <StatusChip label="FM26" tone="warning" value={connector?.supportStatusMessage ?? state.diagnostics?.fm26Status ?? "Unsupported"} />
+        <StatusChip label="Map" tone="warning" value={connector?.mapSupportStatus ?? "MapMissing"} />
+        <StatusChip label="Access" tone={toneForDiagnosticStatus(connector?.readOnlyAccessStatus)} value={connector?.readOnlyAccessStatus ?? "Unavailable"} />
         <StatusChip label="API" tone="info" value={apiBaseUrl()} />
+      </div>
+      <div className="diagnostic-note">
+        {connector?.nextActionSafeMessage ?? "Validated FM26 maps are required before live FM player data can be read."}
       </div>
     </section>
   );
@@ -801,6 +829,30 @@ function toneForRecommendation(value: string): Tone {
   }
 
   return "info";
+}
+
+function toneForDiagnosticStatus(value: string | undefined): Tone {
+  const normalized = (value ?? "").toLowerCase();
+
+  if (normalized.includes("denied") || normalized.includes("error") || normalized.includes("failed")) {
+    return "danger";
+  }
+
+  if (
+    normalized.includes("missing") ||
+    normalized.includes("unvalidated") ||
+    normalized.includes("unsupported") ||
+    normalized.includes("notdetected") ||
+    normalized.includes("not detected")
+  ) {
+    return "warning";
+  }
+
+  if (normalized.includes("available") || normalized.includes("diagnostic") || normalized.includes("ready")) {
+    return "info";
+  }
+
+  return "muted";
 }
 
 function formatNullable(value: number | null): string {

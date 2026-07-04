@@ -101,27 +101,6 @@ namespace
         return L"x64";
     }
 
-    uintptr_t QueryModuleBaseAddress(DWORD processId)
-    {
-        HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, processId);
-        if (snapshot == INVALID_HANDLE_VALUE)
-        {
-            return 0;
-        }
-
-        MODULEENTRY32W module = {};
-        module.dwSize = sizeof(module);
-        uintptr_t baseAddress = 0;
-
-        if (Module32FirstW(snapshot, &module))
-        {
-            baseAddress = reinterpret_cast<uintptr_t>(module.modBaseAddr);
-        }
-
-        CloseHandle(snapshot);
-        return baseAddress;
-    }
-
     bool FindFmProcess(DWORD& processId)
     {
         HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
@@ -176,7 +155,6 @@ namespace
         CopyWide(processInfo->executablePath, 520, path);
         CopyWide(processInfo->productVersion, 128, QueryProductVersion(path));
         CopyWide(processInfo->architecture, 32, QueryArchitecture(handle));
-        processInfo->moduleBaseAddress = QueryModuleBaseAddress(processId);
         CloseHandle(handle);
         g_lastProcessInfo = *processInfo;
         SetLastErrorText("");
@@ -266,7 +244,7 @@ extern "C"
         snprintf(
             diagnostics,
             sizeof(diagnostics),
-            "{\"connector\":\"Statlyn.NativeConnector\",\"processId\":%lu,\"handleOpen\":%s,\"buildSupport\":\"unsupported\"}",
+            "{\"connector\":\"Statlyn.NativeConnector\",\"processId\":%lu,\"readOnlySessionOpen\":%s,\"buildSupport\":\"unsupported\"}",
             static_cast<unsigned long>(g_processId),
             g_processHandle == nullptr ? "false" : "true");
         return CopyUtf8(buffer, bufferLength, diagnostics);
@@ -275,5 +253,40 @@ extern "C"
     STATLYN_API int Statlyn_GetConnectorVersion(char* buffer, int bufferLength)
     {
         return CopyUtf8(buffer, bufferLength, "0.1.0");
+    }
+
+    STATLYN_API int StatlynConnector_GetVersion(char* buffer, int bufferLength)
+    {
+        return Statlyn_GetConnectorVersion(buffer, bufferLength);
+    }
+
+    STATLYN_API int StatlynConnector_GetBuildInfo(char* buffer, int bufferLength)
+    {
+        return CopyUtf8(buffer, bufferLength, "Statlyn.NativeConnector 0.1.0 read-only FM process diagnostics");
+    }
+
+    STATLYN_API int StatlynConnector_DetectFmProcess(StatlynProcessInfo* processInfo)
+    {
+        return Statlyn_DetectFM26(processInfo);
+    }
+
+    STATLYN_API int StatlynConnector_GetLastError(char* buffer, int bufferLength)
+    {
+        return Statlyn_GetLastError(buffer, bufferLength);
+    }
+
+    STATLYN_API void StatlynConnector_ResetLastError()
+    {
+        SetLastErrorText("");
+    }
+
+    STATLYN_API int StatlynConnector_OpenReadOnlyProcess(uint32_t processId)
+    {
+        return Statlyn_OpenReadOnly(processId);
+    }
+
+    STATLYN_API void StatlynConnector_CloseHandle()
+    {
+        Statlyn_Close();
     }
 }

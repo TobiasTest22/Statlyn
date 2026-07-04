@@ -27,6 +27,7 @@ const emptyState: ApiState = {
   roleLab: null,
   dataSources: null,
   diagnostics: null,
+  connectorStatus: null,
   scoutReports: []
 };
 
@@ -103,7 +104,8 @@ export default function App() {
           <div className="status-strip">
             <StatusPill label="API" tone={error ? "danger" : apiState.health ? "success" : "muted"} value={error ? "Offline" : apiState.health ? "Connected" : "Checking"} />
             <StatusPill label="Data" tone="info" value={apiState.dataSources?.mode ?? "Local CSV"} />
-            <StatusPill label="FM26" tone="warning" value="Unsupported" />
+            <StatusPill label="Connector" tone={apiState.connectorStatus?.isNativeConnectorAvailable ? "info" : "muted"} value={apiState.connectorStatus ? apiState.connectorStatus.availability : "Checking"} />
+            <StatusPill label="FM26" tone={apiState.connectorStatus?.isFm26Supported ? "success" : "warning"} value={apiState.connectorStatus?.isFm26Supported ? "Supported" : "Unsupported"} />
           </div>
         </header>
 
@@ -114,6 +116,7 @@ export default function App() {
             <DashboardPanel state={apiState} />
             <RecruitmentPanel players={players} />
             <PlayerProfilePanel player={selectedPlayer} />
+            <ConnectorStatusPanel state={apiState} />
             <RoleLabPanel state={apiState} />
             <DataSourcesPanel state={apiState} />
             <DiagnosticsPanel state={apiState} />
@@ -125,6 +128,22 @@ export default function App() {
         ) : null}
       </main>
     </div>
+  );
+}
+
+function ConnectorStatusPanel({ state }: { state: ApiState }) {
+  const connector = state.connectorStatus;
+  return (
+    <section className="panel">
+      <PanelHeader title="Connector Status" detail={connector?.safeMessage ?? "Connector diagnostics unavailable."} />
+      <div className="status-list">
+        <MiniStatus label="Binding" value={connector?.availability ?? "Unknown"} />
+        <MiniStatus label="FM Process" value={connector?.isFmProcessDetected ? "Detected" : "Not detected"} />
+        <MiniStatus label="Read-only" value={connector?.readOnlyAccessStatus ?? "Unavailable"} />
+        <MiniStatus label="Support" value={connector?.supportStatusMessage ?? "Unsupported until validated maps exist."} />
+        {connector?.connectorVersion ? <MiniStatus label="Version" value={connector.connectorVersion} /> : null}
+      </div>
+    </section>
   );
 }
 
@@ -240,6 +259,15 @@ function ScoutReportsPanel({ state }: { state: ApiState }) {
       ))}
       {state.scoutReports.length === 0 ? <div className="empty-line">No scout reports yet.</div> : null}
     </section>
+  );
+}
+
+function MiniStatus({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="mini-status">
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
   );
 }
 

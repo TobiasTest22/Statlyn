@@ -12,6 +12,7 @@ The desktop UI may handle:
 - API calls
 - filtering and sorting over already-safe DTOs
 - local UI state
+- connector status display from `/connector/status`
 
 The desktop UI must not contain:
 
@@ -22,6 +23,7 @@ The desktop UI must not contain:
 - hidden-value filtering
 - provider mapping
 - FM memory logic
+- native connector calls
 - direct database access
 
 ## Development Run
@@ -83,6 +85,8 @@ The desktop UI must show honest states for:
 - no data sources
 
 It must not create fake rows, fake KPIs, fake sync status, fake live FM26 data or hidden-value displays. If the API cannot be reached, the UI shows a safe connection error and retry button.
+
+The Connector Status panel is informational only. It displays the API-reported binding availability, FM process detection state, read-only access status and support message. A detected FM process must still render as unsupported until validated maps exist.
 
 ## API Bundling Decision
 

@@ -19,7 +19,10 @@ Forbidden routes:
 - hidden values to DTOs
 - raw database rows to frontend
 - frontend-calculated recruitment decisions
+- frontend/native connector direct process access
 
 FM26 is only one possible source. CSV imports, manual club datasets, licensed APIs and other permitted sources can be added later through provider abstractions and mappers.
 
 Unknown fields are denied by default. Hidden CA, hidden PA, hidden personality values, raw blocked values, memory addresses and raw provider dumps must never reach DTOs or UI.
+
+FM26 connector diagnostics are allowed to reach DTOs only as safe status: connector availability, FM process detected/not detected, read-only access status, product version, architecture and unsupported support state. They must not include raw player snapshots, memory maps, native handles, module base addresses, memory addresses, hidden fields, CA or PA.

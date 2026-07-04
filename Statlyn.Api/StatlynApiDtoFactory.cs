@@ -12,30 +12,45 @@ using Statlyn.Data.RoleLab;
 using Statlyn.Data.Scouting;
 using Statlyn.Data.Shortlists;
 using Statlyn.Data.Workflow;
+using Statlyn.DataProviders.Fm26;
 
 namespace Statlyn.Api
 {
     public sealed class StatlynApiDtoFactory
     {
         private readonly StatlynDbConnectionFactory _connectionFactory;
+        private readonly SafeFm26ConnectorService _connectorService;
 
         public StatlynApiDtoFactory(StatlynDbConnectionFactory connectionFactory)
+            : this(connectionFactory, new SafeFm26ConnectorService(new NullFm26NativeConnector()))
+        {
+        }
+
+        public StatlynApiDtoFactory(StatlynDbConnectionFactory connectionFactory, SafeFm26ConnectorService connectorService)
         {
             _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
+            _connectorService = connectorService ?? throw new ArgumentNullException(nameof(connectorService));
         }
 
         public AppHealthDto GetHealth()
         {
             var diagnostics = new StatlynDatabaseDiagnosticsService(_connectionFactory).ReadDiagnostics();
+            var connector = _connectorService.GetDiagnostic();
             return new AppHealthDto(
                 "ok",
                 "Local CSV / permitted provider workspace",
                 _connectionFactory.DatabasePath,
                 diagnostics.SchemaVersion,
                 false,
-                "Connector unsupported until validated maps exist.",
+                connector.IsNativeConnectorAvailable ? "Native connector diagnostics available. FM26 unsupported until validated maps exist." : "Native connector diagnostics unavailable. FM26 unsupported until validated maps exist.",
                 "No validated FM map.",
                 "C# API is running. No live FM26 data is exposed.");
+        }
+
+        public Fm26ConnectorStatusDto GetConnectorStatus()
+        {
+            var diagnostic = _connectorService.GetDiagnostic();
+            return MapConnectorStatus(diagnostic);
         }
 
         public DashboardOverviewDto GetDashboard()
@@ -179,6 +194,7 @@ namespace Statlyn.Api
         public DiagnosticsDto GetDiagnostics()
         {
             var readiness = new LocalProductReadinessService(_connectionFactory, AppContext.BaseDirectory, System.IO.Path.Combine(AppContext.BaseDirectory, "StreamingAssets")).Run();
+            var connector = _connectorService.GetDiagnostic();
             return new DiagnosticsDto(
                 readiness.SafeSummary,
                 readiness.Success,
@@ -190,9 +206,31 @@ namespace Statlyn.Api
                 readiness.ScoutReportCount,
                 readiness.RoleLabTemplateCount,
                 readiness.BenchmarkDefinitionCount,
-                "Unsupported until validated memory maps exist. No live FM26 data.",
+                connector.IsNativeConnectorAvailable ? "Connector diagnostics available. FM26 unsupported until validated maps exist. No live FM26 data." : "Connector diagnostics unavailable. FM26 unsupported until validated maps exist. No live FM26 data.",
                 readiness.Warnings,
                 readiness.Errors);
+        }
+
+        private static Fm26ConnectorStatusDto MapConnectorStatus(Fm26ConnectorDiagnostic diagnostic)
+        {
+            return new Fm26ConnectorStatusDto(
+                diagnostic.IsNativeConnectorAvailable,
+                diagnostic.Availability.ToString(),
+                diagnostic.ConnectorVersion,
+                diagnostic.ConnectorBuildInfo,
+                diagnostic.IsWindows,
+                diagnostic.Process.IsDetected,
+                diagnostic.Process.ProcessName,
+                diagnostic.Process.ProcessId,
+                diagnostic.Process.ProcessPath,
+                diagnostic.Process.ProductVersion,
+                diagnostic.Process.Architecture,
+                diagnostic.ReadOnlyAccessStatus,
+                diagnostic.IsFm26Supported,
+                diagnostic.SupportStatusMessage,
+                diagnostic.LastErrorSafeMessage,
+                diagnostic.GeneratedAtUtc.ToString("O", CultureInfo.InvariantCulture),
+                diagnostic.SafeMessage);
         }
 
         private RecruitmentCentreResult LoadRecruitmentRows()

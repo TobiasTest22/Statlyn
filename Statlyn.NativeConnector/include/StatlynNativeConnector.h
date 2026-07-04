@@ -30,7 +30,6 @@ extern "C"
         wchar_t executablePath[520];
         wchar_t productVersion[128];
         wchar_t architecture[32];
-        uintptr_t moduleBaseAddress;
         int detected;
         int readOnlyAccess;
     };
@@ -44,4 +43,12 @@ extern "C"
     STATLYN_API int Statlyn_GetLastError(char* buffer, int bufferLength);
     STATLYN_API int Statlyn_GetDiagnostics(char* buffer, int bufferLength);
     STATLYN_API int Statlyn_GetConnectorVersion(char* buffer, int bufferLength);
+
+    STATLYN_API int StatlynConnector_GetVersion(char* buffer, int bufferLength);
+    STATLYN_API int StatlynConnector_GetBuildInfo(char* buffer, int bufferLength);
+    STATLYN_API int StatlynConnector_DetectFmProcess(StatlynProcessInfo* processInfo);
+    STATLYN_API int StatlynConnector_GetLastError(char* buffer, int bufferLength);
+    STATLYN_API void StatlynConnector_ResetLastError();
+    STATLYN_API int StatlynConnector_OpenReadOnlyProcess(uint32_t processId);
+    STATLYN_API void StatlynConnector_CloseHandle();
 }

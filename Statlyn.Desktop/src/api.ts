@@ -4,6 +4,7 @@ import type {
   DashboardOverviewDto,
   DataSourceStatusDto,
   DiagnosticsDto,
+  Fm26ConnectorStatusDto,
   RecruitmentBoardDto,
   RoleLabSummaryDto,
   ScoutReportSummaryDto
@@ -47,17 +48,18 @@ async function getJson<T>(path: string): Promise<T> {
 }
 
 export async function loadWorkspace(): Promise<ApiState> {
-  const [health, dashboard, board, roleLab, dataSources, diagnostics, scoutReports] = await Promise.all([
+  const [health, dashboard, board, roleLab, dataSources, diagnostics, connectorStatus, scoutReports] = await Promise.all([
     getJson<AppHealthDto>("/health"),
     getJson<DashboardOverviewDto>("/dashboard"),
     getJson<RecruitmentBoardDto>("/recruitment-board"),
     getJson<RoleLabSummaryDto>("/role-lab"),
     getJson<DataSourceStatusDto>("/data-sources"),
     getJson<DiagnosticsDto>("/diagnostics"),
+    getJson<Fm26ConnectorStatusDto>("/connector/status"),
     getJson<ScoutReportSummaryDto[]>("/scout-reports")
   ]);
 
-  return { health, dashboard, board, roleLab, dataSources, diagnostics, scoutReports };
+  return { health, dashboard, board, roleLab, dataSources, diagnostics, connectorStatus, scoutReports };
 }
 
 export function apiBaseUrl(): string {

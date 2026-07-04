@@ -10,8 +10,6 @@ namespace Statlyn.DataProviders.Fm26
 
         public string ProductVersion { get; set; } = string.Empty;
 
-        public string ModuleBaseAddress { get; set; } = string.Empty;
-
         public bool IsDetected { get; set; }
 
         public bool HasReadOnlyAccess { get; set; }

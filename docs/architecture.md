@@ -32,6 +32,8 @@ Data provider
 
 For FM26, the data provider is the native connector reading the active process with query/read permissions only. For future real-life data, providers must declare their licence status, confidence, completeness and allowed usage.
 
+The FM26 native connector now crosses into managed code through `Statlyn.DataProviders/Fm26/NativeFm26Connector`. That bridge is diagnostics-only: connector availability, version/build info, FM process detection, read-only access status and support state. It intentionally does not expose raw snapshots, player data, native handles, module base addresses or memory addresses.
+
 ## Main Projects
 
 - `Statlyn.Core` contains shared football domain types, diagnostics, masked fields and generic tactical future hooks.
@@ -68,6 +70,8 @@ synthetic raw fixture
 The Unity adapter is a rendering shape only. It is built from `MaskedPlayerProfileViewModel`, not from `PlayerRawSnapshot`.
 
 React/Tauri must receive only DTOs from `Statlyn.Api`. It must not read SQLite, call provider code, inspect raw FM memory, calculate recruitment scores, calculate role fit, run benchmarks or duplicate firewall rules.
+
+Connector status follows the same rule. React/Tauri calls `/connector/status` through the API client and renders safe DTO fields only. Tauri/Rust code must not perform process inspection or call the native connector.
 
 The current desktop development mode starts `Statlyn.Api` separately from Tauri. Future packaging can introduce a sidecar process once the API contract and desktop validation path are stable. Until then, Tauri remains a thin shell around React assets and local API calls; Rust code must not add database, provider, connector or decision logic.
 

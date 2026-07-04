@@ -1,6 +1,6 @@
 # Memory Connector
 
-The native connector is a Windows C++ DLL with a stable C ABI for Unity and C# bindings.
+The native connector is a Windows C++ DLL with a stable C ABI for managed C# bindings. Current production use is safe diagnostics only.
 
 Required exports are present in `Statlyn.NativeConnector/include/StatlynNativeConnector.h`:
 
@@ -13,6 +13,15 @@ Required exports are present in `Statlyn.NativeConnector/include/StatlynNativeCo
 - `Statlyn_GetLastError`
 - `Statlyn_GetDiagnostics`
 - `Statlyn_GetConnectorVersion`
+- `StatlynConnector_GetVersion`
+- `StatlynConnector_GetBuildInfo`
+- `StatlynConnector_DetectFmProcess`
+- `StatlynConnector_GetLastError`
+- `StatlynConnector_ResetLastError`
+- `StatlynConnector_OpenReadOnlyProcess`
+- `StatlynConnector_CloseHandle`
+
+The managed binding uses the `StatlynConnector_*` exports for status. Public C# diagnostics do not include native handles, module base addresses or memory addresses.
 
 ## Read-Only Policy
 
@@ -26,7 +35,9 @@ Run the local guard script after connector edits:
 
 ## Current Behavior
 
-The connector can search for `fm.exe`, query process metadata where Windows allows it and report unsupported build state. Snapshot reads currently return an unsupported status with an empty player array.
+The connector can search for `fm.exe`, query process metadata where Windows allows it and report unsupported build state. The safe API layer exposes connector availability, FM process detection, read-only access status, product version and architecture. Snapshot reads remain unsupported and are not used by the managed public connector interface.
+
+Detecting an FM process is not the same as supporting that FM26 build. Until validated maps exist, Statlyn must show unsupported status and return no player data.
 
 ## Build-Specific Maps
 

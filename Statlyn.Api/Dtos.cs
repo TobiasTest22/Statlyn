@@ -12,6 +12,25 @@ namespace Statlyn.Api
         string ValidatedMapStatus,
         string SafeMessage);
 
+    public sealed record Fm26ConnectorStatusDto(
+        bool IsNativeConnectorAvailable,
+        string Availability,
+        string ConnectorVersion,
+        string ConnectorBuildInfo,
+        bool IsWindows,
+        bool IsFmProcessDetected,
+        string ProcessName,
+        int? ProcessId,
+        string ProcessPath,
+        string ProductVersion,
+        string Architecture,
+        string ReadOnlyAccessStatus,
+        bool IsFm26Supported,
+        string SupportStatusMessage,
+        string LastErrorSafeMessage,
+        string GeneratedAtUtc,
+        string SafeMessage);
+
     public sealed record DashboardOverviewDto(
         string SafeMessage,
         string DatabasePath,

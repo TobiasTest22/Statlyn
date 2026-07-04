@@ -7,7 +7,7 @@ namespace Statlyn.DataProviders.Fm26
     public sealed class Fm26LiveMemoryProvider : IDataProvider
     {
         private readonly IFm26NativeConnector _connector;
-        private Fm26ProcessInfo? _processInfo;
+        private Fm26ProcessDiagnostic? _processInfo;
 
         public Fm26LiveMemoryProvider(IFm26NativeConnector connector)
         {
@@ -52,23 +52,30 @@ namespace Statlyn.DataProviders.Fm26
 
         public SnapshotResult<bool> Connect()
         {
-            var detection = _connector.Detect();
-            if (!detection.Success || detection.Value == null)
+            var process = _connector.DetectFmProcess();
+            var diagnostics = new DiagnosticReport();
+            diagnostics.Add(
+                "fm26.process",
+                process.IsDetected ? DiagnosticStatus.Verified : DiagnosticStatus.Failed,
+                process.SafeMessage,
+                "Safe process diagnostics contain no player data.");
+
+            if (!process.IsDetected)
             {
-                return SnapshotResult<bool>.FromFailure(detection.Message, detection.Diagnostics);
+                return SnapshotResult<bool>.FromFailure("FM26 is not running or cannot be inspected.", diagnostics);
             }
 
-            _processInfo = detection.Value;
+            _processInfo = process;
             var status = _connector.ValidateBuild(_processInfo);
-            detection.Diagnostics.Add(
+            diagnostics.Add(
                 "fm26.build",
                 status,
                 status == DiagnosticStatus.Verified ? "FM26 build is supported." : "FM26 detected but this build is not supported yet.",
-                "A supported build requires a validated memory-map registry entry.");
+                "A supported build requires a validated map registry entry.");
 
             return status == DiagnosticStatus.Verified
-                ? SnapshotResult<bool>.FromSuccess(true, detection.Diagnostics)
-                : SnapshotResult<bool>.FromFailure("FM26 build is unsupported.", detection.Diagnostics);
+                ? SnapshotResult<bool>.FromSuccess(true, diagnostics)
+                : SnapshotResult<bool>.FromFailure("FM26 build is unsupported.", diagnostics);
         }
 
         public DiagnosticReport ValidateAccess()
@@ -118,11 +125,13 @@ namespace Statlyn.DataProviders.Fm26
             if (buildStatus != DiagnosticStatus.Verified)
             {
                 var diagnostics = new DiagnosticReport();
-                diagnostics.Add("fm26.build", DiagnosticStatus.Unsupported, "FM26 detected but this build is not supported yet.", "No player data is returned because Statlyn has no validated memory map for this build.");
+                diagnostics.Add("fm26.build", DiagnosticStatus.Unsupported, "FM26 detected but this build is not supported yet.", "No player data is returned because Statlyn has no validated map for this build.");
                 return SnapshotResult<IReadOnlyList<PlayerRawSnapshot>>.FromSuccess(new List<PlayerRawSnapshot>(), diagnostics);
             }
 
-            return _connector.ReadPlayerSnapshot();
+            var report = new DiagnosticReport();
+            report.Add("fm26.snapshot.players", DiagnosticStatus.Unsupported, "FM26 player reading is not implemented in this milestone.", "Connector diagnostics are available, but no player memory is read.");
+            return SnapshotResult<IReadOnlyList<PlayerRawSnapshot>>.FromSuccess(new List<PlayerRawSnapshot>(), report);
         }
 
         public ProviderReadResult<IReadOnlyList<TeamSnapshot>> ReadTeams()
@@ -163,8 +172,9 @@ namespace Statlyn.DataProviders.Fm26
         public DiagnosticReport GetDiagnostics()
         {
             var report = new DiagnosticReport();
+            var connectorDiagnostic = _connector.GetDiagnostic();
             report.Add("provider.name", DiagnosticStatus.Verified, ProviderName, "Provider is registered.");
-            report.Add("provider.connector", DiagnosticStatus.Verified, _connector.ConnectorVersion, "Native connector facade is available.");
+            report.Add("provider.connector", connectorDiagnostic.IsNativeConnectorAvailable ? DiagnosticStatus.Verified : DiagnosticStatus.Unsupported, connectorDiagnostic.ConnectorVersion, connectorDiagnostic.SafeMessage);
             report.Add("provider.process", _processInfo == null ? DiagnosticStatus.NotChecked : DiagnosticStatus.Verified, _processInfo == null ? "No process has been connected." : "FM26 process metadata is available.", string.Empty);
             return report;
         }

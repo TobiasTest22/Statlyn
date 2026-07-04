@@ -9,6 +9,26 @@ export type AppHealthDto = {
   safeMessage: string;
 };
 
+export type Fm26ConnectorStatusDto = {
+  isNativeConnectorAvailable: boolean;
+  availability: string;
+  connectorVersion: string;
+  connectorBuildInfo: string;
+  isWindows: boolean;
+  isFmProcessDetected: boolean;
+  processName: string;
+  processId: number | null;
+  processPath: string;
+  productVersion: string;
+  architecture: string;
+  readOnlyAccessStatus: string;
+  isFm26Supported: boolean;
+  supportStatusMessage: string;
+  lastErrorSafeMessage: string;
+  generatedAtUtc: string;
+  safeMessage: string;
+};
+
 export type DashboardOverviewDto = {
   safeMessage: string;
   databasePath: string;
@@ -106,5 +126,6 @@ export type ApiState = {
   roleLab: RoleLabSummaryDto | null;
   dataSources: DataSourceStatusDto | null;
   diagnostics: DiagnosticsDto | null;
+  connectorStatus: Fm26ConnectorStatusDto | null;
   scoutReports: ScoutReportSummaryDto[];
 };

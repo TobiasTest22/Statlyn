@@ -268,3 +268,20 @@ For local validation, run:
 ```
 
 The script runs managed build/tests, the native read-only scan, tracked JSON validation, a temporary `Statlyn.Api` health check, desktop `npm run check` and, unless skipped, `npm run tauri:build`. It does not require Unity or FM26 and must stop the temporary API process before exiting.
+
+## Native Connector Diagnostics Tests
+
+Milestone 3.1 adds safe native connector diagnostics coverage:
+
+- managed C# binding handles unsupported platforms, missing native libraries and missing exports without throwing to API callers
+- public connector diagnostics exclude raw snapshots, player-reading methods, native handles and memory-address fields
+- `/connector/status`, `/connector/fm26` and `/diagnostics/fm26` return safe unsupported DTOs
+- React/Tauri source reads connector status through the API client only
+- the read-only native scan blocks process-writing, remote-thread, injection and broad access flags
+- `tools/run-connector-diagnostics.ps1` validates `/health` and `/connector/status` without requiring FM26
+
+For local connector diagnostics, run:
+
+```powershell
+.\tools\run-connector-diagnostics.ps1
+```

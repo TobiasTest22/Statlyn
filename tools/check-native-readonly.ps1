@@ -7,7 +7,14 @@ $forbiddenPatterns = @(
   "VirtualAllocEx\s*\(",
   "SetThreadContext\s*\(",
   "SuspendThread\s*\(",
-  "ResumeThread\s*\("
+  "ResumeThread\s*\(",
+  "PROCESS_ALL_ACCESS",
+  "PROCESS_CREATE_THREAD",
+  "PROCESS_VM_WRITE",
+  "PROCESS_VM_OPERATION",
+  "DebugActiveProcess\s*\(",
+  "LoadLibraryA\s*\(",
+  "LoadLibraryW\s*\("
 )
 
 $files = Get-ChildItem -LiteralPath $nativeRoot -Recurse -File | Where-Object {

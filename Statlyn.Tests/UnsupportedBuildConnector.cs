@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using Statlyn.Core;
 using Statlyn.Core.Diagnostics;
 using Statlyn.DataProviders.Fm26;
 
@@ -7,37 +5,63 @@ namespace Statlyn.Tests
 {
     internal sealed class UnsupportedBuildConnector : IFm26NativeConnector
     {
-        public string ConnectorVersion
+        public bool IsAvailable
         {
-            get { return "test-unsupported-connector"; }
+            get { return true; }
         }
 
-        public SnapshotResult<Fm26ProcessInfo> Detect()
+        public string LastError
         {
-            var diagnostics = new DiagnosticReport();
-            diagnostics.Add("fm26.process", DiagnosticStatus.Verified, "FM26 detected.", "Test connector reports a synthetic process but no data.");
-            return SnapshotResult<Fm26ProcessInfo>.FromSuccess(new Fm26ProcessInfo
+            get { return string.Empty; }
+        }
+
+        public string GetConnectorVersion()
+        {
+            return "test-unsupported-connector";
+        }
+
+        public string GetBuildInfo()
+        {
+            return "test connector";
+        }
+
+        public Fm26ProcessDiagnostic DetectFmProcess()
+        {
+            return new Fm26ProcessDiagnostic
             {
+                IsDetected = true,
+                ProcessName = "fm.exe",
                 ProcessId = 4242,
-                ExecutablePath = "C:\\Games\\Football Manager 26\\fm.exe",
+                ProcessPath = "C:\\Games\\Football Manager 26\\fm.exe",
                 Architecture = "x64",
                 ProductVersion = "26.0.0-test",
-                ModuleBaseAddress = "0x00000000",
-                IsDetected = true,
-                HasReadOnlyAccess = true
-            }, diagnostics);
+                HasReadOnlyAccess = true,
+                ReadOnlyAccessStatus = "Available",
+                SafeMessage = "FM26 detected."
+            };
         }
 
-        public DiagnosticStatus ValidateBuild(Fm26ProcessInfo processInfo)
+        public Fm26ConnectorDiagnostic GetDiagnostic()
+        {
+            var process = DetectFmProcess();
+            return new Fm26ConnectorDiagnostic
+            {
+                IsNativeConnectorAvailable = true,
+                Availability = NativeConnectorAvailability.Available,
+                ConnectorVersion = GetConnectorVersion(),
+                ConnectorBuildInfo = GetBuildInfo(),
+                IsWindows = true,
+                Process = process,
+                ReadOnlyAccessStatus = process.ReadOnlyAccessStatus,
+                IsFm26Supported = false,
+                SupportStatusMessage = "FM26 unsupported until validated maps exist.",
+                SafeMessage = "Test connector reports a process but no supported build."
+            };
+        }
+
+        public DiagnosticStatus ValidateBuild(Fm26ProcessDiagnostic processInfo)
         {
             return DiagnosticStatus.Unsupported;
-        }
-
-        public SnapshotResult<IReadOnlyList<PlayerRawSnapshot>> ReadPlayerSnapshot()
-        {
-            var diagnostics = new DiagnosticReport();
-            diagnostics.Add("fm26.snapshot.players", DiagnosticStatus.Failed, "This method should not be called for unsupported builds.", string.Empty);
-            return SnapshotResult<IReadOnlyList<PlayerRawSnapshot>>.FromFailure("Unsupported", diagnostics);
         }
     }
 }

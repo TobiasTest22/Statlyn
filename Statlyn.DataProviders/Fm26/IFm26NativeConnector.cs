@@ -1,17 +1,21 @@
-using System.Collections.Generic;
-using Statlyn.Core;
 using Statlyn.Core.Diagnostics;
 
 namespace Statlyn.DataProviders.Fm26
 {
     public interface IFm26NativeConnector
     {
-        string ConnectorVersion { get; }
+        bool IsAvailable { get; }
 
-        SnapshotResult<Fm26ProcessInfo> Detect();
+        string LastError { get; }
 
-        DiagnosticStatus ValidateBuild(Fm26ProcessInfo processInfo);
+        string GetConnectorVersion();
 
-        SnapshotResult<IReadOnlyList<PlayerRawSnapshot>> ReadPlayerSnapshot();
+        string GetBuildInfo();
+
+        Fm26ProcessDiagnostic DetectFmProcess();
+
+        Fm26ConnectorDiagnostic GetDiagnostic();
+
+        DiagnosticStatus ValidateBuild(Fm26ProcessDiagnostic processInfo);
     }
 }

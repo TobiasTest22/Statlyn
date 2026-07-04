@@ -158,7 +158,8 @@ namespace Statlyn.Tests
                 "Statlyn.DataProviders",
                 "readMemory",
                 "memory map",
-                "NativeConnector"
+                "Statlyn.NativeConnector",
+                "NativeFm26Connector"
             })
             {
                 Assert.DoesNotContain(forbidden, text, StringComparison.OrdinalIgnoreCase);

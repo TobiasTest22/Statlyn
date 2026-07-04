@@ -1,5 +1,6 @@
 using Statlyn.Api;
 using Statlyn.Data;
+using Statlyn.DataProviders.Fm26;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddCors(options =>
@@ -17,6 +18,8 @@ builder.Services.AddSingleton(_ =>
         : RuntimeDatabaseFactory.CreateFile(configuredPath);
     return factory;
 });
+builder.Services.AddSingleton<IFm26NativeConnector, NativeFm26Connector>();
+builder.Services.AddSingleton<SafeFm26ConnectorService>();
 builder.Services.AddSingleton<StatlynApiDtoFactory>();
 
 var app = builder.Build();
@@ -33,6 +36,9 @@ app.MapGet("/comparisons", (StatlynApiDtoFactory dtoFactory) => dtoFactory.GetCo
 app.MapGet("/scout-reports", (StatlynApiDtoFactory dtoFactory) => dtoFactory.GetScoutReports());
 app.MapGet("/data-sources", (StatlynApiDtoFactory dtoFactory) => dtoFactory.GetDataSources());
 app.MapGet("/diagnostics", (StatlynApiDtoFactory dtoFactory) => dtoFactory.GetDiagnostics());
+app.MapGet("/connector/status", (StatlynApiDtoFactory dtoFactory) => dtoFactory.GetConnectorStatus());
+app.MapGet("/connector/fm26", (StatlynApiDtoFactory dtoFactory) => dtoFactory.GetConnectorStatus());
+app.MapGet("/diagnostics/fm26", (StatlynApiDtoFactory dtoFactory) => dtoFactory.GetConnectorStatus());
 
 app.Run();
 

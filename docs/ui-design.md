@@ -13,7 +13,7 @@ The UI should feel like serious internal recruitment intelligence software used 
 
 React/Tauri remains display/API-only. It may hold selected-row UI state and render safe DTO values from `Statlyn.Api`; it must not calculate recruitment decisions, read SQLite, call provider code, call the native connector, scrape external data, invent fake rows, expose hidden values or claim FM26 support before validation.
 
-The Diagnostics page may show the Milestone 3.4 safe FM26 snapshot module as a status matrix/risk ledger. That module displays only API DTO fields: snapshot status, gate status, blocking reason and next action. It must not imply live player reading, render player rows or expose memory-field details.
+The Diagnostics page may show the safe FM26 snapshot module as a status matrix/risk ledger and audit trail. That module displays only API DTO fields: snapshot status, gate status, blocking reason, next action, latest persisted snapshot and safe snapshot history. It must not imply live player reading, render player rows, expose memory-field details or create fake history. Empty history shows `No persisted snapshots yet`.
 
 The React/Tauri cockpit baseline uses no gradients. Depth comes from black/charcoal layering, thin borders and density rather than decorative effects. Reusable visual modules such as metric cards, status matrices, data-quality bars, confidence bars, distribution strips, diagnostic ledgers, comparison matrices and empty visual states are display-only and must only show safe DTO values. No fake visuals are allowed.
 

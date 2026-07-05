@@ -344,6 +344,46 @@ namespace Statlyn.Data
                         TechnicalDetail TEXT NULL,
                         CreatedAtUtc TEXT NOT NULL
                     );",
+                    @"CREATE TABLE IF NOT EXISTS fm26_snapshot_runs (
+                        snapshot_id TEXT PRIMARY KEY,
+                        generated_at_utc TEXT NOT NULL,
+                        snapshot_status TEXT NOT NULL,
+                        safe_message TEXT NOT NULL,
+                        connector_availability TEXT NOT NULL,
+                        platform_status TEXT NOT NULL,
+                        process_detected INTEGER NOT NULL,
+                        process_status TEXT NOT NULL,
+                        process_name TEXT NULL,
+                        process_id INTEGER NULL,
+                        product_version TEXT NULL,
+                        file_version TEXT NULL,
+                        architecture TEXT NULL,
+                        read_only_access_status TEXT NOT NULL,
+                        memory_map_registry_status TEXT NOT NULL,
+                        maps_found INTEGER NOT NULL,
+                        validated_maps INTEGER NOT NULL,
+                        template_maps INTEGER NOT NULL,
+                        invalid_maps INTEGER NOT NULL,
+                        selected_map_id TEXT NULL,
+                        selected_map_display_name TEXT NULL,
+                        selected_map_build TEXT NULL,
+                        all_gates_passed INTEGER NOT NULL,
+                        blocking_gate TEXT NULL,
+                        live_reading_allowed INTEGER NOT NULL,
+                        next_action_safe_message TEXT NOT NULL,
+                        warning_count INTEGER NOT NULL,
+                        error_count INTEGER NOT NULL
+                    );",
+                    @"CREATE TABLE IF NOT EXISTS fm26_snapshot_gate_results (
+                        snapshot_id TEXT NOT NULL,
+                        gate_key TEXT NOT NULL,
+                        gate_name TEXT NOT NULL,
+                        status TEXT NOT NULL,
+                        safe_message TEXT NOT NULL,
+                        sort_order INTEGER NOT NULL,
+                        PRIMARY KEY(snapshot_id, gate_key),
+                        FOREIGN KEY(snapshot_id) REFERENCES fm26_snapshot_runs(snapshot_id) ON DELETE CASCADE
+                    );",
                     @"CREATE TABLE IF NOT EXISTS PerformanceMetricDefinition (
                         Id INTEGER PRIMARY KEY,
                         MetricKey TEXT NOT NULL UNIQUE,
@@ -585,6 +625,10 @@ namespace Statlyn.Data
                         ON BenchmarkMetricSnapshot (BenchmarkRunId);",
                     @"CREATE INDEX IF NOT EXISTS IX_BenchmarkMetricSnapshot_MetricKey
                         ON BenchmarkMetricSnapshot (MetricKey);",
+                    @"CREATE INDEX IF NOT EXISTS IX_fm26_snapshot_runs_generated_at_utc
+                        ON fm26_snapshot_runs (generated_at_utc);",
+                    @"CREATE INDEX IF NOT EXISTS IX_fm26_snapshot_gate_results_snapshot_id
+                        ON fm26_snapshot_gate_results (snapshot_id, sort_order);",
                     @"CREATE INDEX IF NOT EXISTS IX_Shortlist_Name
                         ON Shortlist (Name);",
                     @"CREATE INDEX IF NOT EXISTS IX_ShortlistPlayer_ShortlistId

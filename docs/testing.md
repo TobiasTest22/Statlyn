@@ -327,4 +327,15 @@ For local safe snapshot validation, run:
 .\tools\run-safe-snapshot-diagnostics.ps1
 ```
 
-Safe snapshots are diagnostic metadata only. First real memory field reads remain a future milestone.
+Milestone 3.5 adds `Milestone35Tests` for safe snapshot persistence and audit history:
+
+- SQLite creates `fm26_snapshot_runs` and `fm26_snapshot_gate_results`
+- repository save/read/list/latest behavior keeps gate order stable
+- preview endpoint does not create persisted history
+- `POST /diagnostics/fm26/snapshots` creates one safe persisted snapshot
+- latest, history and detail endpoints return safe DTOs
+- persisted models and DTOs exclude player data, hidden values, raw values, offsets, addresses and handles
+- React/Tauri calls `Statlyn.Api` only and shows `No persisted snapshots yet` for empty history
+- docs mention persisted snapshots are safe diagnostic metadata only and that no player data is stored
+
+Safe snapshots are diagnostic metadata only. Persisted snapshots are safe audit metadata only. First real memory field reads remain a future milestone.

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { apiBaseUrl, loadWorkspace } from "./api";
-import type { ApiState, PlayerListItemDto } from "./types";
+import { apiBaseUrl, createPersistedFm26Snapshot, loadWorkspace } from "./api";
+import type { ApiState, Fm26SnapshotHistoryDto, PlayerListItemDto } from "./types";
 
 type SectionName =
   | "Dashboard"
@@ -65,6 +65,7 @@ const emptyState: ApiState = {
   connectorStatus: null,
   memoryMaps: null,
   fm26Snapshot: null,
+  fm26SnapshotHistory: null,
   scoutReports: []
 };
 
@@ -76,6 +77,8 @@ export default function App() {
   const [positionFilter, setPositionFilter] = useState("All");
   const [recommendationFilter, setRecommendationFilter] = useState("All");
   const [isLoading, setIsLoading] = useState(true);
+  const [isCreatingSnapshot, setIsCreatingSnapshot] = useState(false);
+  const [snapshotActionMessage, setSnapshotActionMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const refreshWorkspace = useCallback((shouldApply: () => boolean = () => true) => {
@@ -108,6 +111,26 @@ export default function App() {
       isMounted = false;
     };
   }, [refreshWorkspace]);
+
+  const createSnapshotAuditEntry = useCallback(() => {
+    setIsCreatingSnapshot(true);
+    setSnapshotActionMessage(null);
+
+    createPersistedFm26Snapshot()
+      .then((result) => {
+        setSnapshotActionMessage(result.safeMessage);
+        return loadWorkspace();
+      })
+      .then((state) => {
+        setApiState(state);
+      })
+      .catch((caught: unknown) => {
+        setSnapshotActionMessage(caught instanceof Error ? caught.message : "Could not create a persisted safe snapshot.");
+      })
+      .finally(() => {
+        setIsCreatingSnapshot(false);
+      });
+  }, []);
 
   const players = apiState.board?.players ?? [];
   const positionOptions = useMemo(
@@ -218,6 +241,9 @@ export default function App() {
             selectedPlayerId={selectedPlayer?.statlynPlayerId ?? null}
             onSelectPlayer={setSelectedPlayerId}
             onNavigate={setActiveSection}
+            onCreateSnapshot={createSnapshotAuditEntry}
+            isCreatingSnapshot={isCreatingSnapshot}
+            snapshotActionMessage={snapshotActionMessage}
           />
         ) : null}
       </main>
@@ -316,7 +342,10 @@ function WorkspaceContent({
   players,
   selectedPlayerId,
   onSelectPlayer,
-  onNavigate
+  onNavigate,
+  onCreateSnapshot,
+  isCreatingSnapshot,
+  snapshotActionMessage
 }: {
   activeSection: SectionName;
   state: ApiState;
@@ -324,6 +353,9 @@ function WorkspaceContent({
   selectedPlayerId: string | null;
   onSelectPlayer: (id: string) => void;
   onNavigate: (section: SectionName) => void;
+  onCreateSnapshot: () => void;
+  isCreatingSnapshot: boolean;
+  snapshotActionMessage: string | null;
 }) {
   if (activeSection === "Recruitment Board") {
     return (
@@ -368,7 +400,12 @@ function WorkspaceContent({
       <section className="content-grid">
         <DataSourcesPanel state={state} wide />
         <MemoryMapRegistryPanel state={state} wide />
-        <Fm26SnapshotPanel state={state} />
+        <Fm26SnapshotPanel
+          state={state}
+          onCreateSnapshot={onCreateSnapshot}
+          isCreatingSnapshot={isCreatingSnapshot}
+          actionMessage={snapshotActionMessage}
+        />
         <ConnectorStatusPanel state={state} />
         <DiagnosticsPanel state={state} />
       </section>
@@ -378,7 +415,13 @@ function WorkspaceContent({
   if (activeSection === "Diagnostics") {
     return (
       <section className="content-grid">
-        <Fm26SnapshotPanel state={state} wide />
+        <Fm26SnapshotPanel
+          state={state}
+          wide
+          onCreateSnapshot={onCreateSnapshot}
+          isCreatingSnapshot={isCreatingSnapshot}
+          actionMessage={snapshotActionMessage}
+        />
         <DiagnosticsPanel state={state} wide />
         <MemoryMapRegistryPanel state={state} wide />
         <ConnectorStatusPanel state={state} wide />
@@ -410,7 +453,12 @@ function WorkspaceContent({
       <DashboardPanel state={state} wide />
       <RecruitmentPanel players={players} selectedPlayerId={selectedPlayerId} onSelectPlayer={onSelectPlayer} />
       <ConnectorStatusPanel state={state} />
-      <Fm26SnapshotPanel state={state} />
+      <Fm26SnapshotPanel
+        state={state}
+        onCreateSnapshot={onCreateSnapshot}
+        isCreatingSnapshot={isCreatingSnapshot}
+        actionMessage={snapshotActionMessage}
+      />
       <MemoryMapRegistryPanel state={state} />
       <DataSourcesPanel state={state} />
       <DiagnosticsPanel state={state} />
@@ -784,10 +832,23 @@ function ConnectorStatusPanel({ state, wide = false }: { state: ApiState; wide?:
   );
 }
 
-function Fm26SnapshotPanel({ state, wide = false }: { state: ApiState; wide?: boolean }) {
+function Fm26SnapshotPanel({
+  state,
+  wide = false,
+  onCreateSnapshot,
+  isCreatingSnapshot = false,
+  actionMessage = null
+}: {
+  state: ApiState;
+  wide?: boolean;
+  onCreateSnapshot?: () => void;
+  isCreatingSnapshot?: boolean;
+  actionMessage?: string | null;
+}) {
   const snapshot = state.fm26Snapshot;
   const blockReason = snapshot?.blockReasons[0] ?? null;
   const selectedMap = snapshot?.selectedMapSummary;
+  const history = state.fm26SnapshotHistory;
 
   return (
     <section className={`panel snapshot-panel ${wide ? "wide" : ""}`}>
@@ -795,6 +856,24 @@ function Fm26SnapshotPanel({ state, wide = false }: { state: ApiState; wide?: bo
         title="Safe FM26 Snapshot"
         detail={snapshot?.safeMessage ?? "Diagnostic metadata snapshot is awaiting the local API."}
       />
+      <div className="snapshot-action-bar">
+        <div>
+          <strong>Persisted Audit Trail</strong>
+          <span>{history?.safeMessage ?? "No persisted snapshots yet."}</span>
+        </div>
+        {onCreateSnapshot ? (
+          <button className="action-button snapshot-create-button" type="button" onClick={onCreateSnapshot} disabled={isCreatingSnapshot}>
+            {isCreatingSnapshot ? "Creating..." : "Create Snapshot"}
+          </button>
+        ) : null}
+      </div>
+      {actionMessage ? (
+        <RiskSignal
+          tone={actionMessage.toLowerCase().includes("could not") || actionMessage.toLowerCase().includes("unavailable") ? "danger" : "info"}
+          title="Snapshot Action"
+          message={actionMessage}
+        />
+      ) : null}
       {snapshot ? (
         <>
           <div className="metric-grid compact-four">
@@ -863,14 +942,92 @@ function Fm26SnapshotPanel({ state, wide = false }: { state: ApiState; wide?: bo
             message={snapshot.nextAction || "Safe FM26 snapshots contain diagnostics metadata only. No live player rows or hidden values are exposed."}
           />
           <WarningList warnings={snapshot.warnings} />
+          <SnapshotAuditTrail history={history} />
         </>
       ) : (
-        <EmptyVisualState
-          title="Snapshot not checked"
-          message="Start Statlyn.Api and refresh diagnostics. No player data or fallback rows are generated."
-        />
+        <>
+          <EmptyVisualState
+            title="Snapshot not checked"
+            message="Start Statlyn.Api and refresh diagnostics. No player data or fallback rows are generated."
+          />
+          <SnapshotAuditTrail history={history} />
+        </>
       )}
     </section>
+  );
+}
+
+function SnapshotAuditTrail({ history }: { history: Fm26SnapshotHistoryDto | null }) {
+  const latest = history?.latestSnapshot ?? null;
+  const rows = history?.snapshots ?? [];
+
+  if (!latest || rows.length === 0) {
+    return (
+      <EmptyVisualState
+        title="No persisted snapshots yet"
+        message="Create a safe FM26 diagnostic snapshot to record the current blocking gate. No player data will be stored."
+      />
+    );
+  }
+
+  return (
+    <div className="snapshot-audit-trail">
+      <div className="metric-grid compact-four">
+        <MetricCard
+          label="Latest Persisted"
+          value={latest.snapshotStatus}
+          note={formatTimestamp(latest.generatedAtUtc)}
+          tone={toneForSnapshotStatus(latest.snapshotStatus)}
+        />
+        <MetricCard
+          label="Blocking Gate"
+          value={latest.blockingGate || "None"}
+          note={latest.allGatesPassed ? "No blocked gate" : "Persisted blocker"}
+          tone={latest.allGatesPassed ? "info" : "warning"}
+        />
+        <MetricCard
+          label="Live Reading"
+          value={latest.liveReadingAllowed ? "Allowed" : "False"}
+          note="FM26 remains unsupported"
+          tone={latest.liveReadingAllowed ? "danger" : "warning"}
+        />
+        <MetricCard
+          label="History"
+          value={String(history?.totalCount ?? rows.length)}
+          note="Persisted audit rows"
+          tone={rows.length > 0 ? "info" : "muted"}
+        />
+      </div>
+
+      <DiagnosticLedger
+        rows={latest.gates.map((gate) => ({
+          check: gate.label,
+          status: gate.gateStatus,
+          value: latest.snapshotStatus,
+          message: gate.safeMessage || latest.nextAction || "Gate did not return a message.",
+          tone: toneForGateStatus(gate.gateStatus, latest.snapshotStatus)
+        }))}
+      />
+
+      <div className="snapshot-history-table" role="table" aria-label="Persisted FM26 snapshot history">
+        <div className="snapshot-history-row snapshot-history-head" role="row">
+          <span>Generated</span>
+          <span>Status</span>
+          <span>Connector</span>
+          <span>Gate</span>
+          <span>Next Action</span>
+        </div>
+        {rows.map((row) => (
+          <div className="snapshot-history-row" role="row" key={row.snapshotId}>
+            <strong>{formatTimestamp(row.generatedAtUtc)}</strong>
+            <SignalBadge tone={toneForSnapshotStatus(row.snapshotStatus)} value={row.snapshotStatus} />
+            <span>{row.connectorStatus || "Not checked"}</span>
+            <span>{row.blockingGate || "None"}</span>
+            <p>{row.nextAction || "No next action recorded."}</p>
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -1585,6 +1742,25 @@ function toneForGateStatus(gateStatus: string | undefined, snapshotStatus: strin
 
 function formatNullable(value: number | null): string {
   return value === null ? "Unknown" : String(value);
+}
+
+function formatTimestamp(value: string): string {
+  if (!value) {
+    return "Not checked";
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return value;
+  }
+
+  return parsed.toLocaleString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
 }
 
 function normalizePercent(value: number | null): number {

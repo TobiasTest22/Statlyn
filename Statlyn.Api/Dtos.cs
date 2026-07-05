@@ -145,6 +145,68 @@ namespace Statlyn.Api
         IReadOnlyList<string> Warnings,
         IReadOnlyList<string> Errors);
 
+    public sealed record Fm26SnapshotSummaryDto(
+        string SnapshotId,
+        string GeneratedAtUtc,
+        string SnapshotStatus,
+        string ConnectorStatus,
+        string ProcessStatus,
+        string ReadOnlyStatus,
+        string MapRegistryStatus,
+        string BlockingGate,
+        bool LiveReadingAllowed,
+        string NextAction,
+        int WarningsCount,
+        int ErrorsCount);
+
+    public sealed record Fm26PersistedSnapshotDto(
+        string SnapshotId,
+        string GeneratedAtUtc,
+        string SnapshotStatus,
+        string SafeMessage,
+        string ConnectorStatus,
+        string PlatformStatus,
+        bool ProcessDetected,
+        string ProcessStatus,
+        string ReadOnlyStatus,
+        string MapRegistryStatus,
+        int MapsFound,
+        int ValidatedMaps,
+        int TemplateMaps,
+        int InvalidMaps,
+        Fm26SelectedMapSummaryDto SelectedMapSummary,
+        bool AllGatesPassed,
+        string BlockingGate,
+        bool LiveReadingAllowed,
+        string NextAction,
+        int WarningsCount,
+        int ErrorsCount,
+        IReadOnlyList<Fm26SnapshotGateDto> Gates);
+
+    public sealed record Fm26SnapshotHistoryDto(
+        bool Success,
+        string SafeMessage,
+        int TotalCount,
+        Fm26PersistedSnapshotDto? LatestSnapshot,
+        IReadOnlyList<Fm26SnapshotSummaryDto> Snapshots,
+        IReadOnlyList<string> Warnings,
+        IReadOnlyList<string> Errors);
+
+    public sealed record Fm26SnapshotCreateResultDto(
+        bool Success,
+        string SafeMessage,
+        Fm26PersistedSnapshotDto? Snapshot,
+        int TotalCount,
+        IReadOnlyList<string> Warnings,
+        IReadOnlyList<string> Errors);
+
+    public sealed record Fm26SnapshotLookupDto(
+        bool Found,
+        string SafeMessage,
+        Fm26PersistedSnapshotDto? Snapshot,
+        IReadOnlyList<string> Warnings,
+        IReadOnlyList<string> Errors);
+
     public sealed record DashboardOverviewDto(
         string SafeMessage,
         string DatabasePath,

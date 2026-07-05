@@ -1,5 +1,6 @@
 param(
-    [switch]$SkipBuild
+    [switch]$SkipBuild,
+    [switch]$NoPersist
 )
 
 $ErrorActionPreference = "Stop"
@@ -73,6 +74,9 @@ try {
         $connector = $null
         $memoryMaps = $null
         $snapshot = $null
+        $createdSnapshot = $null
+        $latestSnapshot = $null
+        $snapshotHistory = $null
 
         for ($attempt = 0; $attempt -lt 30; $attempt++) {
             Start-Sleep -Seconds 1
@@ -104,6 +108,24 @@ try {
             throw "FM26 support or live reading was reported before a validated reader exists."
         }
 
+        if (-not $NoPersist) {
+            $createdSnapshot = Invoke-RestMethod -Method Post -Uri "http://127.0.0.1:5118/diagnostics/fm26/snapshots" -TimeoutSec 5
+            $latestSnapshot = Invoke-RestMethod -Uri "http://127.0.0.1:5118/diagnostics/fm26/snapshots/latest" -TimeoutSec 5
+            $snapshotHistory = Invoke-RestMethod -Uri "http://127.0.0.1:5118/diagnostics/fm26/snapshots" -TimeoutSec 5
+
+            if (-not $createdSnapshot.success -or $createdSnapshot.snapshot -eq $null) {
+                throw "Persisted safe FM26 snapshot was not created."
+            }
+
+            if (-not $latestSnapshot.found -or $latestSnapshot.snapshot -eq $null) {
+                throw "Latest persisted safe FM26 snapshot was not returned."
+            }
+
+            if ($createdSnapshot.snapshot.liveReadingAllowed -or $latestSnapshot.snapshot.liveReadingAllowed) {
+                throw "Persisted snapshot reported live reading before a validated reader exists."
+            }
+        }
+
         Write-Host ("[Statlyn] Health: " + $health.status)
         Write-Host ("[Statlyn] Connector status: " + $snapshot.connectorStatus)
         Write-Host ("[Statlyn] Process status: " + $snapshot.fmProcessStatus)
@@ -115,6 +137,16 @@ try {
         Write-Host ("[Statlyn] Snapshot status: " + $snapshot.snapshotStatus)
         Write-Host ("[Statlyn] Blocking gate: " + $(if ([string]::IsNullOrWhiteSpace($snapshot.blockingGate)) { "None" } else { $snapshot.blockingGate }))
         Write-Host ("[Statlyn] Next action: " + $snapshot.nextAction)
+        if ($NoPersist) {
+            Write-Host "[Statlyn] Snapshot persistence skipped by -NoPersist."
+        }
+        else {
+            Write-Host ("[Statlyn] Created persisted snapshot: " + $createdSnapshot.snapshot.snapshotId)
+            Write-Host ("[Statlyn] Latest persisted status: " + $latestSnapshot.snapshot.snapshotStatus)
+            Write-Host ("[Statlyn] Persisted history count: " + $snapshotHistory.totalCount)
+            Write-Host ("[Statlyn] Persisted blocking gate: " + $(if ([string]::IsNullOrWhiteSpace($latestSnapshot.snapshot.blockingGate)) { "None" } else { $latestSnapshot.snapshot.blockingGate }))
+            Write-Host ("[Statlyn] Persisted next action: " + $latestSnapshot.snapshot.nextAction)
+        }
         Write-Host "[Statlyn] Safe snapshot contains diagnostics metadata only. No player data is read."
     }
 }

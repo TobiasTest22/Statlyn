@@ -5,6 +5,7 @@ using System.Linq;
 using Statlyn.Data;
 using Statlyn.Data.Benchmarks;
 using Statlyn.Data.Dashboard;
+using Statlyn.Data.Fm26Snapshots;
 using Statlyn.Data.Profile;
 using Statlyn.Data.Readiness;
 using Statlyn.Data.Recruitment;
@@ -25,6 +26,7 @@ namespace Statlyn.Api
         private readonly MemoryMapRegistryLoader _memoryMapLoader;
         private readonly MemoryMapSelector _memoryMapSelector;
         private readonly SafeFm26SnapshotService _snapshotService;
+        private readonly Fm26SnapshotHistoryService _snapshotHistoryService;
 
         public StatlynApiDtoFactory(StatlynDbConnectionFactory connectionFactory)
             : this(connectionFactory, new SafeFm26ConnectorService(new NullFm26NativeConnector()), MemoryMapRegistryLoader.FromAppBase(AppContext.BaseDirectory))
@@ -43,6 +45,7 @@ namespace Statlyn.Api
             _memoryMapLoader = memoryMapLoader ?? throw new ArgumentNullException(nameof(memoryMapLoader));
             _memoryMapSelector = new MemoryMapSelector();
             _snapshotService = new SafeFm26SnapshotService(_connectorService, _memoryMapLoader, _memoryMapSelector, new Fm26SnapshotGateEvaluator());
+            _snapshotHistoryService = new Fm26SnapshotHistoryService(_connectionFactory);
         }
 
         public AppHealthDto GetHealth()
@@ -82,6 +85,47 @@ namespace Statlyn.Api
         {
             var result = _snapshotService.CreateSnapshot();
             return MapFm26Snapshot(result.Snapshot);
+        }
+
+        public Fm26SnapshotCreateResultDto CreateFm26Snapshot()
+        {
+            var result = _snapshotService.CreateSnapshot();
+            var history = _snapshotHistoryService.SaveSnapshot(result.Snapshot);
+            return new Fm26SnapshotCreateResultDto(
+                history.Success,
+                history.SafeMessage,
+                history.Snapshot == null ? null : MapPersistedFm26Snapshot(history.Snapshot),
+                history.TotalCount,
+                history.Warnings,
+                history.Errors);
+        }
+
+        public Fm26SnapshotLookupDto GetLatestPersistedFm26Snapshot()
+        {
+            var history = _snapshotHistoryService.GetLatestSnapshot();
+            return new Fm26SnapshotLookupDto(
+                history.Snapshot != null,
+                history.SafeMessage,
+                history.Snapshot == null ? null : MapPersistedFm26Snapshot(history.Snapshot),
+                history.Warnings,
+                history.Errors);
+        }
+
+        public Fm26SnapshotHistoryDto GetFm26SnapshotHistory(int limit)
+        {
+            var history = _snapshotHistoryService.ListSnapshots(limit);
+            return MapFm26SnapshotHistory(history);
+        }
+
+        public Fm26SnapshotLookupDto GetPersistedFm26Snapshot(string snapshotId)
+        {
+            var history = _snapshotHistoryService.GetSnapshotById(snapshotId ?? string.Empty);
+            return new Fm26SnapshotLookupDto(
+                history.Snapshot != null,
+                history.SafeMessage,
+                history.Snapshot == null ? null : MapPersistedFm26Snapshot(history.Snapshot),
+                history.Warnings,
+                history.Errors);
         }
 
         public DashboardOverviewDto GetDashboard()
@@ -385,6 +429,73 @@ namespace Statlyn.Api
                 snapshot.NextActionSafeMessage,
                 snapshot.Warnings,
                 snapshot.Errors);
+        }
+
+        private static Fm26SnapshotHistoryDto MapFm26SnapshotHistory(Fm26SnapshotHistoryResult history)
+        {
+            var latest = history.Snapshot ?? history.Snapshots.FirstOrDefault();
+            return new Fm26SnapshotHistoryDto(
+                history.Success,
+                history.SafeMessage,
+                history.TotalCount,
+                latest == null ? null : MapPersistedFm26Snapshot(latest),
+                history.Snapshots.Select(MapFm26SnapshotSummary).ToList(),
+                history.Warnings,
+                history.Errors);
+        }
+
+        private static Fm26SnapshotSummaryDto MapFm26SnapshotSummary(PersistedFm26SnapshotRecord snapshot)
+        {
+            return new Fm26SnapshotSummaryDto(
+                snapshot.SnapshotId,
+                snapshot.GeneratedAtUtc.ToString("O", CultureInfo.InvariantCulture),
+                snapshot.SnapshotStatus,
+                snapshot.ConnectorAvailability,
+                snapshot.ProcessStatus,
+                snapshot.ReadOnlyAccessStatus,
+                snapshot.MemoryMapRegistryStatus,
+                snapshot.BlockingGate,
+                snapshot.LiveReadingAllowed,
+                snapshot.NextActionSafeMessage,
+                snapshot.WarningCount,
+                snapshot.ErrorCount);
+        }
+
+        private static Fm26PersistedSnapshotDto MapPersistedFm26Snapshot(PersistedFm26SnapshotRecord snapshot)
+        {
+            return new Fm26PersistedSnapshotDto(
+                snapshot.SnapshotId,
+                snapshot.GeneratedAtUtc.ToString("O", CultureInfo.InvariantCulture),
+                snapshot.SnapshotStatus,
+                snapshot.SafeMessage,
+                snapshot.ConnectorAvailability,
+                snapshot.PlatformStatus,
+                snapshot.ProcessDetected,
+                snapshot.ProcessStatus,
+                snapshot.ReadOnlyAccessStatus,
+                snapshot.MemoryMapRegistryStatus,
+                snapshot.MapsFound,
+                snapshot.ValidatedMaps,
+                snapshot.TemplateMaps,
+                snapshot.InvalidMaps,
+                new Fm26SelectedMapSummaryDto(
+                    snapshot.SelectedMapId,
+                    snapshot.SelectedMapDisplayName,
+                    snapshot.SelectedMapBuild,
+                    snapshot.MemoryMapRegistryStatus),
+                snapshot.AllGatesPassed,
+                snapshot.BlockingGate,
+                snapshot.LiveReadingAllowed,
+                snapshot.NextActionSafeMessage,
+                snapshot.WarningCount,
+                snapshot.ErrorCount,
+                snapshot.Gates.Select(gate => new Fm26SnapshotGateDto(
+                    gate.GateKey,
+                    gate.GateName,
+                    gate.Status,
+                    snapshot.SnapshotStatus,
+                    gate.SafeMessage,
+                    string.Empty)).ToList());
         }
 
         private RecruitmentCentreResult LoadRecruitmentRows()

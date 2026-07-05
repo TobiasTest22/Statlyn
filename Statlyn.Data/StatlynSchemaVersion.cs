@@ -2,6 +2,6 @@ namespace Statlyn.Data
 {
     public static class StatlynSchemaVersion
     {
-        public const int Current = 5;
+        public const int Current = 6;
     }
 }

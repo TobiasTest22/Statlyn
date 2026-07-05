@@ -149,6 +149,65 @@ export type Fm26SnapshotDto = {
   errors: string[];
 };
 
+export type Fm26SnapshotSummaryDto = {
+  snapshotId: string;
+  generatedAtUtc: string;
+  snapshotStatus: string;
+  connectorStatus: string;
+  processStatus: string;
+  readOnlyStatus: string;
+  mapRegistryStatus: string;
+  blockingGate: string;
+  liveReadingAllowed: boolean;
+  nextAction: string;
+  warningsCount: number;
+  errorsCount: number;
+};
+
+export type Fm26PersistedSnapshotDto = {
+  snapshotId: string;
+  generatedAtUtc: string;
+  snapshotStatus: string;
+  safeMessage: string;
+  connectorStatus: string;
+  platformStatus: string;
+  processDetected: boolean;
+  processStatus: string;
+  readOnlyStatus: string;
+  mapRegistryStatus: string;
+  mapsFound: number;
+  validatedMaps: number;
+  templateMaps: number;
+  invalidMaps: number;
+  selectedMapSummary: Fm26SelectedMapSummaryDto;
+  allGatesPassed: boolean;
+  blockingGate: string;
+  liveReadingAllowed: boolean;
+  nextAction: string;
+  warningsCount: number;
+  errorsCount: number;
+  gates: Fm26SnapshotGateDto[];
+};
+
+export type Fm26SnapshotHistoryDto = {
+  success: boolean;
+  safeMessage: string;
+  totalCount: number;
+  latestSnapshot: Fm26PersistedSnapshotDto | null;
+  snapshots: Fm26SnapshotSummaryDto[];
+  warnings: string[];
+  errors: string[];
+};
+
+export type Fm26SnapshotCreateResultDto = {
+  success: boolean;
+  safeMessage: string;
+  snapshot: Fm26PersistedSnapshotDto | null;
+  totalCount: number;
+  warnings: string[];
+  errors: string[];
+};
+
 export type DashboardOverviewDto = {
   safeMessage: string;
   databasePath: string;
@@ -249,5 +308,6 @@ export type ApiState = {
   connectorStatus: Fm26ConnectorStatusDto | null;
   memoryMaps: MemoryMapRegistryDto | null;
   fm26Snapshot: Fm26SnapshotDto | null;
+  fm26SnapshotHistory: Fm26SnapshotHistoryDto | null;
   scoutReports: ScoutReportSummaryDto[];
 };

@@ -1,6 +1,6 @@
 # FM26 Safe Snapshot Foundation
 
-Milestone 3.4 adds a safe FM26 snapshot foundation for diagnostic metadata only.
+Milestone 3.4 adds a safe FM26 snapshot foundation for diagnostic metadata only. Milestone 3.5 adds a persisted audit trail for those same safe diagnostics.
 
 This is not player reading, not live squad data, not memory-map field reading and not hidden value access. The snapshot answers whether the local FM26 environment is ready for future work and which safety gate currently blocks live reading.
 
@@ -54,6 +54,17 @@ Safe snapshot DTOs are exposed through:
 - `/connector/fm26/snapshot`
 - `/diagnostics/fm26/snapshot/readiness`
 
+The preview endpoint remains read-only from an audit perspective: `GET /diagnostics/fm26/snapshot` creates an in-memory preview and does not append history.
+
+Persisted snapshots are safe diagnostic metadata only. No player data is stored, no hidden values are stored and no raw memory details are stored. The audit API is:
+
+- `POST /diagnostics/fm26/snapshots` creates and stores one safe diagnostic snapshot
+- `GET /diagnostics/fm26/snapshots/latest` returns the latest persisted safe snapshot
+- `GET /diagnostics/fm26/snapshots` lists persisted safe snapshot summaries
+- `GET /diagnostics/fm26/snapshots/{snapshotId}` returns one persisted safe snapshot
+
+Persisted rows may include generated time, snapshot status, connector status, process status, read-only status, memory-map registry status, map counts, blocking gate, live-reading allowed flag, next action and gate results. They must not include player data, attributes, hidden values, CA, PA, memory addresses, raw offsets, native handles, raw provider snapshots or raw memory-map internals.
+
 React/Tauri displays these DTOs only through `Statlyn.Api`. It must not call the native connector, parse memory-map files, read SQLite, inspect local processes or calculate recruitment decisions.
 
 ## Validation
@@ -64,6 +75,6 @@ Run:
 .\tools\run-safe-snapshot-diagnostics.ps1
 ```
 
-The script builds the managed solution, runs the native read-only scan, validates memory-map metadata, starts `Statlyn.Api` temporarily, checks health/connector/map/snapshot endpoints, prints a safe status summary and stops the API process. It does not require FM26 and does not read player data.
+The script builds the managed solution, runs the native read-only scan, validates memory-map metadata, starts `Statlyn.Api` temporarily, checks health/connector/map/snapshot endpoints, creates a persisted safe snapshot by default, checks latest/history endpoints, prints a safe status summary and stops the API process. Use `-NoPersist` for preview-only validation. It does not require FM26 and does not read player data.
 
 First real memory field reads remain a future milestone after validated maps, field policy review and a reviewed safe reader path.

@@ -18,6 +18,8 @@ The desktop UI may handle:
 - local UI state
 - connector status display from `/connector/status`
 - safe FM26 snapshot gate display from `/diagnostics/fm26/snapshot`
+- safe persisted FM26 snapshot audit display from `/diagnostics/fm26/snapshots`
+- safe snapshot creation through `POST /diagnostics/fm26/snapshots`
 - selected-row UI state for highlighting already-safe API rows
 
 The desktop UI must not contain:
@@ -119,7 +121,9 @@ No fake data is a hard rule. The UI must not create fake rows, fake KPIs, fake s
 
 The Connector Status panel is informational only. It displays the API-reported binding availability, FM process detection state, read-only access status and support message. A detected FM process must still render as unsupported until validated maps exist.
 
-For Milestone 3.3 through 3.4, the FM26 Diagnostics surface displays safe API DTO fields only: native connector availability, Windows/platform state, FM process detected/not detected, safe executable file/folder labels, version/build metadata where available, read-only access, memory-map registry counts, selected-map safe summary, map status, safe snapshot gates, blocking gate and next action. FM process detection, map selection and safe snapshots are diagnostics metadata only. Memory maps remain metadata-only templates until validated. No player data is read. FM26 remains unsupported for player reading. React/Tauri never calls native connector directly, never parses map files, never inspects local processes and never reads SQLite directly.
+For Milestone 3.3 through 3.5, the FM26 Diagnostics surface displays safe API DTO fields only: native connector availability, Windows/platform state, FM process detected/not detected, safe executable file/folder labels, version/build metadata where available, read-only access, memory-map registry counts, selected-map safe summary, map status, safe snapshot gates, blocking gate, next action and persisted snapshot audit history. FM process detection, map selection and safe snapshots are diagnostics metadata only. Persisted snapshots are safe diagnostic metadata only. No player data is stored. Memory maps remain metadata-only templates until validated. No player data is read. FM26 remains unsupported for player reading. React/Tauri never calls native connector directly, never parses map files, never inspects local processes and never reads SQLite directly.
+
+The snapshot audit UI shows latest persisted snapshot, history rows, blocking gate, next action and gate ledger from `Statlyn.Api`. If no persisted history exists, it shows `No persisted snapshots yet` and no fake rows. The create button calls `POST /diagnostics/fm26/snapshots` and refreshes API history; it does not evaluate gates or open local storage in React.
 
 First real memory field reads remain a future milestone after validated maps, a reviewed reader and field policy checks.
 

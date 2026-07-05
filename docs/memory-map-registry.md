@@ -1,6 +1,6 @@
 # Memory-Map Registry
 
-Milestone 3.3 adds a metadata-only FM26 memory-map registry. It answers which local map files exist, whether they are valid JSON, whether they are templates, whether they are validated, and whether any validated metadata matches detected FM process build metadata. Milestone 3.4 consumes that registry inside safe FM26 diagnostic snapshots.
+Milestone 3.3 adds a metadata-only FM26 memory-map registry. It answers which local map files exist, whether they are valid JSON, whether they are templates, whether they are validated, and whether any validated metadata matches detected FM process build metadata. Milestone 3.4 consumes that registry inside safe FM26 diagnostic snapshots. Milestone 3.5 persists the safe snapshot result as audit metadata.
 
 The registry does not read player data. It does not expose memory addresses, raw offsets, process handles, raw provider snapshots, hidden FM values, CA or PA. React/Tauri does not parse map files; it reads only safe DTO summaries from `Statlyn.Api`.
 
@@ -39,8 +39,11 @@ Safe registry status is exposed through:
 - `/diagnostics/fm26`
 - `/diagnostics/fm26/snapshot`
 - `/connector/fm26/snapshot`
+- `POST /diagnostics/fm26/snapshots`
+- `/diagnostics/fm26/snapshots/latest`
+- `/diagnostics/fm26/snapshots`
 
-The API exposes counts, statuses, safe messages, selected-map summary and snapshot gate outcomes only. It does not expose field internals, offsets, addresses, player values or hidden field names.
+The API exposes counts, statuses, safe messages, selected-map summary, snapshot gate outcomes and persisted audit history only. It does not expose field internals, offsets, addresses, player values or hidden field names. Persisted snapshots are safe diagnostic metadata only.
 
 ## Validation Rules
 

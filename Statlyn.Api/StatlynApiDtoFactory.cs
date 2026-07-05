@@ -6,6 +6,7 @@ using Statlyn.Data;
 using Statlyn.Data.Benchmarks;
 using Statlyn.Data.Dashboard;
 using Statlyn.Data.Fm26Snapshots;
+using Statlyn.Data.PlayerIntelligence;
 using Statlyn.Data.Profile;
 using Statlyn.Data.Readiness;
 using Statlyn.Data.Recruitment;
@@ -16,6 +17,7 @@ using Statlyn.Data.Workflow;
 using Statlyn.DataProviders.Fm26;
 using Statlyn.DataProviders.Fm26.MemoryMaps;
 using Statlyn.DataProviders.Fm26.Snapshots;
+using IntelligenceModels = Statlyn.Analytics.PlayerIntelligence;
 
 namespace Statlyn.Api
 {
@@ -188,6 +190,51 @@ namespace Statlyn.Api
                 profile.Diagnostics);
         }
 
+        public PlayerIntelligenceReadinessDto GetPlayerIntelligenceReadiness()
+        {
+            return MapReadiness(new PlayerIntelligenceService(_connectionFactory).GetReadiness());
+        }
+
+        public PlayerIntelligenceDto GetPlayerIntelligence(string id)
+        {
+            return MapIntelligence(new PlayerIntelligenceService(_connectionFactory).GetIntelligence(id ?? string.Empty));
+        }
+
+        public PlayerSkillRadarDto GetPlayerRadar(string id)
+        {
+            return MapRadar(new PlayerIntelligenceService(_connectionFactory).GetRadar(id ?? string.Empty));
+        }
+
+        public PlayerPer90SummaryDto GetPlayerPer90(string id)
+        {
+            return MapPer90(new PlayerIntelligenceService(_connectionFactory).GetPer90(id ?? string.Empty));
+        }
+
+        public PlayerHeatmapDto GetPlayerHeatmap(string id)
+        {
+            return MapHeatmap(new PlayerIntelligenceService(_connectionFactory).GetHeatmap(id ?? string.Empty));
+        }
+
+        public PlayerSimilarityDto GetPlayerSimilar(string id)
+        {
+            return MapSimilarity(new PlayerIntelligenceService(_connectionFactory).GetSimilar(id ?? string.Empty));
+        }
+
+        public PlayerFitProjectionDto GetPlayerFit(string id)
+        {
+            return MapFit(new PlayerIntelligenceService(_connectionFactory).GetFit(id ?? string.Empty));
+        }
+
+        public PlayerValueEstimateDto GetPlayerValue(string id)
+        {
+            return MapValue(new PlayerIntelligenceService(_connectionFactory).GetValue(id ?? string.Empty));
+        }
+
+        public LeagueAverageComparisonDto GetPlayerLeagueComparison(string id)
+        {
+            return MapLeagueComparison(new PlayerIntelligenceService(_connectionFactory).GetLeagueComparison(id ?? string.Empty));
+        }
+
         public RecruitmentBoardDto GetRecruitmentBoard()
         {
             var result = LoadRecruitmentRows();
@@ -288,6 +335,224 @@ namespace Statlyn.Api
                     : "Connector diagnostics unavailable. " + connector.SupportStatusMessage + " " + selection.SupportMessage + " No live FM26 data.",
                 readiness.Warnings,
                 readiness.Errors);
+        }
+
+        private static PlayerIntelligenceReadinessDto MapReadiness(IntelligenceModels.PlayerIntelligenceReadiness readiness)
+        {
+            return new PlayerIntelligenceReadinessDto(
+                readiness.Available,
+                readiness.SafeMessage,
+                readiness.ImportedPlayers,
+                readiness.EventLocationRows,
+                readiness.MarketContextRows,
+                readiness.TeamStyleRows,
+                readiness.LeagueAverageRows,
+                readiness.StyleVectorRows,
+                readiness.Warnings);
+        }
+
+        private static PlayerIntelligenceDto MapIntelligence(IntelligenceModels.PlayerIntelligenceResult result)
+        {
+            return new PlayerIntelligenceDto(
+                MapProfile(result.Profile),
+                MapRadar(result.Radar),
+                MapPer90(result.Per90),
+                MapHeatmap(result.Heatmap),
+                MapValue(result.ValueEstimate),
+                MapFit(result.FitProjection),
+                MapArchetype(result.Archetype),
+                MapSimilarity(result.SimilarPlayers),
+                MapLeagueComparison(result.LeagueComparison),
+                MapRoleAssessment(result.RoleAssessment));
+        }
+
+        private static PlayerIntelligenceProfileDto MapProfile(IntelligenceModels.PlayerIntelligenceProfile profile)
+        {
+            return new PlayerIntelligenceProfileDto(
+                profile.Available,
+                profile.SafeMessage,
+                profile.StatlynPlayerId,
+                profile.DisplayName,
+                profile.Position,
+                profile.Role,
+                profile.Source,
+                profile.Age,
+                profile.Nationality,
+                profile.DataQuality,
+                profile.Confidence,
+                profile.RoleFit,
+                profile.Warnings,
+                profile.RequiredFieldsMissing);
+        }
+
+        private static PlayerSkillRadarDto MapRadar(IntelligenceModels.PlayerSkillRadar radar)
+        {
+            return new PlayerSkillRadarDto(
+                radar.Available,
+                radar.SafeMessage,
+                radar.ProfileType,
+                radar.DataQuality,
+                radar.Confidence,
+                radar.RequiredFieldsMissing,
+                radar.Warnings,
+                radar.Axes.Select(MapRadarAxis).ToList());
+        }
+
+        private static PlayerRadarAxisDto MapRadarAxis(IntelligenceModels.PlayerRadarAxis axis)
+        {
+            return new PlayerRadarAxisDto(
+                axis.AxisKey,
+                axis.Label,
+                axis.Value,
+                axis.BenchmarkValue,
+                axis.SourceMetric,
+                axis.DataQuality,
+                axis.Confidence);
+        }
+
+        private static PlayerPer90SummaryDto MapPer90(IntelligenceModels.PlayerPer90Summary per90)
+        {
+            return new PlayerPer90SummaryDto(
+                per90.Available,
+                per90.SafeMessage,
+                per90.DataQuality,
+                per90.Confidence,
+                per90.RequiredFieldsMissing,
+                per90.Warnings,
+                per90.Metrics.Select(metric => new PlayerPer90MetricDto(
+                    metric.MetricKey,
+                    metric.Label,
+                    metric.Value,
+                    metric.Unit,
+                    metric.Minutes,
+                    metric.DataQuality,
+                    metric.Confidence)).ToList());
+        }
+
+        private static PlayerHeatmapDto MapHeatmap(IntelligenceModels.PlayerHeatmapSummary heatmap)
+        {
+            return new PlayerHeatmapDto(
+                heatmap.Available,
+                heatmap.SafeMessage,
+                heatmap.DataQuality,
+                heatmap.Confidence,
+                heatmap.RequiredFieldsMissing,
+                heatmap.Warnings,
+                heatmap.Points.Select(point => new PlayerHeatmapPointDto(
+                    point.MatchId,
+                    point.Minute,
+                    point.X,
+                    point.Y,
+                    point.ActionType,
+                    point.Confidence)).ToList());
+        }
+
+        private static PlayerValueEstimateDto MapValue(IntelligenceModels.PlayerValueEstimate estimate)
+        {
+            return new PlayerValueEstimateDto(
+                estimate.Available,
+                estimate.SafeMessage,
+                estimate.FairValueLow,
+                estimate.FairValueMid,
+                estimate.FairValueHigh,
+                estimate.Currency,
+                estimate.ValueIndex,
+                estimate.Confidence,
+                estimate.DataQuality,
+                estimate.KeyValueDrivers,
+                estimate.KeyDiscountDrivers,
+                estimate.MissingInputs,
+                estimate.ModelVersion);
+        }
+
+        private static PlayerFitProjectionDto MapFit(IntelligenceModels.PlayerFitProjection fit)
+        {
+            return new PlayerFitProjectionDto(
+                fit.Available,
+                fit.SafeMessage,
+                fit.DataQuality,
+                fit.Confidence,
+                fit.RoleFitSummary,
+                fit.TeamStyleSummary,
+                fit.RequiredFieldsMissing,
+                fit.Warnings);
+        }
+
+        private static PlayerArchetypeDto MapArchetype(IntelligenceModels.PlayerArchetypeResult archetype)
+        {
+            return new PlayerArchetypeDto(
+                archetype.Available,
+                archetype.SafeMessage,
+                archetype.Archetype,
+                archetype.DataQuality,
+                archetype.Confidence,
+                archetype.EvidenceMetrics,
+                archetype.RequiredFieldsMissing,
+                archetype.Warnings);
+        }
+
+        private static PlayerSimilarityDto MapSimilarity(IntelligenceModels.PlayerSimilarityResult similarity)
+        {
+            return new PlayerSimilarityDto(
+                similarity.Available,
+                similarity.SafeMessage,
+                similarity.DataQuality,
+                similarity.Confidence,
+                similarity.RequiredFieldsMissing,
+                similarity.Warnings,
+                similarity.Candidates.Select(candidate => new SimilarPlayerCandidateDto(
+                    candidate.StatlynPlayerId,
+                    candidate.DisplayName,
+                    candidate.Role,
+                    candidate.SimilarityScore,
+                    candidate.Confidence,
+                    candidate.DataQuality)).ToList());
+        }
+
+        private static LeagueAverageComparisonDto MapLeagueComparison(IntelligenceModels.LeagueAverageComparison comparison)
+        {
+            return new LeagueAverageComparisonDto(
+                comparison.Available,
+                comparison.SafeMessage,
+                comparison.LeagueKey,
+                comparison.ComparisonGroup,
+                comparison.SampleSize,
+                comparison.DataQuality,
+                comparison.Confidence,
+                comparison.RequiredFieldsMissing,
+                comparison.Warnings,
+                comparison.Comparisons.Select(MapRadarAxis).ToList());
+        }
+
+        private static RoleSpecificAssessmentDto MapRoleAssessment(IntelligenceModels.RoleSpecificAssessment assessment)
+        {
+            return new RoleSpecificAssessmentDto(
+                assessment.Available,
+                assessment.SafeMessage,
+                assessment.RoleName,
+                assessment.DataQuality,
+                assessment.Confidence,
+                assessment.RequiredFieldsMissing,
+                assessment.Warnings,
+                assessment.Definition == null ? null : MapRoleDefinition(assessment.Definition));
+        }
+
+        private static RoleParameterDefinitionDto MapRoleDefinition(IntelligenceModels.RoleParameterDefinition definition)
+        {
+            return new RoleParameterDefinitionDto(
+                definition.RoleName,
+                definition.RoleFamily,
+                definition.PrimaryMetrics.Select(MapRoleMetric).ToList(),
+                definition.SecondaryMetrics.Select(MapRoleMetric).ToList(),
+                definition.RiskMetrics.Select(MapRoleMetric).ToList(),
+                definition.StyleTraits,
+                definition.MinimumMinutes,
+                definition.UnavailableConditions);
+        }
+
+        private static RoleParameterMetricDto MapRoleMetric(IntelligenceModels.RoleParameterMetric metric)
+        {
+            return new RoleParameterMetricDto(metric.MetricKey, metric.Label, metric.Category, metric.Required, metric.MinimumMinutes);
         }
 
         private static Fm26ConnectorStatusDto MapConnectorStatus(Fm26ConnectorDiagnostic diagnostic, MemoryMapRegistryDiagnostic registry, MemoryMapSelectionResult selection)

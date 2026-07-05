@@ -9,6 +9,8 @@ import type {
   Fm26SnapshotDto,
   Fm26SnapshotHistoryDto,
   MemoryMapRegistryDto,
+  PlayerIntelligenceDto,
+  PlayerIntelligenceReadinessDto,
   RecruitmentBoardDto,
   RoleLabSummaryDto,
   ScoutReportSummaryDto
@@ -61,7 +63,20 @@ async function requestJson<T>(path: string, init: RequestInit): Promise<T> {
 }
 
 export async function loadWorkspace(): Promise<ApiState> {
-  const [health, dashboard, board, roleLab, dataSources, diagnostics, connectorStatus, memoryMaps, fm26Snapshot, fm26SnapshotHistory, scoutReports] = await Promise.all([
+  const [
+    health,
+    dashboard,
+    board,
+    roleLab,
+    dataSources,
+    diagnostics,
+    connectorStatus,
+    memoryMaps,
+    fm26Snapshot,
+    fm26SnapshotHistory,
+    playerIntelligenceReadiness,
+    scoutReports
+  ] = await Promise.all([
     getJson<AppHealthDto>("/health"),
     getJson<DashboardOverviewDto>("/dashboard"),
     getJson<RecruitmentBoardDto>("/recruitment-board"),
@@ -72,14 +87,32 @@ export async function loadWorkspace(): Promise<ApiState> {
     getJson<MemoryMapRegistryDto>("/diagnostics/memory-maps"),
     getJson<Fm26SnapshotDto>("/diagnostics/fm26/snapshot"),
     getJson<Fm26SnapshotHistoryDto>("/diagnostics/fm26/snapshots"),
+    getJson<PlayerIntelligenceReadinessDto>("/analytics/player-intelligence/readiness"),
     getJson<ScoutReportSummaryDto[]>("/scout-reports")
   ]);
 
-  return { health, dashboard, board, roleLab, dataSources, diagnostics, connectorStatus, memoryMaps, fm26Snapshot, fm26SnapshotHistory, scoutReports };
+  return {
+    health,
+    dashboard,
+    board,
+    roleLab,
+    dataSources,
+    diagnostics,
+    connectorStatus,
+    memoryMaps,
+    fm26Snapshot,
+    fm26SnapshotHistory,
+    playerIntelligenceReadiness,
+    scoutReports
+  };
 }
 
 export async function createPersistedFm26Snapshot(): Promise<Fm26SnapshotCreateResultDto> {
   return postJson<Fm26SnapshotCreateResultDto>("/diagnostics/fm26/snapshots");
+}
+
+export async function getPlayerIntelligence(playerId: string): Promise<PlayerIntelligenceDto> {
+  return getJson<PlayerIntelligenceDto>(`/players/${encodeURIComponent(playerId)}/intelligence`);
 }
 
 export function apiBaseUrl(): string {

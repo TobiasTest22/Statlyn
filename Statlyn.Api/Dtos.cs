@@ -254,6 +254,198 @@ namespace Statlyn.Api
         IReadOnlyList<string> Warnings,
         IReadOnlyList<string> Diagnostics);
 
+    public sealed record PlayerDataAvailabilityDto(
+        bool Available,
+        string SafeMessage,
+        string DataQuality,
+        int Confidence,
+        IReadOnlyList<string> MissingFields,
+        IReadOnlyList<string> Warnings);
+
+    public sealed record PlayerIntelligenceReadinessDto(
+        bool Available,
+        string SafeMessage,
+        int ImportedPlayers,
+        int EventLocationRows,
+        int MarketContextRows,
+        int TeamStyleRows,
+        int LeagueAverageRows,
+        int StyleVectorRows,
+        IReadOnlyList<string> Warnings);
+
+    public sealed record PlayerIntelligenceProfileDto(
+        bool Available,
+        string SafeMessage,
+        string StatlynPlayerId,
+        string DisplayName,
+        string Position,
+        string Role,
+        string Source,
+        int? Age,
+        string Nationality,
+        string DataQuality,
+        int Confidence,
+        int? RoleFit,
+        IReadOnlyList<string> Warnings,
+        IReadOnlyList<string> MissingFields);
+
+    public sealed record PlayerRadarAxisDto(
+        string AxisKey,
+        string Label,
+        double? Value,
+        double? BenchmarkValue,
+        string SourceMetric,
+        string DataQuality,
+        int Confidence);
+
+    public sealed record PlayerSkillRadarDto(
+        bool Available,
+        string SafeMessage,
+        string ProfileType,
+        string DataQuality,
+        int Confidence,
+        IReadOnlyList<string> MissingFields,
+        IReadOnlyList<string> Warnings,
+        IReadOnlyList<PlayerRadarAxisDto> Axes);
+
+    public sealed record PlayerPer90MetricDto(
+        string MetricKey,
+        string Label,
+        double Value,
+        string Unit,
+        int Minutes,
+        string DataQuality,
+        int Confidence);
+
+    public sealed record PlayerPer90SummaryDto(
+        bool Available,
+        string SafeMessage,
+        string DataQuality,
+        int Confidence,
+        IReadOnlyList<string> MissingFields,
+        IReadOnlyList<string> Warnings,
+        IReadOnlyList<PlayerPer90MetricDto> Metrics);
+
+    public sealed record PlayerHeatmapPointDto(
+        string MatchId,
+        double Minute,
+        double X,
+        double Y,
+        string ActionType,
+        int Confidence);
+
+    public sealed record PlayerHeatmapDto(
+        bool Available,
+        string SafeMessage,
+        string DataQuality,
+        int Confidence,
+        IReadOnlyList<string> MissingFields,
+        IReadOnlyList<string> Warnings,
+        IReadOnlyList<PlayerHeatmapPointDto> Points);
+
+    public sealed record PlayerValueEstimateDto(
+        bool Available,
+        string SafeMessage,
+        double? FairValueLow,
+        double? FairValueMid,
+        double? FairValueHigh,
+        string Currency,
+        double? ValueIndex,
+        int Confidence,
+        string DataQuality,
+        IReadOnlyList<string> KeyValueDrivers,
+        IReadOnlyList<string> KeyDiscountDrivers,
+        IReadOnlyList<string> MissingInputs,
+        string ModelVersion);
+
+    public sealed record PlayerFitProjectionDto(
+        bool Available,
+        string SafeMessage,
+        string DataQuality,
+        int Confidence,
+        string RoleFitSummary,
+        string TeamStyleSummary,
+        IReadOnlyList<string> MissingFields,
+        IReadOnlyList<string> Warnings);
+
+    public sealed record PlayerArchetypeDto(
+        bool Available,
+        string SafeMessage,
+        string Archetype,
+        string DataQuality,
+        int Confidence,
+        IReadOnlyList<string> EvidenceMetrics,
+        IReadOnlyList<string> MissingFields,
+        IReadOnlyList<string> Warnings);
+
+    public sealed record SimilarPlayerCandidateDto(
+        string StatlynPlayerId,
+        string DisplayName,
+        string Role,
+        double SimilarityScore,
+        int Confidence,
+        string DataQuality);
+
+    public sealed record PlayerSimilarityDto(
+        bool Available,
+        string SafeMessage,
+        string DataQuality,
+        int Confidence,
+        IReadOnlyList<string> MissingFields,
+        IReadOnlyList<string> Warnings,
+        IReadOnlyList<SimilarPlayerCandidateDto> Candidates);
+
+    public sealed record LeagueAverageComparisonDto(
+        bool Available,
+        string SafeMessage,
+        string LeagueKey,
+        string ComparisonGroup,
+        int SampleSize,
+        string DataQuality,
+        int Confidence,
+        IReadOnlyList<string> MissingFields,
+        IReadOnlyList<string> Warnings,
+        IReadOnlyList<PlayerRadarAxisDto> Comparisons);
+
+    public sealed record RoleParameterMetricDto(
+        string MetricKey,
+        string Label,
+        string Category,
+        bool Required,
+        int MinimumMinutes);
+
+    public sealed record RoleParameterDefinitionDto(
+        string RoleName,
+        string RoleFamily,
+        IReadOnlyList<RoleParameterMetricDto> PrimaryMetrics,
+        IReadOnlyList<RoleParameterMetricDto> SecondaryMetrics,
+        IReadOnlyList<RoleParameterMetricDto> RiskMetrics,
+        IReadOnlyList<string> StyleTraits,
+        int MinimumMinutes,
+        IReadOnlyList<string> UnavailableConditions);
+
+    public sealed record RoleSpecificAssessmentDto(
+        bool Available,
+        string SafeMessage,
+        string RoleName,
+        string DataQuality,
+        int Confidence,
+        IReadOnlyList<string> MissingFields,
+        IReadOnlyList<string> Warnings,
+        RoleParameterDefinitionDto? Definition);
+
+    public sealed record PlayerIntelligenceDto(
+        PlayerIntelligenceProfileDto Profile,
+        PlayerSkillRadarDto Radar,
+        PlayerPer90SummaryDto Per90,
+        PlayerHeatmapDto Heatmap,
+        PlayerValueEstimateDto ValueEstimate,
+        PlayerFitProjectionDto FitProjection,
+        PlayerArchetypeDto Archetype,
+        PlayerSimilarityDto SimilarPlayers,
+        LeagueAverageComparisonDto LeagueComparison,
+        RoleSpecificAssessmentDto RoleAssessment);
+
     public sealed record RecruitmentBoardDto(
         string SafeMessage,
         int TotalPlayers,

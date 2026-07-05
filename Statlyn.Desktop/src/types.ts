@@ -241,6 +241,208 @@ export type PlayerListItemDto = {
   safeWarnings: string[];
 };
 
+export type PlayerIntelligenceReadinessDto = {
+  available: boolean;
+  safeMessage: string;
+  importedPlayers: number;
+  eventLocationRows: number;
+  marketContextRows: number;
+  teamStyleRows: number;
+  leagueAverageRows: number;
+  styleVectorRows: number;
+  warnings: string[];
+};
+
+export type PlayerIntelligenceProfileDto = {
+  available: boolean;
+  safeMessage: string;
+  statlynPlayerId: string;
+  displayName: string;
+  position: string;
+  role: string;
+  source: string;
+  age: number | null;
+  nationality: string;
+  dataQuality: string;
+  confidence: number;
+  roleFit: number | null;
+  warnings: string[];
+  missingFields: string[];
+};
+
+export type PlayerRadarAxisDto = {
+  axisKey: string;
+  label: string;
+  value: number | null;
+  benchmarkValue: number | null;
+  sourceMetric: string;
+  dataQuality: string;
+  confidence: number;
+};
+
+export type PlayerSkillRadarDto = {
+  available: boolean;
+  safeMessage: string;
+  profileType: string;
+  dataQuality: string;
+  confidence: number;
+  missingFields: string[];
+  warnings: string[];
+  axes: PlayerRadarAxisDto[];
+};
+
+export type PlayerPer90MetricDto = {
+  metricKey: string;
+  label: string;
+  value: number;
+  unit: string;
+  minutes: number;
+  dataQuality: string;
+  confidence: number;
+};
+
+export type PlayerPer90SummaryDto = {
+  available: boolean;
+  safeMessage: string;
+  dataQuality: string;
+  confidence: number;
+  missingFields: string[];
+  warnings: string[];
+  metrics: PlayerPer90MetricDto[];
+};
+
+export type PlayerHeatmapPointDto = {
+  matchId: string;
+  minute: number;
+  x: number;
+  y: number;
+  actionType: string;
+  confidence: number;
+};
+
+export type PlayerHeatmapDto = {
+  available: boolean;
+  safeMessage: string;
+  dataQuality: string;
+  confidence: number;
+  missingFields: string[];
+  warnings: string[];
+  points: PlayerHeatmapPointDto[];
+};
+
+export type PlayerValueEstimateDto = {
+  available: boolean;
+  safeMessage: string;
+  fairValueLow: number | null;
+  fairValueMid: number | null;
+  fairValueHigh: number | null;
+  currency: string;
+  valueIndex: number | null;
+  confidence: number;
+  dataQuality: string;
+  keyValueDrivers: string[];
+  keyDiscountDrivers: string[];
+  missingInputs: string[];
+  modelVersion: string;
+};
+
+export type PlayerFitProjectionDto = {
+  available: boolean;
+  safeMessage: string;
+  dataQuality: string;
+  confidence: number;
+  roleFitSummary: string;
+  teamStyleSummary: string;
+  missingFields: string[];
+  warnings: string[];
+};
+
+export type PlayerArchetypeDto = {
+  available: boolean;
+  safeMessage: string;
+  archetype: string;
+  dataQuality: string;
+  confidence: number;
+  evidenceMetrics: string[];
+  missingFields: string[];
+  warnings: string[];
+};
+
+export type SimilarPlayerCandidateDto = {
+  statlynPlayerId: string;
+  displayName: string;
+  role: string;
+  similarityScore: number;
+  confidence: number;
+  dataQuality: string;
+};
+
+export type PlayerSimilarityDto = {
+  available: boolean;
+  safeMessage: string;
+  dataQuality: string;
+  confidence: number;
+  missingFields: string[];
+  warnings: string[];
+  candidates: SimilarPlayerCandidateDto[];
+};
+
+export type LeagueAverageComparisonDto = {
+  available: boolean;
+  safeMessage: string;
+  leagueKey: string;
+  comparisonGroup: string;
+  sampleSize: number;
+  dataQuality: string;
+  confidence: number;
+  missingFields: string[];
+  warnings: string[];
+  comparisons: PlayerRadarAxisDto[];
+};
+
+export type RoleParameterMetricDto = {
+  metricKey: string;
+  label: string;
+  category: string;
+  required: boolean;
+  minimumMinutes: number;
+};
+
+export type RoleParameterDefinitionDto = {
+  roleName: string;
+  roleFamily: string;
+  primaryMetrics: RoleParameterMetricDto[];
+  secondaryMetrics: RoleParameterMetricDto[];
+  riskMetrics: RoleParameterMetricDto[];
+  styleTraits: string[];
+  minimumMinutes: number;
+  unavailableConditions: string[];
+};
+
+export type RoleSpecificAssessmentDto = {
+  available: boolean;
+  safeMessage: string;
+  roleName: string;
+  dataQuality: string;
+  confidence: number;
+  missingFields: string[];
+  warnings: string[];
+  definition: RoleParameterDefinitionDto | null;
+};
+
+export type PlayerIntelligenceDto = {
+  profile: PlayerIntelligenceProfileDto;
+  radar: PlayerSkillRadarDto;
+  per90: PlayerPer90SummaryDto;
+  heatmap: PlayerHeatmapDto;
+  valueEstimate: PlayerValueEstimateDto;
+  fitProjection: PlayerFitProjectionDto;
+  archetype: PlayerArchetypeDto;
+  similarPlayers: PlayerSimilarityDto;
+  leagueComparison: LeagueAverageComparisonDto;
+  roleAssessment: RoleSpecificAssessmentDto;
+};
+
 export type RecruitmentBoardDto = {
   safeMessage: string;
   totalPlayers: number;
@@ -309,5 +511,6 @@ export type ApiState = {
   memoryMaps: MemoryMapRegistryDto | null;
   fm26Snapshot: Fm26SnapshotDto | null;
   fm26SnapshotHistory: Fm26SnapshotHistoryDto | null;
+  playerIntelligenceReadiness: PlayerIntelligenceReadinessDto | null;
   scoutReports: ScoutReportSummaryDto[];
 };

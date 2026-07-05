@@ -133,6 +133,86 @@ namespace Statlyn.Data
                         Confidence INTEGER NOT NULL,
                         FOREIGN KEY(PlayerId) REFERENCES Player(Id)
                     );",
+                    @"CREATE TABLE IF NOT EXISTS player_match_performance (
+                        Id INTEGER PRIMARY KEY,
+                        StatlynPlayerId TEXT NOT NULL,
+                        MatchId TEXT NOT NULL,
+                        Competition TEXT NULL,
+                        MatchDateUtc TEXT NULL,
+                        Minutes REAL NULL,
+                        MetricName TEXT NOT NULL,
+                        MetricValue REAL NOT NULL,
+                        Unit TEXT NULL,
+                        SourceName TEXT NOT NULL,
+                        Confidence INTEGER NOT NULL,
+                        CreatedAtUtc TEXT NOT NULL
+                    );",
+                    @"CREATE TABLE IF NOT EXISTS player_event_locations (
+                        Id INTEGER PRIMARY KEY,
+                        StatlynPlayerId TEXT NOT NULL,
+                        MatchId TEXT NOT NULL,
+                        TeamId TEXT NULL,
+                        Opponent TEXT NULL,
+                        Minute REAL NOT NULL,
+                        X REAL NOT NULL,
+                        Y REAL NOT NULL,
+                        ActionType TEXT NOT NULL,
+                        SourceName TEXT NOT NULL,
+                        Confidence INTEGER NOT NULL,
+                        CreatedAtUtc TEXT NOT NULL
+                    );",
+                    @"CREATE TABLE IF NOT EXISTS player_market_context (
+                        Id INTEGER PRIMARY KEY,
+                        StatlynPlayerId TEXT NOT NULL,
+                        Currency TEXT NULL,
+                        ValueLow REAL NULL,
+                        ValueMid REAL NULL,
+                        ValueHigh REAL NULL,
+                        AskingPrice REAL NULL,
+                        Wage REAL NULL,
+                        ContractEnd TEXT NULL,
+                        LeagueLevel TEXT NULL,
+                        SourceName TEXT NOT NULL,
+                        Confidence INTEGER NOT NULL,
+                        UpdatedAtUtc TEXT NOT NULL
+                    );",
+                    @"CREATE TABLE IF NOT EXISTS team_style_profiles (
+                        Id INTEGER PRIMARY KEY,
+                        TeamStyleId TEXT NOT NULL UNIQUE,
+                        DisplayName TEXT NOT NULL,
+                        RoleFocus TEXT NOT NULL,
+                        PressingIntensity REAL NULL,
+                        Tempo REAL NULL,
+                        DefensiveLine REAL NULL,
+                        Width REAL NULL,
+                        SourceName TEXT NOT NULL,
+                        Confidence INTEGER NOT NULL,
+                        UpdatedAtUtc TEXT NOT NULL
+                    );",
+                    @"CREATE TABLE IF NOT EXISTS league_average_metrics (
+                        Id INTEGER PRIMARY KEY,
+                        LeagueKey TEXT NOT NULL,
+                        PositionGroup TEXT NOT NULL,
+                        RoleName TEXT NOT NULL,
+                        MetricName TEXT NOT NULL,
+                        AverageValue REAL NOT NULL,
+                        SampleSize INTEGER NOT NULL,
+                        MinutesThreshold INTEGER NOT NULL,
+                        SourceName TEXT NOT NULL,
+                        Confidence INTEGER NOT NULL,
+                        UpdatedAtUtc TEXT NOT NULL
+                    );",
+                    @"CREATE TABLE IF NOT EXISTS player_style_vectors (
+                        Id INTEGER PRIMARY KEY,
+                        StatlynPlayerId TEXT NOT NULL,
+                        VectorKey TEXT NOT NULL,
+                        MetricName TEXT NOT NULL,
+                        MetricValue REAL NOT NULL,
+                        Minutes INTEGER NOT NULL,
+                        SourceName TEXT NOT NULL,
+                        Confidence INTEGER NOT NULL,
+                        UpdatedAtUtc TEXT NOT NULL
+                    );",
                     @"CREATE TABLE IF NOT EXISTS PlayerProfileSnapshot (
                         Id INTEGER PRIMARY KEY,
                         PlayerId INTEGER NOT NULL,
@@ -581,6 +661,16 @@ namespace Statlyn.Data
                         ON PlayerStat (PlayerId, FieldInstanceKey);",
                     @"CREATE UNIQUE INDEX IF NOT EXISTS UX_PhysicalMetric_Player_FieldInstance
                         ON PhysicalMetric (PlayerId, FieldInstanceKey);",
+                    @"CREATE INDEX IF NOT EXISTS IX_player_match_performance_player
+                        ON player_match_performance (StatlynPlayerId);",
+                    @"CREATE INDEX IF NOT EXISTS IX_player_event_locations_player
+                        ON player_event_locations (StatlynPlayerId);",
+                    @"CREATE INDEX IF NOT EXISTS IX_player_market_context_player
+                        ON player_market_context (StatlynPlayerId);",
+                    @"CREATE INDEX IF NOT EXISTS IX_league_average_metrics_scope
+                        ON league_average_metrics (LeagueKey, PositionGroup, RoleName);",
+                    @"CREATE INDEX IF NOT EXISTS IX_player_style_vectors_player
+                        ON player_style_vectors (StatlynPlayerId, VectorKey);",
                     @"CREATE INDEX IF NOT EXISTS IX_DataSource_SourceName_ImportedAtUtc
                         ON DataSource (SourceName, ImportedAtUtc);",
                     @"CREATE INDEX IF NOT EXISTS IX_RoleScore_Player_RoleModel_CreatedAt

@@ -1,6 +1,20 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { apiBaseUrl, createPersistedFm26Snapshot, loadWorkspace } from "./api";
-import type { ApiState, Fm26SnapshotHistoryDto, PlayerListItemDto } from "./types";
+import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import { apiBaseUrl, createPersistedFm26Snapshot, getPlayerIntelligence, loadWorkspace } from "./api";
+import type {
+  ApiState,
+  Fm26SnapshotHistoryDto,
+  LeagueAverageComparisonDto,
+  PlayerArchetypeDto,
+  PlayerFitProjectionDto,
+  PlayerHeatmapDto,
+  PlayerIntelligenceDto,
+  PlayerListItemDto,
+  PlayerPer90SummaryDto,
+  PlayerSimilarityDto,
+  PlayerSkillRadarDto,
+  PlayerValueEstimateDto,
+  RoleSpecificAssessmentDto
+} from "./types";
 
 type SectionName =
   | "Dashboard"
@@ -66,6 +80,7 @@ const emptyState: ApiState = {
   memoryMaps: null,
   fm26Snapshot: null,
   fm26SnapshotHistory: null,
+  playerIntelligenceReadiness: null,
   scoutReports: []
 };
 
@@ -78,6 +93,9 @@ export default function App() {
   const [recommendationFilter, setRecommendationFilter] = useState("All");
   const [isLoading, setIsLoading] = useState(true);
   const [isCreatingSnapshot, setIsCreatingSnapshot] = useState(false);
+  const [isPlayerIntelLoading, setIsPlayerIntelLoading] = useState(false);
+  const [playerIntelligence, setPlayerIntelligence] = useState<PlayerIntelligenceDto | null>(null);
+  const [playerIntelMessage, setPlayerIntelMessage] = useState<string | null>(null);
   const [snapshotActionMessage, setSnapshotActionMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -152,6 +170,44 @@ export default function App() {
   const hasActiveFilters = searchTerm.trim().length > 0 || positionFilter !== "All" || recommendationFilter !== "All";
   const showsScoutControls =
     activeSection === "Recruitment Board" || activeSection === "Player Profile" || activeSection === "Scout Reports";
+
+  useEffect(() => {
+    let isCurrent = true;
+    const selectedId = selectedPlayer?.statlynPlayerId ?? "";
+
+    if (activeSection !== "Player Profile" || selectedId.length === 0) {
+      setPlayerIntelligence(null);
+      setPlayerIntelMessage(null);
+      setIsPlayerIntelLoading(false);
+      return () => {
+        isCurrent = false;
+      };
+    }
+
+    setIsPlayerIntelLoading(true);
+    setPlayerIntelMessage(null);
+    getPlayerIntelligence(selectedId)
+      .then((result) => {
+        if (isCurrent) {
+          setPlayerIntelligence(result);
+        }
+      })
+      .catch((caught: unknown) => {
+        if (isCurrent) {
+          setPlayerIntelligence(null);
+          setPlayerIntelMessage(caught instanceof Error ? caught.message : "Player intelligence is unavailable.");
+        }
+      })
+      .finally(() => {
+        if (isCurrent) {
+          setIsPlayerIntelLoading(false);
+        }
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [activeSection, selectedPlayer?.statlynPlayerId]);
 
   return (
     <div className="app-shell">
@@ -243,6 +299,9 @@ export default function App() {
             onNavigate={setActiveSection}
             onCreateSnapshot={createSnapshotAuditEntry}
             isCreatingSnapshot={isCreatingSnapshot}
+            isPlayerIntelLoading={isPlayerIntelLoading}
+            playerIntelligence={playerIntelligence}
+            playerIntelMessage={playerIntelMessage}
             snapshotActionMessage={snapshotActionMessage}
           />
         ) : null}
@@ -345,6 +404,9 @@ function WorkspaceContent({
   onNavigate,
   onCreateSnapshot,
   isCreatingSnapshot,
+  isPlayerIntelLoading,
+  playerIntelligence,
+  playerIntelMessage,
   snapshotActionMessage
 }: {
   activeSection: SectionName;
@@ -355,6 +417,9 @@ function WorkspaceContent({
   onNavigate: (section: SectionName) => void;
   onCreateSnapshot: () => void;
   isCreatingSnapshot: boolean;
+  isPlayerIntelLoading: boolean;
+  playerIntelligence: PlayerIntelligenceDto | null;
+  playerIntelMessage: string | null;
   snapshotActionMessage: string | null;
 }) {
   if (activeSection === "Recruitment Board") {
@@ -379,7 +444,12 @@ function WorkspaceContent({
   if (activeSection === "Player Profile") {
     return (
       <section className="content-grid">
-        <PlayerProfilePanel player={players.find((player) => player.statlynPlayerId === selectedPlayerId) ?? players[0] ?? null} />
+        <PlayerProfilePanel
+          player={players.find((player) => player.statlynPlayerId === selectedPlayerId) ?? players[0] ?? null}
+          intelligence={playerIntelligence}
+          isLoading={isPlayerIntelLoading}
+          message={playerIntelMessage}
+        />
         <RecruitmentPanel players={players} selectedPlayerId={selectedPlayerId} onSelectPlayer={onSelectPlayer} compact />
       </section>
     );
@@ -472,6 +542,7 @@ function DashboardPanel({ state, wide = false }: { state: ApiState; wide?: boole
   const connector = state.connectorStatus;
   const registry = state.memoryMaps;
   const snapshot = state.fm26Snapshot;
+  const intelligence = state.playerIntelligenceReadiness;
   return (
     <section className={`panel cockpit-panel ${wide ? "wide" : ""}`}>
       <SectionHeader
@@ -508,6 +579,12 @@ function DashboardPanel({ state, wide = false }: { state: ApiState; wide?: boole
           value={String(dashboard?.benchmarkDefinitionCount ?? 0)}
           note="No fake percentiles"
           tone={dashboard && dashboard.benchmarkDefinitionCount > 0 ? "info" : "muted"}
+        />
+        <MetricCard
+          label="Player Intelligence"
+          value={intelligence?.available ? "Ready" : "Awaiting"}
+          note={intelligence?.safeMessage ?? "Awaiting local data"}
+          tone={intelligence?.available ? "success" : "muted"}
         />
         <MetricCard
           label="FM26 Connector"
@@ -739,33 +816,312 @@ function RecruitmentWorkflowPanel({ state, visiblePlayers }: { state: ApiState; 
   );
 }
 
-function PlayerProfilePanel({ player }: { player: PlayerListItemDto | null }) {
+function PlayerProfilePanel({
+  player,
+  intelligence,
+  isLoading,
+  message
+}: {
+  player: PlayerListItemDto | null;
+  intelligence: PlayerIntelligenceDto | null;
+  isLoading: boolean;
+  message: string | null;
+}) {
   return (
-    <section className="panel wide">
-      <SectionHeader title="Player Profile" detail={player ? "Selected safe player row from API data." : "No imported players."} />
+    <section className="panel wide player-intelligence-panel">
+      <SectionHeader title="Player Intelligence" detail={player ? "Selected safe player row with backend analytics modules." : "No imported players."} />
       {player ? (
         <div className="profile-stack">
-          <div>
-            <h2>{player.displayName}</h2>
-            <p>{player.primaryPosition} / {player.nationality}</p>
+          <div className="player-intel-hero">
+            <div>
+              <h2>{intelligence?.profile.displayName || player.displayName}</h2>
+              <p>{intelligence?.profile.position || player.primaryPosition} / {intelligence?.profile.nationality || player.nationality}</p>
+            </div>
+            <div className="chip-row">
+              <SignalBadge label="Source" tone="info" value={intelligence?.profile.source || player.sourceName || "Local"} />
+              <SignalBadge label="Role" tone="info" value={intelligence?.profile.role || player.roleName} />
+              <SignalBadge label="FM26" tone="warning" value="Unsupported" />
+            </div>
           </div>
           <div className="visual-bars">
-            <ModelConfidenceBar label="Role Fit" value={player.roleFit} />
-            <ModelConfidenceBar label="Confidence" value={player.confidence} />
+            <ModelConfidenceBar label="Role Fit" value={intelligence?.profile.roleFit ?? player.roleFit} />
+            <ModelConfidenceBar label="Confidence" value={intelligence?.profile.confidence ?? player.confidence} />
             <DataQualityBar value={player.dataCompleteness} />
           </div>
-          <div className="chip-row">
-            <SignalBadge label="Role" tone="info" value={player.roleName} />
-            <SignalBadge label="Benchmark" tone={toneForBenchmark(player.benchmarkStatus)} value={player.benchmarkStatus} />
-            <SignalBadge label="Blocked" tone={player.blockedFieldCount > 0 ? "warning" : "muted"} value={String(player.blockedFieldCount)} />
-          </div>
+          {isLoading ? <RiskSignal tone="info" title="Loading intelligence modules" message="Requesting safe backend DTOs from Statlyn.Api." /> : null}
+          {message ? <RiskSignal tone="danger" title="Player intelligence unavailable" message={message} /> : null}
           <WarningList warnings={player.safeWarnings} />
+          <div className="intelligence-grid">
+            <ValueEstimateModule estimate={intelligence?.valueEstimate ?? null} />
+            <RadarProfileModule radar={intelligence?.radar ?? null} />
+            <Per90Module per90={intelligence?.per90 ?? null} />
+            <HeatmapModule heatmap={intelligence?.heatmap ?? null} />
+            <FitProjectionModule fit={intelligence?.fitProjection ?? null} />
+            <ArchetypeModule archetype={intelligence?.archetype ?? null} />
+            <SimilarityModule similarity={intelligence?.similarPlayers ?? null} />
+            <LeagueComparisonModule comparison={intelligence?.leagueComparison ?? null} />
+            <RoleAssessmentModule assessment={intelligence?.roleAssessment ?? null} />
+          </div>
         </div>
       ) : (
-        <EmptyVisualState title="No selected profile" message="Import CSV data before opening a player profile." />
+        <div className="profile-stack">
+          <EmptyVisualState title="No selected profile" message="Import CSV data before opening a player profile." />
+          <div className="intelligence-grid">
+            <ValueEstimateModule estimate={null} />
+            <RadarProfileModule radar={null} />
+            <Per90Module per90={null} />
+            <HeatmapModule heatmap={null} />
+            <FitProjectionModule fit={null} />
+            <ArchetypeModule archetype={null} />
+            <SimilarityModule similarity={null} />
+            <LeagueComparisonModule comparison={null} />
+            <RoleAssessmentModule assessment={null} />
+          </div>
+        </div>
       )}
     </section>
   );
+}
+
+function ValueEstimateModule({ estimate }: { estimate: PlayerValueEstimateDto | null }) {
+  return (
+    <IntelligenceModule
+      title="Statlyn Fair Value Estimate"
+      available={estimate?.available ?? false}
+      safeMessage={estimate?.safeMessage ?? "Fair value unavailable. Missing valuation anchor, contract context or comparable player sample."}
+      dataQuality={estimate?.dataQuality ?? "Unavailable"}
+      confidence={estimate?.confidence ?? 0}
+      missing={estimate?.missingInputs ?? ["valuation anchor", "contract context", "comparable player sample"]}
+    >
+      <div className="value-estimate">
+        <strong>{formatEstimateValue(estimate)}</strong>
+        <span>Midpoint: {formatCurrencyValue(estimate?.fairValueMid ?? null, estimate?.currency ?? "")}</span>
+      </div>
+      <DriverList title="Drivers" items={estimate?.keyValueDrivers ?? []} />
+      <DriverList title="Discounts" items={estimate?.keyDiscountDrivers ?? []} />
+    </IntelligenceModule>
+  );
+}
+
+function RadarProfileModule({ radar }: { radar: PlayerSkillRadarDto | null }) {
+  return (
+    <IntelligenceModule
+      title="Radar Profile"
+      available={radar?.available ?? false}
+      safeMessage={radar?.safeMessage ?? "Skill radar unavailable. Missing enough safe visible or imported metrics."}
+      dataQuality={radar?.dataQuality ?? "Unavailable"}
+      confidence={radar?.confidence ?? 0}
+      missing={radar?.missingFields ?? ["safe visible attributes or imported role metrics"]}
+    >
+      <div className="axis-list">
+        {(radar?.axes ?? []).slice(0, 6).map((axis) => (
+          <ValueBar key={axis.axisKey || axis.label} label={axis.label} value={axis.value} tone="info" compact />
+        ))}
+      </div>
+    </IntelligenceModule>
+  );
+}
+
+function Per90Module({ per90 }: { per90: PlayerPer90SummaryDto | null }) {
+  return (
+    <IntelligenceModule
+      title="Performance Per 90"
+      available={per90?.available ?? false}
+      safeMessage={per90?.safeMessage ?? "Performance per 90 unavailable. Missing minutes or safe performance metrics."}
+      dataQuality={per90?.dataQuality ?? "Unavailable"}
+      confidence={per90?.confidence ?? 0}
+      missing={per90?.missingFields ?? ["minutes", "safe performance metrics"]}
+    >
+      <div className="metric-list">
+        {(per90?.metrics ?? []).slice(0, 6).map((metric) => (
+          <div key={metric.metricKey || metric.label}>
+            <span>{metric.label}</span>
+            <strong>{metric.value.toFixed(2)}</strong>
+          </div>
+        ))}
+      </div>
+    </IntelligenceModule>
+  );
+}
+
+function HeatmapModule({ heatmap }: { heatmap: PlayerHeatmapDto | null }) {
+  return (
+    <IntelligenceModule
+      title="Match Heatmap"
+      available={heatmap?.available ?? false}
+      safeMessage={heatmap?.safeMessage ?? "Heatmap unavailable. No safe event-location data has been imported."}
+      dataQuality={heatmap?.dataQuality ?? "Unavailable"}
+      confidence={heatmap?.confidence ?? 0}
+      missing={heatmap?.missingFields ?? ["matchId", "eventType", "x", "y", "minute"]}
+    >
+      <div className="heatmap-grid" aria-label="Imported event-location heatmap">
+        {(heatmap?.points ?? []).slice(0, 80).map((point, index) => (
+          <i
+            key={`${point.matchId}-${point.minute}-${index}`}
+            style={{ left: `${point.x}%`, top: `${100 - point.y}%` }}
+            title={`${point.actionType} ${point.minute}`}
+          />
+        ))}
+      </div>
+    </IntelligenceModule>
+  );
+}
+
+function FitProjectionModule({ fit }: { fit: PlayerFitProjectionDto | null }) {
+  return (
+    <IntelligenceModule
+      title="Expected Fit"
+      available={fit?.available ?? false}
+      safeMessage={fit?.safeMessage ?? "Fit projection unavailable. Team style model or squad need has not been defined."}
+      dataQuality={fit?.dataQuality ?? "Unavailable"}
+      confidence={fit?.confidence ?? 0}
+      missing={fit?.missingFields ?? ["team style model", "squad need", "role-specific parameters"]}
+    >
+      <DriverList title="Fit summary" items={[fit?.roleFitSummary ?? "", fit?.teamStyleSummary ?? ""].filter(Boolean)} />
+    </IntelligenceModule>
+  );
+}
+
+function ArchetypeModule({ archetype }: { archetype: PlayerArchetypeDto | null }) {
+  return (
+    <IntelligenceModule
+      title="Archetype"
+      available={archetype?.available ?? false}
+      safeMessage={archetype?.safeMessage ?? "Archetype unavailable. Safe style vector metrics are missing."}
+      dataQuality={archetype?.dataQuality ?? "Unavailable"}
+      confidence={archetype?.confidence ?? 0}
+      missing={archetype?.missingFields ?? ["style vector metrics", "role metrics", "minutes threshold"]}
+    >
+      <SignalBadge tone="info" label="Detected" value={archetype?.archetype ?? "Unavailable"} />
+      <DriverList title="Evidence" items={archetype?.evidenceMetrics ?? []} />
+    </IntelligenceModule>
+  );
+}
+
+function SimilarityModule({ similarity }: { similarity: PlayerSimilarityDto | null }) {
+  return (
+    <IntelligenceModule
+      title="Similar Players"
+      available={similarity?.available ?? false}
+      safeMessage={similarity?.safeMessage ?? "Similar player search unavailable. Not enough comparable safe player data."}
+      dataQuality={similarity?.dataQuality ?? "Unavailable"}
+      confidence={similarity?.confidence ?? 0}
+      missing={similarity?.missingFields ?? ["comparable sample", "common metric set", "position or role", "minutes threshold"]}
+    >
+      <div className="mini-table">
+        {(similarity?.candidates ?? []).map((candidate) => (
+          <div key={candidate.statlynPlayerId}>
+            <span>{candidate.displayName}</span>
+            <strong>{candidate.confidence}</strong>
+          </div>
+        ))}
+      </div>
+    </IntelligenceModule>
+  );
+}
+
+function LeagueComparisonModule({ comparison }: { comparison: LeagueAverageComparisonDto | null }) {
+  return (
+    <IntelligenceModule
+      title="League Average Comparison"
+      available={comparison?.available ?? false}
+      safeMessage={comparison?.safeMessage ?? "League comparison unavailable. Not enough league sample data."}
+      dataQuality={comparison?.dataQuality ?? "Unavailable"}
+      confidence={comparison?.confidence ?? 0}
+      missing={comparison?.missingFields ?? ["league sample", "common metric set", "sample size"]}
+    >
+      <SignalBadge tone="info" label="Sample" value={String(comparison?.sampleSize ?? 0)} />
+      <div className="axis-list">
+        {(comparison?.comparisons ?? []).slice(0, 5).map((axis) => (
+          <ValueBar key={axis.axisKey || axis.label} label={axis.label} value={axis.benchmarkValue} tone="info" compact />
+        ))}
+      </div>
+    </IntelligenceModule>
+  );
+}
+
+function RoleAssessmentModule({ assessment }: { assessment: RoleSpecificAssessmentDto | null }) {
+  const primary = assessment?.definition?.primaryMetrics ?? [];
+  return (
+    <IntelligenceModule
+      title="Role Assessment"
+      available={assessment?.available ?? false}
+      safeMessage={assessment?.safeMessage ?? "Role assessment unavailable. Missing role-specific safe metrics."}
+      dataQuality={assessment?.dataQuality ?? "Unavailable"}
+      confidence={assessment?.confidence ?? 0}
+      missing={assessment?.missingFields ?? ["role parameter definition", "role-specific metrics"]}
+    >
+      <SignalBadge tone="info" label="Role" value={assessment?.roleName ?? "Not assessed"} />
+      <div className="metric-list">
+        {primary.slice(0, 6).map((metric) => (
+          <div key={metric.metricKey}>
+            <span>{metric.label}</span>
+            <strong>{metric.minimumMinutes}</strong>
+          </div>
+        ))}
+      </div>
+    </IntelligenceModule>
+  );
+}
+
+function IntelligenceModule({
+  title,
+  available,
+  safeMessage,
+  dataQuality,
+  confidence,
+  missing,
+  children
+}: {
+  title: string;
+  available: boolean;
+  safeMessage: string;
+  dataQuality: string;
+  confidence: number;
+  missing: string[];
+  children: ReactNode;
+}) {
+  return (
+    <section className={`intelligence-module ${available ? "available" : "unavailable"}`}>
+      <div className="intelligence-module-head">
+        <h3>{title}</h3>
+        <StatusChip tone={available ? "success" : "warning"} value={available ? "Available" : "Unavailable"} />
+      </div>
+      <p>{safeMessage}</p>
+      <div className="chip-row">
+        <SignalBadge tone={toneForScore(confidence)} label="Confidence" value={String(confidence)} />
+        <SignalBadge tone={available ? "info" : "muted"} label="Data" value={dataQuality} />
+      </div>
+      {available ? children : <DriverList title="Data required" items={missing} />}
+    </section>
+  );
+}
+
+function DriverList({ title, items }: { title: string; items: string[] }) {
+  const list = items.filter((item) => item.trim().length > 0);
+  return (
+    <div className="driver-list">
+      <strong>{title}</strong>
+      {list.length === 0 ? <span>Awaiting local data.</span> : list.slice(0, 5).map((item) => <span key={item}>{item}</span>)}
+    </div>
+  );
+}
+
+function formatEstimateValue(estimate: PlayerValueEstimateDto | null): string {
+  if (!estimate || !estimate.available || estimate.fairValueLow === null || estimate.fairValueHigh === null) {
+    return "Unavailable";
+  }
+
+  return `${formatCurrencyValue(estimate.fairValueLow, estimate.currency)} - ${formatCurrencyValue(estimate.fairValueHigh, estimate.currency)}`;
+}
+
+function formatCurrencyValue(value: number | null, currency: string): string {
+  if (value === null) {
+    return "Unavailable";
+  }
+
+  const compact = value >= 1000000 ? `${(value / 1000000).toFixed(1)}m` : value >= 1000 ? `${(value / 1000).toFixed(0)}k` : value.toFixed(0);
+  return `${currency ? `${currency} ` : ""}${compact}`;
 }
 
 function ConnectorStatusPanel({ state, wide = false }: { state: ApiState; wide?: boolean }) {

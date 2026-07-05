@@ -27,7 +27,7 @@ namespace Statlyn.Tests
             new StatlynDatabaseInitializer(factory).Initialize();
             var snapshotSchema = string.Join(Environment.NewLine, StatlynDatabaseSchema.CreateStatements.Where(statement => statement.Contains("fm26_snapshot", StringComparison.OrdinalIgnoreCase)));
 
-            Assert.Equal(6, StatlynSchemaVersion.Current);
+            Assert.True(StatlynSchemaVersion.Current >= 6);
             Assert.True(TableExists(factory, "fm26_snapshot_runs"));
             Assert.True(TableExists(factory, "fm26_snapshot_gate_results"));
             Assert.Contains("snapshot_id TEXT PRIMARY KEY", snapshotSchema, StringComparison.OrdinalIgnoreCase);

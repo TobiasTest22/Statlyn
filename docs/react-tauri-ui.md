@@ -21,6 +21,8 @@ The desktop UI may handle:
 - safe persisted FM26 snapshot audit display from `/diagnostics/fm26/snapshots`
 - safe snapshot creation through `POST /diagnostics/fm26/snapshots`
 - selected-row UI state for highlighting already-safe API rows
+- Player Intelligence module display from `/players/{id}/intelligence`
+- Player Intelligence readiness display from `/analytics/player-intelligence/readiness`
 
 The desktop UI must not contain:
 
@@ -116,8 +118,35 @@ The desktop UI must show honest states for:
 - no scout reports
 - no Role Lab templates
 - no data sources
+- player intelligence unavailable
+- heatmap unavailable
+- similar player search unavailable
+- fair value unavailable
 
 No fake data is a hard rule. The UI must not create fake rows, fake KPIs, fake sync status, fake live FM26 data or hidden-value displays. If the API cannot be reached, the UI shows a safe connection error and retry button.
+
+## Player Intelligence Foundation
+
+Milestone 4.0 adds a Player Intelligence page foundation inside the existing Player Profile workflow. React/Tauri is the strategic UI and React/Tauri remains display/API-only. The page may render backend DTO modules for:
+
+- player profile identity and data quality
+- radar profile
+- performance per 90
+- match heatmap
+- Statlyn Fair Value Estimate
+- expected fit
+- archetype
+- similar players
+- league average comparison
+- role assessment
+
+These modules must render premium unavailable states when safe inputs are absent. No fake visuals, no fake player data, no fake heatmaps, no fake similar players and no fake prices may be generated in React. Fair value is labelled as an estimate, not truth, and is calculated by C# only. FM26 remains unsupported for player reading.
+
+Important unavailable messages include:
+
+- `Heatmap unavailable. No safe event-location data has been imported.`
+- `Fair value unavailable. Missing valuation anchor, contract context or comparable player sample.`
+- `Similar player search unavailable. Not enough comparable safe player data.`
 
 The Connector Status panel is informational only. It displays the API-reported binding availability, FM process detection state, read-only access status and support message. A detected FM process must still render as unsupported until validated maps exist.
 

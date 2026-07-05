@@ -45,3 +45,25 @@ jobs:
 
       - name: Build
         run: cmake --build build/native --config Release
+
+  desktop:
+    name: Desktop frontend build
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: Statlyn.Desktop/package-lock.json
+
+      - name: Install desktop dependencies
+        working-directory: Statlyn.Desktop
+        run: npm ci
+
+      - name: Check and build desktop frontend
+        working-directory: Statlyn.Desktop
+        run: npm run check

@@ -10,7 +10,12 @@
     "build": "tsc && vite build",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
-    "tauri:build": "tauri build"
+    "tauri:build": "tauri build",
+    "tauri:build:lowmem": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"$env:CARGO_BUILD_JOBS='1'; $env:CARGO_INCREMENTAL='0'; npx tauri build\"",
+    "tauri:build:nobundle": "tauri build --no-bundle",
+    "desktop:validate": "powershell -NoProfile -ExecutionPolicy Bypass -File ../tools/run-desktop-build-diagnostics.ps1",
+    "desktop:validate:quick": "powershell -NoProfile -ExecutionPolicy Bypass -File ../tools/run-desktop-build-diagnostics.ps1 -SkipTauriBuild",
+    "desktop:validate:lowmem": "powershell -NoProfile -ExecutionPolicy Bypass -File ../tools/run-desktop-build-diagnostics.ps1 -LowMemory"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.0.0",

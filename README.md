@@ -160,9 +160,24 @@ npm run check
 npm run build
 npm run tauri:dev
 npm run tauri:build
+npm run tauri:build:lowmem
+npm run tauri:build:nobundle
+npm run desktop:validate:quick
+npm run desktop:validate
 ```
 
 The React app calls `Statlyn.Api` through safe DTO endpoints. React/Tauri never calls native connector directly. It does not open SQLite directly, inspect local processes, read FM memory or calculate recruitment, role, benchmark, scouting or provider decisions in TypeScript. In current development mode the API must be started separately; API sidecar bundling is a future packaging milestone.
+
+Desktop build modes:
+
+- Frontend validation: `npm install`, `npm run check` and `npm run build`.
+- Desktop dev: `npm run tauri:dev`.
+- Full installer: `npm run tauri:build`.
+- Low-memory full installer: `npm run tauri:build:lowmem`.
+- Rust compile without installer bundling: `npm run tauri:build:nobundle`.
+- Diagnostic validation: `npm run desktop:validate` or `.\tools\run-desktop-build-diagnostics.ps1 -LowMemory`.
+
+On low-memory Windows machines, release packaging can fail inside rustc/LLVM with an out-of-memory error. That does not imply a C#/API/React logic failure. Use the low-memory path and the diagnostic script to classify whether the failure is frontend, Rust compile, installer bundling, missing toolchain, missing WebView2/Windows dependency or out-of-memory related.
 
 Tauri installer outputs are produced under:
 
@@ -171,7 +186,7 @@ Statlyn.Desktop\src-tauri\target\release\bundle\msi\
 Statlyn.Desktop\src-tauri\target\release\bundle\nsis\
 ```
 
-Current desktop limitations: FM26 is unsupported, no real data appears unless safe local data is imported into SQLite, and the NPM audit findings are development-tooling findings documented in `docs/npm-audit-notes.md`.
+Current desktop limitations: FM26 is unsupported, no real data appears unless safe local data is imported into SQLite, full installer packaging may still be limited by local machine memory, and the NPM audit findings are development-tooling findings documented in `docs/npm-audit-notes.md`.
 
 Before opening Unity, copy the shared managed assemblies, SQLite dependencies and synthetic fixture CSV into Unity folders:
 
@@ -183,7 +198,7 @@ Unity editor validation is still manual unless a release note says it was opened
 
 For a local CSV release-candidate demo, also run `Run Product Readiness Check`, use `Backup Main Database` before destructive experiments, and use `Reset Smoke-Test Database` only for the separate smoke-test database.
 
-GitHub Actions validates the managed build/tests and the native CMake build.
+GitHub Actions validates managed build/tests, the native CMake build and the desktop frontend build. Full Tauri installer packaging remains a local/release validation path until the installer build is stable enough for routine CI.
 
 ## Core Safety Rule
 

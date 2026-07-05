@@ -269,6 +269,19 @@ For local validation, run:
 
 The script runs managed build/tests, the native read-only scan, tracked JSON validation, a temporary `Statlyn.Api` health check, desktop `npm run check` and, unless skipped, `npm run tauri:build`. It does not require Unity or FM26 and must stop the temporary API process before exiting.
 
+Milestone 4.0.1 splits desktop packaging validation into clearer levels:
+
+- Frontend validation: `cd Statlyn.Desktop`, `npm install`, `npm run check`, `npm run build`.
+- Desktop dev: `npm run tauri:dev`.
+- Full installer: `npm run tauri:build`.
+- Low-memory full installer: `npm run tauri:build:lowmem`.
+- No-bundle diagnostic compile: `npm run tauri:build:nobundle`.
+- Diagnostic script: `.\tools\run-desktop-build-diagnostics.ps1 -LowMemory` or `.\tools\run-desktop-build-diagnostics.ps1 -SkipTauriBuild`.
+
+On low-memory Windows machines, rustc/LLVM may fail during release packaging with an out-of-memory error. That failure is not treated as a C#/API/React correctness failure when frontend validation passes and the diagnostic script classifies it clearly. The diagnostic script prints memory, .NET, Node, npm, rustc, cargo and Tauri CLI versions, runs desktop checks and classifies frontend, Rust compile, installer bundling, missing Rust toolchain, missing WebView2/Windows dependency and out-of-memory failures.
+
+GitHub Actions validates the managed build/tests, native connector CMake build and desktop frontend build. Full installer packaging remains a local/release validation path until the installer build is stable enough for routine CI.
+
 ## Native Connector Diagnostics Tests
 
 Milestone 3.1 adds safe native connector diagnostics coverage:

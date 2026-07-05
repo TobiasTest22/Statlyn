@@ -87,6 +87,10 @@ npm run check
 npm run build
 npm run tauri:dev
 npm run tauri:build
+npm run tauri:build:lowmem
+npm run tauri:build:nobundle
+npm run desktop:validate:quick
+npm run desktop:validate
 ```
 
 `npm run check` runs TypeScript checking and the Vite production build. `npm run tauri:build` produces installer bundles under:
@@ -96,13 +100,26 @@ Statlyn.Desktop/src-tauri/target/release/bundle/msi/
 Statlyn.Desktop/src-tauri/target/release/bundle/nsis/
 ```
 
+Desktop build modes are intentionally split:
+
+- Frontend validation: `npm install`, `npm run check` and `npm run build`.
+- Desktop dev: `npm run tauri:dev`.
+- Full installer: `npm run tauri:build`.
+- Low-memory installer: `npm run tauri:build:lowmem`, which sets `CARGO_BUILD_JOBS=1` and `CARGO_INCREMENTAL=0`.
+- No-bundle diagnostic: `npm run tauri:build:nobundle`, which compiles the app and skips MSI/NSIS bundling.
+- Diagnostic script: `.\tools\run-desktop-build-diagnostics.ps1 -LowMemory` from the repository root.
+
+On low-memory Windows machines, the full installer path can fail inside rustc/LLVM with an out-of-memory error. This is separate from React, API and C# correctness. The diagnostic script prints memory and tool versions, runs frontend validation, optionally runs the low-memory or no-bundle Tauri build and classifies failures as frontend, Rust compile, installer bundling, missing Rust toolchain, missing WebView2/Windows dependency or out-of-memory.
+
+The Rust release profile in `Statlyn.Desktop/src-tauri/Cargo.toml` keeps LTO disabled, keeps release codegen parallelism at the default-safe value and strips debug info. This is a packaging-memory stability setting only; Tauri Rust remains a display shell and does not read SQLite, call native connector code or inspect FM26.
+
 The root validation helper can run the local stack checks:
 
 ```powershell
 .\tools\run-desktop-validation.ps1
 ```
 
-It does not require FM26 or Unity and stops its temporary API process before exiting.
+It does not require FM26 or Unity and stops its temporary API process before exiting. The dedicated desktop diagnostics script does not start API, does not require FM26 and does not read player data.
 
 ## Safe States
 
@@ -166,6 +183,8 @@ Future packaging options:
 4. Keep current development mode, where the API is started separately.
 
 Recommendation for now: keep the API separate for development validation. Sidecar bundling should be a later milestone after the API contract and desktop validation path stay stable.
+
+CI currently validates managed C# build/tests, native connector CMake build and the desktop frontend build (`npm ci` plus `npm run check`). Full Tauri installer packaging stays local/release-only until the Windows packaging path is stable enough for routine CI.
 
 ## Current Limitations
 
